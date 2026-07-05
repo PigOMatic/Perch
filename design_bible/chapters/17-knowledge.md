@@ -14,19 +14,27 @@ Knowledge is the domain for what Perch knows, how it knows it, how confident it 
 
 ---
 
-## 1. Primary Question
+## 1. Vision
+
+The Knowledge domain transforms Perch from an opaque assistant into a transparent, inspectable system. A user should be able to ask "why did Perch surface that?" and get a clear answer with source, confidence, and connected reasoning.
+
+The vision is a personal knowledge graph — people, places, facts, memories, obligations, preferences, and corrections — that the user can audit, correct, and explore without becoming a database administrator. Chapter 12 documents the current combined Knowledge & Search implementation; this chapter defines the future dedicated Knowledge surface.
+
+---
+
+## 2. Primary Question
 
 **What does Perch know that can help me?**
 
 ---
 
-## 2. Design Intent
+## 3. Design Intent
 
 Knowledge is not trivia storage. It is a trustworthy personal context layer. It lets the user inspect, correct, connect, and reuse what Perch has learned.
 
 ---
 
-## 3. Relationship to Chapter 12
+## 4. Relationship to Chapter 12
 
 Chapter 12 — Knowledge & Search documents the current combined implementation: structured memories, interests, people details, Brain captures, and literal search.
 
@@ -34,7 +42,7 @@ This chapter defines the eventual dedicated Knowledge domain once the model beco
 
 ---
 
-## 4. Read Mode
+## 5. Read Mode
 
 Shows:
 
@@ -46,7 +54,7 @@ Shows:
 
 ---
 
-## 5. Explore Mode
+## 6. Explore Mode
 
 Allows browsing by:
 
@@ -60,7 +68,7 @@ Allows browsing by:
 
 ---
 
-## 6. Core Information
+## 7. Core Information
 
 - Fact or memory
 - Source
@@ -72,7 +80,7 @@ Allows browsing by:
 
 ---
 
-## 7. AI Responsibilities
+## 8. AI Responsibilities
 
 The AI should:
 
@@ -80,10 +88,11 @@ The AI should:
 - Ask for confirmation when confidence is low.
 - Connect facts without overstating certainty.
 - Never convert guesses into stored truth.
+- Treat user corrections as first-class evidence.
 
 ---
 
-## 8. Does Not Belong
+## 9. Does Not Belong
 
 - Unverified personality profiling
 - Hidden memory the user cannot inspect
@@ -92,6 +101,20 @@ The AI should:
 
 ---
 
-## 9. Success Criteria
+## 10. Acceptance Tests
+
+The Knowledge page is ready when:
+
+- [ ] A user can view stored facts organized by useful categories.
+- [ ] Each fact displays its source, confidence, and last update date.
+- [ ] Low-confidence facts are flagged for review or correction.
+- [ ] A user can edit, delete, or add context to any fact.
+- [ ] Evidence chains explain why Perch believes something.
+- [ ] No hidden or unexplainable facts are required for product behavior.
+- [ ] Knowledge facts can be linked to the domains that use them.
+
+---
+
+## 11. Success Criteria
 
 The user can inspect and trust what Perch believes it knows.
