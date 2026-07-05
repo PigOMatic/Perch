@@ -14,19 +14,27 @@ Search is the universal retrieval surface for Perch. It helps the user find anyt
 
 ---
 
-## 1. Primary Question
+## 1. Vision
+
+Search transforms scattered information across Perch into one clear answer: "Where is this thing?" The vision is semantic, domain-aware retrieval that preserves source, confidence, and context.
+
+A user should be able to search across people, projects, goals, facts, captures, and memories without needing to remember which page owns each record. Search should feel like asking a knowledgeable assistant where something lives, not fighting a keyword box. Chapter 12 documents the current literal search reality; this chapter defines the future intelligent retrieval layer.
+
+---
+
+## 2. Primary Question
 
 **How do I instantly find anything across Perch?**
 
 ---
 
-## 2. Design Intent
+## 3. Design Intent
 
 Search should feel like asking Perch where something lives. It must search broadly but answer carefully, preserving source, confidence, and domain boundaries.
 
 ---
 
-## 3. Relationship to Chapter 12
+## 4. Relationship to Chapter 12
 
 Chapter 12 documents the current Knowledge & Search reality: keyword and substring search only.
 
@@ -34,18 +42,29 @@ This chapter defines the future dedicated Search page and universal retrieval mo
 
 ---
 
-## 4. Default State
+## 5. Read Mode
 
-Search should show:
+The default state when Search opens should show:
 
 - Recent searches
 - Recently touched items
-- Suggested useful searches
+- Suggested useful searches based on current context
 - Search scope controls
 
 ---
 
-## 5. Result Filters
+## 6. Explore Mode
+
+When results appear, Explore Mode should support:
+
+- Results sorted by relevance, date, and domain
+- Filters by domain, date, person, source, confidence, and status
+- Match explanations for each result
+- A direct way to open the source record or related context
+
+---
+
+## 7. Result Filters
 
 Search results should be filterable by:
 
@@ -59,7 +78,7 @@ Search results should be filterable by:
 
 ---
 
-## 6. Core Information
+## 8. Core Information
 
 Every result should show:
 
@@ -73,7 +92,7 @@ Every result should show:
 
 ---
 
-## 7. AI Responsibilities
+## 9. AI Responsibilities
 
 The AI should:
 
@@ -85,7 +104,7 @@ The AI should:
 
 ---
 
-## 8. Does Not Belong
+## 10. Does Not Belong
 
 - Results without provenance
 - Hidden ranking rules
@@ -94,6 +113,20 @@ The AI should:
 
 ---
 
-## 9. Success Criteria
+## 11. Acceptance Tests
+
+The Search page is ready when:
+
+- [ ] A user can search across all implemented domains from one place.
+- [ ] Results are sorted by relevance with an explanation for each match.
+- [ ] Each result shows source, confidence, and domain.
+- [ ] Filters work by domain, date, person, source, status, and confidence where those fields exist.
+- [ ] Sensitive records respect privacy and visibility rules.
+- [ ] Empty results say Perch does not know rather than inventing matches.
+- [ ] Search does not imply semantic/vector capability until that capability exists.
+
+---
+
+## 12. Success Criteria
 
 The user can find anything important without remembering which page owns it.
