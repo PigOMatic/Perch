@@ -4,13 +4,15 @@
  * --------------------
  * Minimal validation helper for JSON fixtures.
  *
- * This runner currently checks fixture shape and a few generic expectations.
- * It does not yet execute restored Perch app functions. That will come after
- * the logic is wrapped behind stable module interfaces.
+ * Current scope:
+ * - validates fixture shape
+ * - executes the first extracted domain behavior: money/bills-before-payday
  */
 
 const fs = require('fs');
 const path = require('path');
+
+const PerchMoney = require('../src/domain/money.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 const fixtureRoot = path.join(repoRoot, 'tests', 'fixtures');
@@ -42,6 +44,20 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function assertEqual(actual, expected, message) {
+  if (actual !== expected) {
+    throw new Error(`${message}. Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+  }
+}
+
+function assertArrayEqual(actual, expected, message) {
+  const actualJson = JSON.stringify(actual || []);
+  const expectedJson = JSON.stringify(expected || []);
+  if (actualJson !== expectedJson) {
+    throw new Error(`${message}. Expected ${expectedJson}, got ${actualJson}`);
+  }
+}
+
 function validateFixture(fixture, relativePath) {
   assert(fixture && typeof fixture === 'object', `${relativePath}: fixture must be an object`);
   assert(typeof fixture.name === 'string' && fixture.name.length > 0, `${relativePath}: missing name`);
@@ -53,6 +69,21 @@ function validateFixture(fixture, relativePath) {
   return true;
 }
 
+function validateMoneyFixture(fixture, relativePath) {
+  if (!relativePath.endsWith('tests/fixtures/money/bills-before-payday-basic.json')) return;
+
+  const result = PerchMoney.billsBeforePayday(fixture.given);
+
+  assertEqual(result.billsBeforePayday, fixture.expect.billsBeforePayday, `${relativePath}: billsBeforePayday mismatch`);
+  assertEqual(result.cushionBeforePayday, fixture.expect.cushionBeforePayday, `${relativePath}: cushionBeforePayday mismatch`);
+  assertEqual(result.classification, fixture.expect.classification, `${relativePath}: classification mismatch`);
+  assertArrayEqual(result.excludedBills, fixture.expect.excludedBills, `${relativePath}: excludedBills mismatch`);
+}
+
+function validateBehavior(fixture, relativePath) {
+  validateMoneyFixture(fixture, relativePath);
+}
+
 function main() {
   const files = walkJsonFiles(fixtureRoot);
   const results = [];
@@ -62,6 +93,7 @@ function main() {
     try {
       const fixture = readJson(file);
       validateFixture(fixture, relativePath);
+      validateBehavior(fixture, relativePath);
       results.push({ file: relativePath, ok: true });
     } catch (error) {
       results.push({ file: relativePath, ok: false, error: error.message });
