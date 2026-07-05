@@ -14,6 +14,7 @@ const PerchTodayStorageInput = require('../src/state/todayStorageInput.js');
 const PerchStorageDebugDrawer = require('../src/dev/storageDebugDrawer.js');
 const PerchTodayBriefView = require('../src/ui/todayBriefView.js');
 const PerchTodayFieldGuideView = require('../src/ui/todayFieldGuideView.js');
+const PerchLayoutRoles = require('../src/ui/perchLayoutRoles.js');
 
 globalThis.PerchMoney = PerchMoney;
 globalThis.PerchCapture = PerchCapture;
@@ -192,6 +193,19 @@ function checkTodayFieldGuideView(f, rel) {
   same(typeof PerchTodayFieldGuideView.renderTodayFieldGuideView, 'function', `${rel} renderTodayFieldGuideView`);
 }
 
+function checkPerchLayoutRoles(f, rel) {
+  if (!rel.endsWith('tests/fixtures/ui/perch-layout-roles.json')) return;
+  sameArray(PerchLayoutRoles.ROLE_ORDER, f.expect.roles, `${rel} roles`);
+  same(f.expect.stableAcrossSurfaces, true, `${rel} stableAcrossSurfaces`);
+  same(f.expect.allowsDifferentLocations, true, `${rel} allowsDifferentLocations`);
+  same(f.expect.sameMeaningDifferentSurface, true, `${rel} sameMeaningDifferentSurface`);
+  same(f.expect.supportsObjectAging, true, `${rel} supportsObjectAging`);
+  same(f.expect.supportsStickers, true, `${rel} supportsStickers`);
+  same(f.expect.supportsTabs, true, `${rel} supportsTabs`);
+  same(f.expect.supportsHandwrittenMarks, true, `${rel} supportsHandwrittenMarks`);
+  same(f.expect.supportsPersonalCustomization, true, `${rel} supportsPersonalCustomization`);
+}
+
 function checkTodayStorageInput(f, rel) {
   if (!rel.endsWith('tests/fixtures/state/today-storage-input-basic.json')) return;
   const r = PerchTodayStorageInput.buildTodayInputFromStorageSnapshot(f.given.snapshot, f.given.fallbackInput);
@@ -239,6 +253,7 @@ const results = files(fixtureRoot).map((file) => {
     checkTodayVisionTarget(fixture, rel);
     checkTodayBriefView(fixture, rel);
     checkTodayFieldGuideView(fixture, rel);
+    checkPerchLayoutRoles(fixture, rel);
     checkTodayStorageInput(fixture, rel);
     checkStorageDebugDrawer(fixture, rel);
     return { rel, ok: true };

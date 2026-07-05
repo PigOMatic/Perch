@@ -1,0 +1,27 @@
+{
+  "name": "perch-layout-roles",
+  "status": "layout-system-fixture",
+  "description": "Protects the reusable Perch layout anatomy so the same meaning can move across page, journal, map, guidebook, mobile, and widget surfaces.",
+  "given": {
+    "surfaceMetaphors": ["page", "journal", "map", "guidebook", "mobile", "widget"]
+  },
+  "expect": {
+    "roles": [
+      "orientation",
+      "primary-marker",
+      "terrain-context",
+      "margin-notes",
+      "trust-source",
+      "next-step",
+      "can-wait"
+    ],
+    "stableAcrossSurfaces": true,
+    "allowsDifferentLocations": true,
+    "sameMeaningDifferentSurface": true,
+    "supportsObjectAging": true,
+    "supportsStickers": true,
+    "supportsTabs": true,
+    "supportsHandwrittenMarks": true,
+    "supportsPersonalCustomization": true
+  }
+}
