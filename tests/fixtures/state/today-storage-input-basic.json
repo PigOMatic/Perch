@@ -9,6 +9,23 @@
           {
             "text": "remind me to check the pool tomorrow at 9am"
           }
+        ],
+        "people": [
+          {
+            "id": "person_sam",
+            "name": "Sam",
+            "relationship": "son",
+            "birthday": "2022-04-28"
+          }
+        ],
+        "workShifts": [
+          {
+            "id": "shift_2026_07_07",
+            "date": "2026-07-07",
+            "start": "19:00",
+            "end": "23:59",
+            "label": "ICU night shift"
+          }
         ]
       },
       "paydayCard": {
@@ -36,7 +53,9 @@
         "nextPayday": "2026-07-20",
         "bills": []
       },
-      "captures": []
+      "captures": [],
+      "people": [],
+      "workShifts": []
     }
   },
   "expect": {
@@ -44,6 +63,10 @@
     "nextPayday": "2026-07-12",
     "billIds": ["bill_power"],
     "captureCount": 1,
+    "peopleCount": 1,
+    "personIds": ["person_sam"],
+    "workShiftCount": 1,
+    "workShiftIds": ["shift_2026_07_07"],
     "sourceIndicator": "browser-storage",
     "sourceLabel": "Using browser storage",
     "storageMode": "read-only",
