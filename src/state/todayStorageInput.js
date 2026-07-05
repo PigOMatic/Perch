@@ -84,30 +84,47 @@
       .filter(Boolean);
   }
 
+  function sourceStatus(parts) {
+    const usedStorage = parts.some(Boolean);
+    const usedFallback = parts.some((used) => !used);
+
+    if (usedStorage && usedFallback) return 'mixed';
+    if (usedStorage) return 'browser-storage';
+    return 'sample-fallback';
+  }
+
   function buildTodayInputFromStorageSnapshot(snapshot, fallbackInput = {}) {
     const memory = snapshot && snapshot.memory;
     const paydayCard = snapshot && snapshot.paydayCard;
     const recommendationPrefs = snapshot && snapshot.recommendationPrefs;
     const noticed = snapshot && snapshot.noticed;
 
-    const checkingBalance = pickNumber(
+    const storedCheckingBalance = pickNumber(
       paydayCard && paydayCard.checkingBalance,
       paydayCard && paydayCard.balance,
       memory && memory.checkingBalance,
-      memory && memory.basics && memory.basics.checkingBalance,
-      fallbackInput.money && fallbackInput.money.checkingBalance
+      memory && memory.basics && memory.basics.checkingBalance
     );
 
-    const nextPayday = pickString(
+    const storedNextPayday = pickString(
       paydayCard && paydayCard.nextPayday,
       paydayCard && paydayCard.payday,
       memory && memory.nextPayday,
-      memory && memory.basics && memory.basics.nextPayday,
-      fallbackInput.money && fallbackInput.money.nextPayday
+      memory && memory.basics && memory.basics.nextPayday
     );
 
+    const checkingBalance = storedCheckingBalance === null
+      ? pickNumber(fallbackInput.money && fallbackInput.money.checkingBalance)
+      : storedCheckingBalance;
+
+    const nextPayday = storedNextPayday || pickString(fallbackInput.money && fallbackInput.money.nextPayday);
     const bills = extractBills(paydayCard, memory);
     const captures = extractCaptures(memory, noticed);
+
+    const moneyFromStorage = storedCheckingBalance !== null || Boolean(storedNextPayday) || bills.length > 0;
+    const capturesFromStorage = captures.length > 0;
+    const recommendationsFromStorage = Boolean(recommendationPrefs);
+    const source = sourceStatus([moneyFromStorage, capturesFromStorage, recommendationsFromStorage]);
 
     const todayInput = {
       ...fallbackInput,
@@ -121,6 +138,20 @@
       recommendation: {
         ...(fallbackInput.recommendation || {}),
         preferences: recommendationPrefs || (fallbackInput.recommendation && fallbackInput.recommendation.preferences) || {}
+      },
+      sourceIndicator: {
+        source,
+        mode: 'read-only',
+        label: source === 'browser-storage'
+          ? 'Using browser storage'
+          : source === 'mixed'
+            ? 'Using browser storage with sample fallback'
+            : 'Using sample data',
+        details: {
+          moneyFromStorage,
+          capturesFromStorage,
+          recommendationsFromStorage
+        }
       },
       storageRead: {
         mode: 'read-only',
