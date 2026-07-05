@@ -1,0 +1,51 @@
+{
+  "name": "today-storage-input-basic",
+  "status": "initial-fixture",
+  "description": "Protects read-only conversion from known Perch storage snapshots into TodayState input.",
+  "given": {
+    "snapshot": {
+      "memory": {
+        "captures": [
+          {
+            "text": "remind me to check the pool tomorrow at 9am"
+          }
+        ]
+      },
+      "paydayCard": {
+        "checkingBalance": 1500,
+        "nextPayday": "2026-07-12",
+        "bills": [
+          {
+            "id": "bill_power",
+            "name": "Power",
+            "amount": 220,
+            "dueDate": "2026-07-09",
+            "paidStatus": "unpaid"
+          }
+        ]
+      },
+      "recommendationPrefs": {
+        "suppressedRecommendationIds": ["rec_skip_for_now"]
+      }
+    },
+    "fallbackInput": {
+      "today": "2026-07-05",
+      "headline": "Fallback headline",
+      "money": {
+        "checkingBalance": 100,
+        "nextPayday": "2026-07-20",
+        "bills": []
+      },
+      "captures": []
+    }
+  },
+  "expect": {
+    "checkingBalance": 1500,
+    "nextPayday": "2026-07-12",
+    "billIds": ["bill_power"],
+    "captureCount": 1,
+    "storageMode": "read-only",
+    "wroteData": false,
+    "migratedData": false
+  }
+}
