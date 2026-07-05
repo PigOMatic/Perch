@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-/*
- * Perch Fixture Runner
- * --------------------
- * Minimal validation helper for JSON fixtures.
- *
- * Current scope:
- * - validates fixture shape
- * - executes extracted domain/engine behavior for money, capture, and priority
- */
 
 const fs = require('fs');
 const path = require('path');
@@ -15,163 +6,126 @@ const path = require('path');
 const PerchMoney = require('../src/domain/money.js');
 const PerchCapture = require('../src/domain/capture.js');
 const PerchPriority = require('../src/engines/priority.js');
+const PerchRecommendation = require('../src/engines/recommendation.js');
+const PerchTruth = require('../src/engines/truth.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 const fixtureRoot = path.join(repoRoot, 'tests', 'fixtures');
 
-function walkJsonFiles(dir) {
+function files(dir) {
   if (!fs.existsSync(dir)) return [];
-
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-  const files = [];
-
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) {
-      files.push(...walkJsonFiles(fullPath));
-    } else if (entry.isFile() && entry.name.endsWith('.json')) {
-      files.push(fullPath);
-    }
-  }
-
-  return files;
+  return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) return files(full);
+    if (entry.isFile() && entry.name.endsWith('.json')) return [full];
+    return [];
+  });
 }
 
-function readJson(filePath) {
-  const raw = fs.readFileSync(filePath, 'utf8');
-  return JSON.parse(raw);
+function read(file) {
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
 }
 
-function assert(condition, message) {
-  if (!condition) throw new Error(message);
+function fail(message) {
+  throw new Error(message);
 }
 
-function assertEqual(actual, expected, message) {
-  if (actual !== expected) {
-    throw new Error(`${message}. Expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
-  }
+function same(actual, expected, label) {
+  if (actual !== expected) fail(`${label}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
 }
 
-function assertArrayEqual(actual, expected, message) {
-  const actualJson = JSON.stringify(actual || []);
-  const expectedJson = JSON.stringify(expected || []);
-  if (actualJson !== expectedJson) {
-    throw new Error(`${message}. Expected ${expectedJson}, got ${actualJson}`);
-  }
+function sameArray(actual, expected, label) {
+  const a = JSON.stringify(actual || []);
+  const e = JSON.stringify(expected || []);
+  if (a !== e) fail(`${label}: expected ${e}, got ${a}`);
 }
 
-function assertIncludesAll(actualWords, expectedWords, message) {
-  const haystack = (actualWords || []).join(' ').toLowerCase();
-  const missing = (expectedWords || []).filter((word) => !haystack.includes(String(word).toLowerCase()));
-  if (missing.length) {
-    throw new Error(`${message}. Missing ${JSON.stringify(missing)} from ${JSON.stringify(actualWords)}`);
-  }
+function includesAll(actual, expected, label) {
+  const haystack = (actual || []).join(' ').toLowerCase();
+  const missing = (expected || []).filter((word) => !haystack.includes(String(word).toLowerCase()));
+  if (missing.length) fail(`${label}: missing ${JSON.stringify(missing)}`);
 }
 
-function validateFixture(fixture, relativePath) {
-  assert(fixture && typeof fixture === 'object', `${relativePath}: fixture must be an object`);
-  assert(typeof fixture.name === 'string' && fixture.name.length > 0, `${relativePath}: missing name`);
-  assert(typeof fixture.status === 'string' && fixture.status.length > 0, `${relativePath}: missing status`);
-  assert(typeof fixture.description === 'string' && fixture.description.length > 0, `${relativePath}: missing description`);
-  assert(fixture.given && typeof fixture.given === 'object', `${relativePath}: missing given object`);
-  assert(fixture.expect && typeof fixture.expect === 'object', `${relativePath}: missing expect object`);
-
-  return true;
+function shape(f, rel) {
+  if (!f || typeof f !== 'object') fail(`${rel}: fixture must be object`);
+  ['name', 'status', 'description'].forEach((key) => {
+    if (!f[key]) fail(`${rel}: missing ${key}`);
+  });
+  if (!f.given || typeof f.given !== 'object') fail(`${rel}: missing given`);
+  if (!f.expect || typeof f.expect !== 'object') fail(`${rel}: missing expect`);
 }
 
-function validateMoneyFixture(fixture, relativePath) {
-  if (!relativePath.endsWith('tests/fixtures/money/bills-before-payday-basic.json')) return;
-
-  const result = PerchMoney.billsBeforePayday(fixture.given);
-
-  assertEqual(result.billsBeforePayday, fixture.expect.billsBeforePayday, `${relativePath}: billsBeforePayday mismatch`);
-  assertEqual(result.cushionBeforePayday, fixture.expect.cushionBeforePayday, `${relativePath}: cushionBeforePayday mismatch`);
-  assertEqual(result.classification, fixture.expect.classification, `${relativePath}: classification mismatch`);
-  assertArrayEqual(result.excludedBills, fixture.expect.excludedBills, `${relativePath}: excludedBills mismatch`);
+function checkMoney(f, rel) {
+  if (!rel.endsWith('tests/fixtures/money/bills-before-payday-basic.json')) return;
+  const r = PerchMoney.billsBeforePayday(f.given);
+  same(r.billsBeforePayday, f.expect.billsBeforePayday, `${rel} billsBeforePayday`);
+  same(r.cushionBeforePayday, f.expect.cushionBeforePayday, `${rel} cushionBeforePayday`);
+  same(r.classification, f.expect.classification, `${rel} classification`);
+  sameArray(r.excludedBills, f.expect.excludedBills, `${rel} excludedBills`);
 }
 
-function validateCaptureFixture(fixture, relativePath) {
-  if (!relativePath.startsWith('tests/fixtures/capture/')) return;
-
-  const result = PerchCapture.parseCapture(fixture.given);
-
-  assertEqual(result.parsedType, fixture.expect.parsedType, `${relativePath}: parsedType mismatch`);
-  assertEqual(result.lifecycle, fixture.expect.lifecycle, `${relativePath}: lifecycle mismatch`);
-  assertEqual(result.classification, fixture.expect.classification, `${relativePath}: classification mismatch`);
-
-  if (fixture.expect.dueDate) {
-    assertEqual(result.dueDate, fixture.expect.dueDate, `${relativePath}: dueDate mismatch`);
-  }
-
-  if (fixture.expect.timeHint) {
-    assertEqual(result.timeHint, fixture.expect.timeHint, `${relativePath}: timeHint mismatch`);
-  }
-
-  if (fixture.expect.personHint) {
-    assertEqual(result.personHint, fixture.expect.personHint, `${relativePath}: personHint mismatch`);
-  }
-
-  if (fixture.expect.completionAction) {
-    assertEqual(result.completionAction, fixture.expect.completionAction, `${relativePath}: completionAction mismatch`);
-  }
-
-  if (fixture.expect.titleIncludes) {
-    assertIncludesAll(result.titleWords, fixture.expect.titleIncludes, `${relativePath}: title words mismatch`);
-  }
+function checkCapture(f, rel) {
+  if (!rel.startsWith('tests/fixtures/capture/')) return;
+  const r = PerchCapture.parseCapture(f.given);
+  same(r.parsedType, f.expect.parsedType, `${rel} parsedType`);
+  same(r.lifecycle, f.expect.lifecycle, `${rel} lifecycle`);
+  same(r.classification, f.expect.classification, `${rel} classification`);
+  if (f.expect.dueDate) same(r.dueDate, f.expect.dueDate, `${rel} dueDate`);
+  if (f.expect.timeHint) same(r.timeHint, f.expect.timeHint, `${rel} timeHint`);
+  if (f.expect.personHint) same(r.personHint, f.expect.personHint, `${rel} personHint`);
+  if (f.expect.completionAction) same(r.completionAction, f.expect.completionAction, `${rel} completionAction`);
+  if (f.expect.titleIncludes) includesAll(r.titleWords, f.expect.titleIncludes, `${rel} titleIncludes`);
 }
 
-function validatePriorityFixture(fixture, relativePath) {
-  if (!relativePath.endsWith('tests/fixtures/priority/urgent-money-before-low-task.json')) return;
-
-  const result = PerchPriority.rankCandidates(fixture.given);
-  const orderedCandidateIds = result.ordered.map((item) => item.candidateId);
-
-  assertEqual(result.top && result.top.candidateId, fixture.expect.topCandidateId, `${relativePath}: topCandidateId mismatch`);
-  assertArrayEqual(orderedCandidateIds, fixture.expect.orderedCandidateIds, `${relativePath}: orderedCandidateIds mismatch`);
-
-  if (fixture.expect.requiredReasonIncludes) {
-    assertIncludesAll(result.top && result.top.reasons, fixture.expect.requiredReasonIncludes, `${relativePath}: priority reasons mismatch`);
-  }
+function checkPriority(f, rel) {
+  if (!rel.endsWith('tests/fixtures/priority/urgent-money-before-low-task.json')) return;
+  const r = PerchPriority.rankCandidates(f.given);
+  same(r.top && r.top.candidateId, f.expect.topCandidateId, `${rel} topCandidateId`);
+  sameArray(r.ordered.map((item) => item.candidateId), f.expect.orderedCandidateIds, `${rel} orderedCandidateIds`);
+  includesAll(r.top && r.top.reasons, f.expect.requiredReasonIncludes, `${rel} reasons`);
 }
 
-function validateBehavior(fixture, relativePath) {
-  validateMoneyFixture(fixture, relativePath);
-  validateCaptureFixture(fixture, relativePath);
-  validatePriorityFixture(fixture, relativePath);
+function checkRecommendation(f, rel) {
+  if (!rel.endsWith('tests/fixtures/recommendations/suppressed-recommendation.json')) return;
+  const r = PerchRecommendation.evaluateRecommendation(f.given);
+  same(r.shouldShow, f.expect.shouldShow, `${rel} shouldShow`);
+  same(r.suppressed, f.expect.suppressed, `${rel} suppressed`);
+  same(r.suppressionReason, f.expect.suppressionReason, `${rel} suppressionReason`);
+  same(r.userActionRequired, f.expect.userActionRequired, `${rel} userActionRequired`);
 }
 
-function main() {
-  const files = walkJsonFiles(fixtureRoot);
-  const results = [];
-
-  for (const file of files) {
-    const relativePath = path.relative(repoRoot, file);
-    try {
-      const fixture = readJson(file);
-      validateFixture(fixture, relativePath);
-      validateBehavior(fixture, relativePath);
-      results.push({ file: relativePath, ok: true });
-    } catch (error) {
-      results.push({ file: relativePath, ok: false, error: error.message });
-    }
-  }
-
-  const failed = results.filter((result) => !result.ok);
-
-  console.log(`Perch fixture runner`);
-  console.log(`Fixtures checked: ${results.length}`);
-  console.log(`Passed: ${results.length - failed.length}`);
-  console.log(`Failed: ${failed.length}`);
-
-  if (failed.length) {
-    console.log('\nFailures:');
-    failed.forEach((failure) => {
-      console.log(`- ${failure.file}: ${failure.error}`);
-    });
-    process.exit(1);
-  }
-
-  process.exit(0);
+function checkTruth(f, rel) {
+  if (!rel.endsWith('tests/fixtures/trust/manual-stale-balance.json')) return;
+  const r = PerchTruth.evaluateStatement(f.given);
+  same(r.truthStatus, f.expect.truthStatus, `${rel} truthStatus`);
+  same(r.requiredLabel, f.expect.requiredLabel, `${rel} requiredLabel`);
+  same(r.shouldShowAsCertain, f.expect.shouldShowAsCertain, `${rel} shouldShowAsCertain`);
+  same(r.trustNoticeSeverity, f.expect.trustNoticeSeverity, `${rel} trustNoticeSeverity`);
 }
 
-main();
+const results = files(fixtureRoot).map((file) => {
+  const rel = path.relative(repoRoot, file);
+  try {
+    const fixture = read(file);
+    shape(fixture, rel);
+    checkMoney(fixture, rel);
+    checkCapture(fixture, rel);
+    checkPriority(fixture, rel);
+    checkRecommendation(fixture, rel);
+    checkTruth(fixture, rel);
+    return { rel, ok: true };
+  } catch (error) {
+    return { rel, ok: false, error: error.message };
+  }
+});
+
+const failed = results.filter((r) => !r.ok);
+console.log('Perch fixture runner');
+console.log(`Fixtures checked: ${results.length}`);
+console.log(`Passed: ${results.length - failed.length}`);
+console.log(`Failed: ${failed.length}`);
+
+if (failed.length) {
+  failed.forEach((f) => console.log(`- ${f.rel}: ${f.error}`));
+  process.exit(1);
+}
