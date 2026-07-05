@@ -6,7 +6,7 @@
  *
  * Current scope:
  * - validates fixture shape
- * - executes extracted domain behavior for money and capture
+ * - executes extracted domain/engine behavior for money, capture, and priority
  */
 
 const fs = require('fs');
@@ -14,6 +14,7 @@ const path = require('path');
 
 const PerchMoney = require('../src/domain/money.js');
 const PerchCapture = require('../src/domain/capture.js');
+const PerchPriority = require('../src/engines/priority.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 const fixtureRoot = path.join(repoRoot, 'tests', 'fixtures');
@@ -119,9 +120,24 @@ function validateCaptureFixture(fixture, relativePath) {
   }
 }
 
+function validatePriorityFixture(fixture, relativePath) {
+  if (!relativePath.endsWith('tests/fixtures/priority/urgent-money-before-low-task.json')) return;
+
+  const result = PerchPriority.rankCandidates(fixture.given);
+  const orderedCandidateIds = result.ordered.map((item) => item.candidateId);
+
+  assertEqual(result.top && result.top.candidateId, fixture.expect.topCandidateId, `${relativePath}: topCandidateId mismatch`);
+  assertArrayEqual(orderedCandidateIds, fixture.expect.orderedCandidateIds, `${relativePath}: orderedCandidateIds mismatch`);
+
+  if (fixture.expect.requiredReasonIncludes) {
+    assertIncludesAll(result.top && result.top.reasons, fixture.expect.requiredReasonIncludes, `${relativePath}: priority reasons mismatch`);
+  }
+}
+
 function validateBehavior(fixture, relativePath) {
   validateMoneyFixture(fixture, relativePath);
   validateCaptureFixture(fixture, relativePath);
+  validatePriorityFixture(fixture, relativePath);
 }
 
 function main() {
