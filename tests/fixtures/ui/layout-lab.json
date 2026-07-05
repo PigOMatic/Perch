@@ -1,0 +1,21 @@
+{
+  "name": "layout-lab",
+  "status": "design-lab-fixture",
+  "description": "Protects the layout lab that compares the same Today data across multiple Perch surface arrangements.",
+  "given": {
+    "preview": "layout_lab.html"
+  },
+  "expect": {
+    "renderer": "PerchLayoutLab.renderLayoutLab",
+    "surfaceCount": 5,
+    "surfaces": [
+      "field-guide",
+      "folded-map",
+      "journal-spread",
+      "guidebook-entry",
+      "mobile-pocket"
+    ],
+    "sameMeaningDifferentSurface": true,
+    "focusesOnLayoutBeforeTheme": true
+  }
+}
