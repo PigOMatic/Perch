@@ -11,6 +11,8 @@
     "readOnly": true,
     "showsSource": true,
     "showsFallbackStatus": true,
+    "showsPeopleStatus": true,
+    "showsWorkShiftStatus": true,
     "showsWriteStatus": true,
     "showsMigrationStatus": true
   }
