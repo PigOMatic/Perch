@@ -16,6 +16,7 @@ const PerchTodayBriefView = require('../src/ui/todayBriefView.js');
 const PerchTodayFieldGuideView = require('../src/ui/todayFieldGuideView.js');
 const PerchLayoutRoles = require('../src/ui/perchLayoutRoles.js');
 const PerchLayoutLab = require('../src/ui/layoutLab.js');
+const PerchDailyIntro = require('../src/ui/dailyIntro.js');
 
 globalThis.PerchMoney = PerchMoney;
 globalThis.PerchCapture = PerchCapture;
@@ -216,6 +217,19 @@ function checkLayoutLab(f, rel) {
   same(typeof PerchLayoutLab.renderLayoutLab, 'function', `${rel} renderLayoutLab`);
 }
 
+function checkDailyIntro(f, rel) {
+  if (!rel.endsWith('tests/fixtures/ui/daily-intro.json')) return;
+  same(f.expect.module, 'PerchDailyIntro', `${rel} module`);
+  same(PerchDailyIntro.STORAGE_KEY, f.expect.storageKey, `${rel} storageKey`);
+  same(f.expect.showsOncePerDay, true, `${rel} showsOncePerDay`);
+  same(f.expect.usesLocalStorageOnly, true, `${rel} usesLocalStorageOnly`);
+  same(f.expect.autoDismisses, true, `${rel} autoDismisses`);
+  same(f.expect.doesNotBlockPagePermanently, true, `${rel} doesNotBlockPagePermanently`);
+  same(f.expect.supportsReducedMotion, true, `${rel} supportsReducedMotion`);
+  same(typeof PerchDailyIntro.shouldShow, 'function', `${rel} shouldShow`);
+  same(typeof PerchDailyIntro.markSeen, 'function', `${rel} markSeen`);
+}
+
 function checkTodayStorageInput(f, rel) {
   if (!rel.endsWith('tests/fixtures/state/today-storage-input-basic.json')) return;
   const r = PerchTodayStorageInput.buildTodayInputFromStorageSnapshot(f.given.snapshot, f.given.fallbackInput);
@@ -265,6 +279,7 @@ const results = files(fixtureRoot).map((file) => {
     checkTodayFieldGuideView(fixture, rel);
     checkPerchLayoutRoles(fixture, rel);
     checkLayoutLab(fixture, rel);
+    checkDailyIntro(fixture, rel);
     checkTodayStorageInput(fixture, rel);
     checkStorageDebugDrawer(fixture, rel);
     return { rel, ok: true };

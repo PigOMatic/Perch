@@ -1,0 +1,83 @@
+.perch-daily-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(33, 27, 21, 0.28);
+  backdrop-filter: blur(10px);
+  animation: perchIntroFadeIn 420ms ease both;
+}
+
+.perch-daily-intro-panel {
+  width: min(520px, 100%);
+  min-height: 320px;
+  display: grid;
+  align-content: center;
+  padding: clamp(30px, 7vw, 64px);
+  border: 1px solid rgba(255, 250, 242, 0.32);
+  border-radius: 28px;
+  background:
+    linear-gradient(135deg, rgba(76, 49, 31, 0.96), rgba(35, 24, 18, 0.98)),
+    #2d1e16;
+  box-shadow: 0 30px 100px rgba(33, 27, 21, 0.36);
+  color: #fffaf2;
+  transform-origin: center;
+  animation: perchIntroPanel 680ms cubic-bezier(.2,.8,.2,1) both;
+}
+
+.perch-daily-intro-kicker {
+  margin: 0 0 10px;
+  color: rgba(255, 250, 242, 0.68);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.perch-daily-intro h2 {
+  max-width: 420px;
+  color: #fffaf2;
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  line-height: 0.92;
+}
+
+.perch-daily-intro-line {
+  margin: 20px 0 0;
+  color: rgba(255, 250, 242, 0.72);
+  font-size: 1rem;
+}
+
+.perch-daily-intro-leaving {
+  animation: perchIntroFadeOut 520ms ease both;
+}
+
+@keyframes perchIntroFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes perchIntroFadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes perchIntroPanel {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .perch-daily-intro,
+  .perch-daily-intro-panel,
+  .perch-daily-intro-leaving {
+    animation: none;
+  }
+}
