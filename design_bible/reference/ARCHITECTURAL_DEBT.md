@@ -67,20 +67,26 @@ Low debt should not distract from core work.
 
 | ID | Area | Debt | Severity | Status |
 |---|---|---|---|---|
-| AD-001 | Source of Truth | Perch must maintain a clear distinction between Design Bible, repository state, and implementation reality. | High | Open |
-| AD-002 | Demo Data | Demo/sample data must never be confused with real user data. | Critical | Open |
-| AD-003 | Privacy | Future analytics and intelligence must avoid exposing private user content unnecessarily. | Critical | Open |
-| AD-004 | Intelligence | Perch risks becoming too “smart” before it is reliably clear. | High | Open |
-| AD-005 | Data Freshness | User-entered information may become stale without visible freshness indicators. | High | Open |
-| AD-006 | Explanation Layer | Perch needs consistent “why am I seeing this?” explanations across major surfaces. | Medium | Open |
-| AD-007 | Capture Flow | Captures, reminders, questions, and waiting items need a durable shared model. | High | Open |
-| AD-008 | Money Flow | Money features must avoid appearing more precise than the available user data supports. | Critical | Open |
-| AD-009 | Notifications | Notification rules must avoid becoming noisy, repetitive, or anxiety-producing. | High | Open |
-| AD-010 | Mobile Future | iPhone widget and mobile-first behavior are expected later but not yet structurally planned. | Medium | Open |
-| AD-011 | Import/Export | Perch needs a future-safe data portability strategy. | Medium | Open |
-| AD-012 | AI Hand-Off | Claude, ChatGPT, and future agents need consistent boot instructions and boundaries. | Medium | Open |
-| AD-013 | Status Labels | Documentation needs clear status labels: proposed, designed, implemented, tested, deprecated. | High | Open |
-| AD-014 | Naming Consistency | Terms like Brain, Today, Week, Tell Perch, Daily Brief, and Basics must stay consistent. | Medium | Open |
+| AD-001 | Source of Truth | Perch must keep Design Bible destination, repository reality, and implementation status separate. | High | Open |
+| AD-002 | Reference Drift | Some reference files lagged behind the current Atlas/chapter architecture. | High | Open |
+| AD-003 | Truth Engine | Truth exists as doctrine and belief-scoped runtime logic, not a universal runtime gate. | Critical | Open |
+| AD-004 | Priority Engine | Priority exists as multiple independent scorers, not one unified explainable engine. | High | Open |
+| AD-005 | Recommendation Engine | Recommendations are currently top priority-scored candidates rather than a standalone reasoning engine. | High | Open |
+| AD-006 | Voice Engine | Voice exists as three independent systems and does not yet fully phrase the main brief through one path. | Medium | Open |
+| AD-007 | Living World | Living World is concept-level; current implementation is only a static decorative preview. | Medium | Open |
+| AD-008 | Goals | Goals are fragmented across multiple collections and are not yet a unified life-goal system. | High | Open |
+| AD-009 | Money | Money logic is manual and split across Today and Life; payday logic has known imprecision. | Critical | Open |
+| AD-010 | Brain | Brain has typed capture but no semantic memory, vector search, or capture aging. | High | Open |
+| AD-011 | Knowledge & Search | Knowledge is scattered across separate stores; search is substring-only and not unified. | High | Open |
+| AD-012 | Integrations | There are zero external integrations; all data is manual/local/offline. | Medium | Open |
+| AD-013 | Home & Property | Property and homestead data are flat; no rooms, buildings, land hierarchy, equipment, or maintenance history model. | High | Open |
+| AD-014 | Projects / Home Overlap | Home maintenance and Projects overlap but do not share a durable task/project model. | High | Open |
+| AD-015 | Demo Data | Demo/sample data must never be confused with real user data. | Critical | Open |
+| AD-016 | Data Freshness | User-entered information may become stale without visible freshness indicators. | High | Open |
+| AD-017 | Explanation Layer | Perch needs consistent “why am I seeing this?” explanations across all major surfaces. | High | Open |
+| AD-018 | Notifications | Notification rules must avoid becoming noisy, repetitive, or anxiety-producing. | High | Open |
+| AD-019 | Import / Export | Perch needs a future-safe data portability strategy before serious user data accumulation. | Medium | Open |
+| AD-020 | Navigation Authority | Atlas/page navigation has evolved several times and needs an ADR to lock the canonical model. | Medium | Open |
 
 ---
 
@@ -94,6 +100,22 @@ Debt resolution must not violate:
 - simple user-facing language
 - visible uncertainty
 - Design Bible authority
+- source lineage for important claims
+- honest implementation status
+
+---
+
+## v0.5 Blocking Debt
+
+The following debt should be addressed before v0.5 is considered ready:
+
+1. AD-002 — Reference Drift
+2. AD-003 — Truth Engine boundaries clearly documented
+3. AD-009 — Money payday correctness and false precision risk
+4. AD-011 — Unified search scope defined, even if semantic search is deferred
+5. AD-015 — Demo data distinction
+6. AD-017 — Explanation layer baseline
+7. AD-020 — Navigation authority documented
 
 ---
 
