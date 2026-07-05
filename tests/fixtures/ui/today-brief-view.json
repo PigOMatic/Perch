@@ -1,0 +1,18 @@
+{
+  "name": "today-brief-view",
+  "status": "visual-prototype-fixture",
+  "description": "Protects the Today Brief View direction: one dominant daily answer with supporting evidence, not a dashboard grid.",
+  "given": {
+    "stateFixture": "tests/fixtures/state/today-state-basic.json",
+    "preview": "today_brief_preview.html"
+  },
+  "expect": {
+    "renderer": "PerchTodayBriefView.renderTodayBriefView",
+    "mode": "brief",
+    "dominantDailyAnswer": true,
+    "notDashboardGrid": true,
+    "usesSameTodayState": true,
+    "hasEvidenceSection": true,
+    "hasQuietSourceDisclosure": true
+  }
+}
