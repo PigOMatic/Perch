@@ -28,16 +28,16 @@ Finish the Design Bible, then freeze Design Bible v1.0 and begin Perch v0.5 impl
 - 08 — Priority Engine
 - 09 — Recommendation Engine
 - 10 — Living World
+- 11 — Voice Engine
+- 12 — Knowledge & Search
+- 13 — Integrations
 
 ## Current Next Chapter
 
-11 — Voice Engine
+14 — Home & Property
 
 ## Upcoming Chapters
 
-- 12 — Knowledge & Search
-- 13 — Integrations
-- 14 — Home & Property
 - 15 — People & Relationships
 - 16 — Health
 - 17 — Learning
@@ -53,21 +53,61 @@ Current build plan: Perch v0.5.
 
 ## Known Architectural Debt
 
-- Truth Engine exists as doctrine and belief-scoped runtime logic, not a universal runtime gate.
-- Priority exists as multiple independent scorers, not one unified engine.
-- Recommendations exist, but are currently top priority-scored candidates rather than a standalone engine.
-- Living World is concept-level; current implementation is only a static decorative world preview.
+### Truth Engine
+- Runtime gate is not yet universal.
+- Confidence and classification are primarily belief-scoped.
+
+### Priority Engine
+- Multiple independent scoring systems exist.
+- Priority is not yet universally Truth-gated.
+
+### Recommendation Engine
+- Recommendations are currently derived from priority-scored candidates.
+- Recommendation logic is not yet a standalone engine.
+
+### Voice Engine
+- Three independent voice systems exist:
+  - PerchVoice (learning)
+  - Engine brief/opening
+  - message_styles
+- The named Voice Engine does not yet phrase the main Today brief.
+
+### Living World
+- Concept-level architecture.
+- Current implementation is only a static decorative world preview.
+- No unified world-state store exists.
+
+### Goals
 - Goals are fragmented across multiple collections.
-- Money logic is manual and scattered across Today and Life.
-- Biweekly payday logic has known imprecision and should be fixed before relying on Money Flow.
+
+### Money
+- Money logic is manual and split across Today and Life.
+- Biweekly payday logic has known imprecision.
+
+### Brain
+- No semantic memory.
+- No vector search.
+- No capture aging.
+
+### Knowledge & Search
+- Knowledge is scattered across separate stores (personal_context, interests, people/known_details, captures) with no unified index.
+- Search is substring-only (captures and questions); it does not reach the Learning or People stores.
+- Recall returns first match, not best match.
+- No semantic search, no vector search, no knowledge graph.
+
+### Integrations
+- Zero external integrations exist; Perch is fully manual, local, and offline.
+- No API, import, sync, or OAuth anywhere; only network call is a local file-existence check.
+- No imported-data provenance or confidence propagation exists (nothing to import yet).
+- Tiller, banking/Plaid, Calendar, Email, Weather, GitHub, and Health are all Concept.
 
 ## Current Claude Workflow
 
 For the next Design Bible chapter, provide Claude:
 
-1. `perch_ai_workspace/AI_BOOT.md`
-2. `perch_ai_workspace/PROJECT_STATE.md`
-3. the previous chapter only
-4. the short task prompt
+1. perch_ai_workspace/AI_BOOT.md
+2. perch_ai_workspace/PROJECT_STATE.md
+3. The previous chapter only
+4. The short task prompt
 
 Do not upload the entire repository unless the task truly requires it.

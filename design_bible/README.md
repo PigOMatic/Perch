@@ -65,8 +65,7 @@ Every Atlas page is a chapter. Each answers one primary question. Status reflect
 | 6 | Brain | What am I carrying? | Prototype | `chapters/06-brain.md` ✍ |
 | 7 | People | Who matters right now? | Concept | `chapters/07-people.md` *(planned)* |
 | 8 | Home | What needs care? | Concept | `chapters/08-home.md` *(planned)* |
-| 9 | Knowledge | What am I learning? | Concept | `chapters/09-knowledge.md` *(planned)* |
-| 10 | Search | What do I want to know? | Concept | `chapters/10-search.md` *(planned)* |
+| 9 | Knowledge & Search | What am I learning / what do I want to know? | Prototype | `chapters/12-knowledge-search.md` ✍ |
 
 *Chapters marked "planned" are not yet written. This index is the backlog of chapters to author.*
 
@@ -82,11 +81,12 @@ The intelligence that powers the Atlas. Each will eventually have its own chapte
 | Belief Engine | Forms/ages beliefs from evidence | Prototype *(forms beliefs, surfaces nothing)* | `perch_beliefs.js` |
 | Inference Engine | Observation → permission pipeline | Planning *(architecture only)* | `perch_inference.md` |
 | Learning Engine | Captures personal context from language | Implemented | `perch_learn.js` |
-| Voice Engine | Relationship-aware phrasing | Implemented | `perch_voice.js` |
+| Voice Engine | Relationship-aware phrasing | Prototype *(three separate voice systems; `PerchVoice` powers only learning)* | `perch_voice.js`, `chapters/11-voice-engine.md` ✍ |
 | Priority Engine | Decides what rises for attention | Prototype *(four uncoordinated scorers, not one engine)* | `perch_engine.js`, `chapters/08-priority-engine.md` ✍ |
 | Recommendation Engine | Cross-domain, evidence-based suggestions | Prototype *(recs = top priority candidate; no standalone engine; feedback loop real)* | `perch_engine.js`, `chapters/09-recommendation-engine.md` ✍ |
 | Money Intelligence | Bill detection, duplicates, allocation | Concept | — |
 | Inbox Intelligence | Ingests bills/receipts from email | Concept | — |
+| Integrations | External data ingestion (banking, calendar, email, weather) | Concept *(zero integrations; fully manual/local/offline)* | `chapters/13-integrations.md` ✍ |
 | Pattern Detection | Finds recurring behavior | Prototype *(inside Belief Engine)* | `perch_beliefs.js` |
 | Living World | The place clarity is presented within | Concept *(one static decorative preview)* | `perch_world.md`, `chapters/10-living-world.md` ✍ |
 
@@ -169,3 +169,6 @@ Every chapter follows one structure, defined in `chapters/_TEMPLATE.md`. It open
 | Jul 4 2026 | Chapter 8 (Priority Engine) written at status Prototype. Identified FOUR independent scorers (`whyNowScore`, `priorityScore`, Today `_score`, PerchEvents sort) plus an orphan duplicate — not one engine. Confidence doesn't affect priority; Truth doesn't gate it; no user override; inconsistent tie-breaks; Recommendations reuse the priority scorer (blurring the boundary). Keystone fix = consolidate to one truth-gated scorer. |
 | Jul 4 2026 | Chapter 9 (Recommendation Engine) written at status Prototype. Verified no standalone engine — `recommendation = recCandidates[0]` from `whyNowScore` (conflated with Priority). Real evidence-gated Life/Today suggestions with impact + reasoning and a genuine `_lpbSignal` feedback loop that suppresses declined types. Recommendations never auto-execute (key safety property), are not Truth-gated, and cross-domain synthesis is Concept (needs un-ingested data). Keystone fix = separate Recommendation from Priority, then Truth-gate. |
 | Jul 4 2026 | Chapter 10 (Living World) written at status Concept. Entire Living World in code is one static, decorative `aria-hidden` SVG on Today — no world state, no data-driven rendering, no unlocks/evolution/shared state; `perch_world.md` is doctrine not loaded by code. Gap documented as deliberate discipline (world must reflect stored truth). Keystone = finish belief store + Truth-gated emission first. Canonical change log migrated to `CHANGELOG.md`. |
+| Jul 5 2026 | Chapter 11 (Voice Engine) written at status Prototype. Identified THREE independent voice systems (`PerchVoice` learning-only, engine `buildOpening`/tone for Today's copy, `message_styles` wording selector); named Voice Engine doesn't phrase the main brief; Truth→Voice boundary is editorial not runtime. Keystone = route the brief through `PerchVoice`. |
+| Jul 5 2026 | Chapter 12 (Knowledge & Search) written at status Prototype. Verified structured knowledge across three Learning/People stores plus Brain captures (unlinked); per-area confidence Implemented; keyword first-match recall and two substring searches Prototype. NO semantic search, NO vector search, NO knowledge graph, no unified index, no dedicated Search page. Merged Knowledge+Search in Atlas index. Keystone = unify search scope across all knowledge. |
+| Jul 5 2026 | Chapter 13 (Integrations) written at status Concept. Exhaustive audit confirmed ZERO external integrations — only `fetch` is a local file-existence check; no API/import/sync/OAuth; all data manual; `localStorage` only; offline-first by omission. Tiller/Plaid/Calendar/Email/Weather/GitHub/Health all absent. Documented the rules future imports must obey (read-only, provenance-tagged, manual-wins, confidence-propagating, opt-in). Keystone = prove import rules with an on-device file before any live API. |

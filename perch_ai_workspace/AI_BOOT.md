@@ -63,6 +63,7 @@ Pages
 - Recommendations must explain themselves.
 - Every important statement should have source lineage.
 - Every status label must be honest.
+- Current implementation and future vision must never be blurred.
 
 ## Status Labels
 
@@ -74,6 +75,7 @@ Pages
 ## AI Roles
 
 ChatGPT is used for:
+
 - architecture
 - planning
 - strategy
@@ -82,6 +84,7 @@ ChatGPT is used for:
 - repository organization
 
 Claude is used for:
+
 - focused repository audits
 - long-form Design Bible chapter drafting
 - documentation updates grounded in code
@@ -89,6 +92,7 @@ Claude is used for:
 ## Claude Rules
 
 Claude should:
+
 - read this file
 - read PROJECT_STATE.md
 - read only the specific previous chapter or files needed for the task
@@ -100,6 +104,7 @@ Claude should:
 - stop after the requested task
 
 Claude should not:
+
 - modify application code unless explicitly requested
 - reread the entire repository unless necessary
 - duplicate existing documentation
