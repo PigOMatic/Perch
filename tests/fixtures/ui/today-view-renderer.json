@@ -1,0 +1,16 @@
+{
+  "name": "today-view-renderer",
+  "status": "initial-fixture",
+  "description": "Documents the expected rebuilt Today view structure. This is a structural fixture until DOM rendering tests are added.",
+  "given": {
+    "stateFixture": "tests/fixtures/state/today-state-basic.json"
+  },
+  "expect": {
+    "renderer": "PerchTodayView.renderTodayView",
+    "requiresHero": true,
+    "requiresAttentionCard": true,
+    "requiresTrustNoteSupport": true,
+    "requiresLegacyFallback": true,
+    "legacyIsVisualTarget": false
+  }
+}
