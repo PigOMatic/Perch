@@ -3,7 +3,7 @@
  * ------------
  * Target route registry for the rebuilt app shell.
  *
- * This file does not replace the restored HTML pages yet.
+ * Legacy files are fallback/reference files, not the target rebuilt UI.
  */
 
 (function attachPerchRoutes(global) {
@@ -16,7 +16,9 @@
       path: '/today',
       legacyFile: 'perch_today_live.html',
       chapterIds: ['01-today'],
-      status: 'planned-rebuild'
+      status: 'active-rebuild',
+      rebuildPolicy: 'complete-rebuild',
+      legacyRole: 'fallback-and-behavior-reference'
     },
     {
       id: 'week',
@@ -24,7 +26,9 @@
       path: '/week',
       legacyFile: 'perch_week_live.html',
       chapterIds: ['03-calendar-obligations'],
-      status: 'planned-rebuild'
+      status: 'planned-rebuild',
+      rebuildPolicy: 'progressive-rebuild',
+      legacyRole: 'fallback-and-behavior-reference'
     },
     {
       id: 'month',
@@ -32,7 +36,9 @@
       path: '/month',
       legacyFile: 'perch_month_live.html',
       chapterIds: ['03-calendar-obligations', '02-money'],
-      status: 'planned-rebuild'
+      status: 'planned-rebuild',
+      rebuildPolicy: 'progressive-rebuild',
+      legacyRole: 'fallback-and-behavior-reference'
     },
     {
       id: 'capture',
@@ -40,7 +46,9 @@
       path: '/capture',
       legacyFile: 'perch_capture.html',
       chapterIds: ['06-brain'],
-      status: 'planned-rebuild'
+      status: 'planned-rebuild',
+      rebuildPolicy: 'progressive-rebuild',
+      legacyRole: 'fallback-and-behavior-reference'
     },
     {
       id: 'life',
@@ -48,7 +56,9 @@
       path: '/life',
       legacyFile: 'perch_life.html',
       chapterIds: ['04-goals', '05-projects'],
-      status: 'planned-rebuild'
+      status: 'planned-rebuild',
+      rebuildPolicy: 'progressive-rebuild',
+      legacyRole: 'fallback-and-behavior-reference'
     },
     {
       id: 'knowledge',
@@ -56,7 +66,9 @@
       path: '/knowledge',
       legacyFile: 'perch_memory_explorer.html',
       chapterIds: ['12-knowledge-search', '17-people'],
-      status: 'planned-rebuild'
+      status: 'planned-rebuild',
+      rebuildPolicy: 'progressive-rebuild',
+      legacyRole: 'fallback-and-behavior-reference'
     },
     {
       id: 'settings',
@@ -64,7 +76,9 @@
       path: '/settings',
       legacyFile: 'perch_settings.html',
       chapterIds: ['settings', '07-truth-engine'],
-      status: 'planned-rebuild'
+      status: 'planned-rebuild',
+      rebuildPolicy: 'progressive-rebuild',
+      legacyRole: 'fallback-and-behavior-reference'
     }
   ]);
 
