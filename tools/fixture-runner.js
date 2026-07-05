@@ -15,6 +15,7 @@ const PerchStorageDebugDrawer = require('../src/dev/storageDebugDrawer.js');
 const PerchTodayBriefView = require('../src/ui/todayBriefView.js');
 const PerchTodayFieldGuideView = require('../src/ui/todayFieldGuideView.js');
 const PerchLayoutRoles = require('../src/ui/perchLayoutRoles.js');
+const PerchLayoutLab = require('../src/ui/layoutLab.js');
 
 globalThis.PerchMoney = PerchMoney;
 globalThis.PerchCapture = PerchCapture;
@@ -206,6 +207,15 @@ function checkPerchLayoutRoles(f, rel) {
   same(f.expect.supportsPersonalCustomization, true, `${rel} supportsPersonalCustomization`);
 }
 
+function checkLayoutLab(f, rel) {
+  if (!rel.endsWith('tests/fixtures/ui/layout-lab.json')) return;
+  same(f.expect.renderer, 'PerchLayoutLab.renderLayoutLab', `${rel} renderer`);
+  same(f.expect.surfaceCount, 5, `${rel} surfaceCount`);
+  same(f.expect.sameMeaningDifferentSurface, true, `${rel} sameMeaningDifferentSurface`);
+  same(f.expect.focusesOnLayoutBeforeTheme, true, `${rel} focusesOnLayoutBeforeTheme`);
+  same(typeof PerchLayoutLab.renderLayoutLab, 'function', `${rel} renderLayoutLab`);
+}
+
 function checkTodayStorageInput(f, rel) {
   if (!rel.endsWith('tests/fixtures/state/today-storage-input-basic.json')) return;
   const r = PerchTodayStorageInput.buildTodayInputFromStorageSnapshot(f.given.snapshot, f.given.fallbackInput);
@@ -254,6 +264,7 @@ const results = files(fixtureRoot).map((file) => {
     checkTodayBriefView(fixture, rel);
     checkTodayFieldGuideView(fixture, rel);
     checkPerchLayoutRoles(fixture, rel);
+    checkLayoutLab(fixture, rel);
     checkTodayStorageInput(fixture, rel);
     checkStorageDebugDrawer(fixture, rel);
     return { rel, ok: true };

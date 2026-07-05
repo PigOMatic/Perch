@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Perch Layout Lab</title>
+  <link rel="stylesheet" href="src/ui/shell.css" />
+  <link rel="stylesheet" href="src/ui/layoutLab.css" />
+</head>
+<body>
+  <main id="perch-shell"></main>
+
+  <script src="src/core/storage.js"></script>
+  <script src="src/domain/money.js"></script>
+  <script src="src/domain/capture.js"></script>
+  <script src="src/engines/priority.js"></script>
+  <script src="src/engines/recommendation.js"></script>
+  <script src="src/engines/truth.js"></script>
+  <script src="src/state/todayStorageInput.js"></script>
+  <script src="src/state/todayState.js"></script>
+  <script src="src/ui/routes.js"></script>
+  <script src="src/ui/shell.js"></script>
+  <script src="src/ui/layoutLab.js"></script>
+  <script src="src/dev/todaySampleData.js"></script>
+  <script>
+    const shellRoot = document.getElementById('perch-shell');
+    window.PerchShell.renderShell(shellRoot, {
+      activeRouteId: 'today'
+    });
+
+    const pageHost = shellRoot.querySelector('.perch-page-placeholder');
+    const input = window.PerchTodayStorageInput.buildTodayInputFromStorage(
+      window.PerchStorage,
+      window.PerchTodaySampleData
+    );
+    const todayState = window.PerchTodayState.buildTodayState(input);
+    window.PerchLayoutLab.renderLayoutLab(pageHost, todayState);
+  </script>
+</body>
+</html>
