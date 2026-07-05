@@ -1,0 +1,19 @@
+{
+  "name": "today-field-guide-view",
+  "status": "visual-prototype-fixture",
+  "description": "Protects the Today Field Guide direction: a page/journal/map/guidebook orientation surface, not a dashboard.",
+  "given": {
+    "stateFixture": "tests/fixtures/state/today-state-basic.json",
+    "preview": "today_field_guide_preview.html"
+  },
+  "expect": {
+    "renderer": "PerchTodayFieldGuideView.renderTodayFieldGuideView",
+    "mode": "field-guide",
+    "metaphor": "page-journal-map-guidebook",
+    "notDashboard": true,
+    "orientationPage": true,
+    "hasTodayMap": true,
+    "hasCompass": true,
+    "hasMarginNote": true
+  }
+}
