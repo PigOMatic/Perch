@@ -114,10 +114,14 @@ function checkTruth(f, rel) {
 function checkUi(f, rel) {
   if (!rel.endsWith('tests/fixtures/ui/app-shell-routes.json')) return;
   const routes = PerchRoutes.getRoutes();
+  const todayRoute = PerchRoutes.findRoute('today');
   const routeIds = routes.map((route) => route.id);
   same(routes.length, f.expect.routeCount, `${rel} routeCount`);
   same(PerchRoutes.findRoute(f.expect.defaultRouteId).id, f.expect.defaultRouteId, `${rel} defaultRouteId`);
   includesAll(routeIds, f.given.requiredRoutes, `${rel} requiredRoutes`);
+  same(todayRoute.status, f.expect.todayStatus, `${rel} todayStatus`);
+  same(todayRoute.rebuildPolicy, f.expect.todayRebuildPolicy, `${rel} todayRebuildPolicy`);
+  same(todayRoute.legacyRole, f.expect.todayLegacyRole, `${rel} todayLegacyRole`);
   if (f.expect.legacyLinksRequired) {
     routes.forEach((route) => {
       if (!route.legacyFile) fail(`${rel}: route ${route.id} missing legacyFile`);
