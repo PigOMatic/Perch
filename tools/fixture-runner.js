@@ -11,6 +11,7 @@ const PerchTruth = require('../src/engines/truth.js');
 const PerchRoutes = require('../src/ui/routes.js');
 const PerchTodayState = require('../src/state/todayState.js');
 const PerchTodayStorageInput = require('../src/state/todayStorageInput.js');
+const PerchStorageDebugDrawer = require('../src/dev/storageDebugDrawer.js');
 
 globalThis.PerchMoney = PerchMoney;
 globalThis.PerchCapture = PerchCapture;
@@ -167,6 +168,17 @@ function checkTodayStorageInput(f, rel) {
   same(r.storageRead.migratedData, f.expect.migratedData, `${rel} migratedData`);
 }
 
+function checkStorageDebugDrawer(f, rel) {
+  if (!rel.endsWith('tests/fixtures/dev/storage-debug-drawer.json')) return;
+  same(f.expect.module, 'PerchStorageDebugDrawer', `${rel} module`);
+  same(f.expect.previewOnly, true, `${rel} previewOnly`);
+  same(f.expect.readOnly, true, `${rel} readOnly`);
+  same(typeof PerchStorageDebugDrawer.summarizeInput, 'function', `${rel} summarizeInput`);
+  same(typeof PerchStorageDebugDrawer.renderStorageDebugDrawer, 'function', `${rel} renderStorageDebugDrawer`);
+  same(f.expect.showsWriteStatus, true, `${rel} showsWriteStatus`);
+  same(f.expect.showsMigrationStatus, true, `${rel} showsMigrationStatus`);
+}
+
 const results = files(fixtureRoot).map((file) => {
   const rel = path.relative(repoRoot, file);
   try {
@@ -181,6 +193,7 @@ const results = files(fixtureRoot).map((file) => {
     checkTodayState(fixture, rel);
     checkTodayView(fixture, rel);
     checkTodayStorageInput(fixture, rel);
+    checkStorageDebugDrawer(fixture, rel);
     return { rel, ok: true };
   } catch (error) {
     return { rel, ok: false, error: error.message };
