@@ -1,0 +1,13 @@
+{
+  "name": "app-shell-routes",
+  "status": "initial-fixture",
+  "description": "Protects the rebuilt shell route registry so legacy pages remain reachable during transition.",
+  "given": {
+    "requiredRoutes": ["today", "week", "month", "capture", "life", "knowledge", "settings"]
+  },
+  "expect": {
+    "routeCount": 7,
+    "legacyLinksRequired": true,
+    "defaultRouteId": "today"
+  }
+}
