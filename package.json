@@ -1,0 +1,11 @@
+{
+  "name": "perch",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "node tools/fixture-runner.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
