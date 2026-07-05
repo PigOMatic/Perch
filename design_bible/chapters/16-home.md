@@ -14,19 +14,27 @@ Home is the user-facing domain for the user's physical world: residence, land, r
 
 ---
 
-## 1. Primary Question
+## 1. Vision
+
+The Home page gives the user a complete, navigable view of their physical world without becoming an inventory app or property management system. It should answer at a glance: what needs care right now, where it is, why it matters, and what is connected to it.
+
+Eventually, Home becomes one of the places the Living World can reflect — a structure, animal, garden, system, or place may appear visually only when backed by stored truth. Chapter 14 documents the current implementation reality; this chapter defines the future Home surface that grows from it.
+
+---
+
+## 2. Primary Question
 
 **What is happening in my physical world?**
 
 ---
 
-## 2. Design Intent
+## 3. Design Intent
 
-Home turns scattered physical-life responsibilities into a clear operating view. It should not become a generic notes app or contractor database. It should answer what needs care, where it is, why it matters, and what is connected to it.
+Home turns scattered physical-life responsibilities into a clear operating view. It should not become a generic notes app, contractor database, or smart-home dashboard. It should answer what needs care, where it is, why it matters, and what is connected to it.
 
 ---
 
-## 3. Relationship to Chapter 14
+## 4. Relationship to Chapter 14
 
 Chapter 14 — Home & Property documents the current repository reality: shallow but real `properties[]` and `homestead{}` data.
 
@@ -34,7 +42,7 @@ This chapter defines the eventual Home page/domain experience that grows out of 
 
 ---
 
-## 4. Read Mode
+## 5. Read Mode
 
 Shows:
 
@@ -47,7 +55,7 @@ Shows:
 
 ---
 
-## 5. Explore Mode
+## 6. Explore Mode
 
 Allows browsing by:
 
@@ -62,7 +70,7 @@ Allows browsing by:
 
 ---
 
-## 6. Core Information
+## 7. Core Information
 
 - Location hierarchy
 - Maintenance items
@@ -75,18 +83,18 @@ Allows browsing by:
 
 ---
 
-## 7. AI Responsibilities
+## 8. AI Responsibilities
 
 The AI should:
 
 - Surface overdue or risky home items.
 - Connect home work to money, calendar, and projects.
 - Explain why something matters now.
-- Never invent property facts, locations, costs, or due dates.
+- Never invent property facts, locations, costs, due dates, rooms, buildings, or systems.
 
 ---
 
-## 8. Does Not Belong
+## 9. Does Not Belong
 
 - Smart-home automation as a first requirement
 - Unverified contractor recommendations
@@ -95,7 +103,20 @@ The AI should:
 
 ---
 
-## 9. Success Criteria
+## 10. Acceptance Tests
+
+The Home page is ready when:
+
+- [ ] A user can see urgent maintenance items quickly.
+- [ ] Each maintenance item shows what, where, urgency, cost estimate if known, and next step.
+- [ ] Properties are browsable by a location hierarchy.
+- [ ] Financial data is linked and sourced rather than copied ambiguously.
+- [ ] No invented property facts or assumed structures appear.
+- [ ] Calendar & Obligations connections are visible when due dates or recurrence exist.
+
+---
+
+## 11. Success Criteria
 
 The user can answer:
 
