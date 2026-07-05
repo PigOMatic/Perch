@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Perch Today Field Guide Preview</title>
   <link rel="stylesheet" href="src/ui/shell.css" />
+  <link rel="stylesheet" href="src/ui/dailyIntro.css" />
 </head>
 <body>
   <main id="perch-shell"></main>
@@ -20,6 +21,7 @@
   <script src="src/ui/routes.js"></script>
   <script src="src/ui/shell.js"></script>
   <script src="src/ui/todayFieldGuideView.js"></script>
+  <script src="src/ui/dailyIntro.js"></script>
   <script src="src/dev/todaySampleData.js"></script>
   <script>
     const shellRoot = document.getElementById('perch-shell');
@@ -34,6 +36,7 @@
     );
     const todayState = window.PerchTodayState.buildTodayState(input);
     window.PerchTodayFieldGuideView.renderTodayFieldGuideView(pageHost, todayState);
+    window.PerchDailyIntro.show();
   </script>
 </body>
 </html>
