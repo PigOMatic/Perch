@@ -1,0 +1,28 @@
+{
+  "name": "storage-adapter-smoke",
+  "status": "initial-fixture",
+  "description": "Protects storage adapter behavior without changing existing storage keys.",
+  "given": {
+    "knownKeys": [
+      "perch_memory_v1",
+      "perch_payday_card",
+      "perch_rec_prefs",
+      "perch_behavior_prefs",
+      "perch_quick_answer_prefs",
+      "perch_goal_qs",
+      "perch_noticed_v1",
+      "perch_changes_snap",
+      "perch_goal_updated",
+      "perch_sug_prefs"
+    ],
+    "missingKey": "perch_missing_example",
+    "fallback": { "ok": true }
+  },
+  "expect": {
+    "missingKeyReturnsFallback": true,
+    "safeParseInvalidReturnsFallback": true,
+    "snapshotDoesNotThrow": true,
+    "doesNotRenameKeys": true,
+    "doesNotClearMemory": true
+  }
+}
