@@ -1,0 +1,113 @@
+:root {
+  color-scheme: light;
+  --perch-bg: #f7f3ec;
+  --perch-card: #fffaf2;
+  --perch-ink: #211b15;
+  --perch-muted: #6f6257;
+  --perch-line: rgba(33, 27, 21, 0.14);
+  --perch-accent: #7f5f3f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: radial-gradient(circle at top left, #fff8ed, var(--perch-bg));
+  color: var(--perch-ink);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.perch-shell-root {
+  width: min(1040px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 40px 0;
+}
+
+.perch-shell-header {
+  padding: 28px;
+  border: 1px solid var(--perch-line);
+  border-radius: 28px;
+  background: rgba(255, 250, 242, 0.8);
+  box-shadow: 0 20px 60px rgba(33, 27, 21, 0.08);
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+  color: var(--perch-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1, h2 {
+  margin: 0;
+  letter-spacing: -0.04em;
+}
+
+h1 {
+  max-width: 720px;
+  font-size: clamp(2.4rem, 7vw, 5.5rem);
+  line-height: 0.92;
+}
+
+h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  line-height: 1;
+}
+
+.lede {
+  max-width: 640px;
+  margin: 18px 0 0;
+  color: var(--perch-muted);
+  font-size: 1.08rem;
+  line-height: 1.5;
+}
+
+.perch-shell-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 22px 0;
+}
+
+.perch-shell-nav a,
+.perch-legacy-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid var(--perch-line);
+  border-radius: 999px;
+  color: var(--perch-ink);
+  background: rgba(255, 250, 242, 0.72);
+  text-decoration: none;
+  font-weight: 650;
+}
+
+.perch-shell-nav a.active {
+  color: #fffaf2;
+  border-color: var(--perch-accent);
+  background: var(--perch-accent);
+}
+
+.perch-page-placeholder {
+  padding: 28px;
+  border: 1px solid var(--perch-line);
+  border-radius: 28px;
+  background: var(--perch-card);
+}
+
+.perch-page-placeholder p:not(.eyebrow) {
+  max-width: 620px;
+  color: var(--perch-muted);
+  line-height: 1.55;
+}
+
+.perch-legacy-link {
+  margin-top: 10px;
+}

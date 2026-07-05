@@ -8,6 +8,7 @@ const PerchCapture = require('../src/domain/capture.js');
 const PerchPriority = require('../src/engines/priority.js');
 const PerchRecommendation = require('../src/engines/recommendation.js');
 const PerchTruth = require('../src/engines/truth.js');
+const PerchRoutes = require('../src/ui/routes.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 const fixtureRoot = path.join(repoRoot, 'tests', 'fixtures');
@@ -103,6 +104,20 @@ function checkTruth(f, rel) {
   same(r.trustNoticeSeverity, f.expect.trustNoticeSeverity, `${rel} trustNoticeSeverity`);
 }
 
+function checkUi(f, rel) {
+  if (!rel.endsWith('tests/fixtures/ui/app-shell-routes.json')) return;
+  const routes = PerchRoutes.getRoutes();
+  const routeIds = routes.map((route) => route.id);
+  same(routes.length, f.expect.routeCount, `${rel} routeCount`);
+  same(PerchRoutes.findRoute(f.expect.defaultRouteId).id, f.expect.defaultRouteId, `${rel} defaultRouteId`);
+  includesAll(routeIds, f.given.requiredRoutes, `${rel} requiredRoutes`);
+  if (f.expect.legacyLinksRequired) {
+    routes.forEach((route) => {
+      if (!route.legacyFile) fail(`${rel}: route ${route.id} missing legacyFile`);
+    });
+  }
+}
+
 const results = files(fixtureRoot).map((file) => {
   const rel = path.relative(repoRoot, file);
   try {
@@ -113,6 +128,7 @@ const results = files(fixtureRoot).map((file) => {
     checkPriority(fixture, rel);
     checkRecommendation(fixture, rel);
     checkTruth(fixture, rel);
+    checkUi(fixture, rel);
     return { rel, ok: true };
   } catch (error) {
     return { rel, ok: false, error: error.message };
