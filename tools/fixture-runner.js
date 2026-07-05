@@ -6,13 +6,14 @@
  *
  * Current scope:
  * - validates fixture shape
- * - executes the first extracted domain behavior: money/bills-before-payday
+ * - executes extracted domain behavior for money and capture
  */
 
 const fs = require('fs');
 const path = require('path');
 
 const PerchMoney = require('../src/domain/money.js');
+const PerchCapture = require('../src/domain/capture.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 const fixtureRoot = path.join(repoRoot, 'tests', 'fixtures');
@@ -58,6 +59,14 @@ function assertArrayEqual(actual, expected, message) {
   }
 }
 
+function assertIncludesAll(actualWords, expectedWords, message) {
+  const haystack = (actualWords || []).join(' ').toLowerCase();
+  const missing = (expectedWords || []).filter((word) => !haystack.includes(String(word).toLowerCase()));
+  if (missing.length) {
+    throw new Error(`${message}. Missing ${JSON.stringify(missing)} from ${JSON.stringify(actualWords)}`);
+  }
+}
+
 function validateFixture(fixture, relativePath) {
   assert(fixture && typeof fixture === 'object', `${relativePath}: fixture must be an object`);
   assert(typeof fixture.name === 'string' && fixture.name.length > 0, `${relativePath}: missing name`);
@@ -80,8 +89,39 @@ function validateMoneyFixture(fixture, relativePath) {
   assertArrayEqual(result.excludedBills, fixture.expect.excludedBills, `${relativePath}: excludedBills mismatch`);
 }
 
+function validateCaptureFixture(fixture, relativePath) {
+  if (!relativePath.startsWith('tests/fixtures/capture/')) return;
+
+  const result = PerchCapture.parseCapture(fixture.given);
+
+  assertEqual(result.parsedType, fixture.expect.parsedType, `${relativePath}: parsedType mismatch`);
+  assertEqual(result.lifecycle, fixture.expect.lifecycle, `${relativePath}: lifecycle mismatch`);
+  assertEqual(result.classification, fixture.expect.classification, `${relativePath}: classification mismatch`);
+
+  if (fixture.expect.dueDate) {
+    assertEqual(result.dueDate, fixture.expect.dueDate, `${relativePath}: dueDate mismatch`);
+  }
+
+  if (fixture.expect.timeHint) {
+    assertEqual(result.timeHint, fixture.expect.timeHint, `${relativePath}: timeHint mismatch`);
+  }
+
+  if (fixture.expect.personHint) {
+    assertEqual(result.personHint, fixture.expect.personHint, `${relativePath}: personHint mismatch`);
+  }
+
+  if (fixture.expect.completionAction) {
+    assertEqual(result.completionAction, fixture.expect.completionAction, `${relativePath}: completionAction mismatch`);
+  }
+
+  if (fixture.expect.titleIncludes) {
+    assertIncludesAll(result.titleWords, fixture.expect.titleIncludes, `${relativePath}: title words mismatch`);
+  }
+}
+
 function validateBehavior(fixture, relativePath) {
   validateMoneyFixture(fixture, relativePath);
+  validateCaptureFixture(fixture, relativePath);
 }
 
 function main() {
