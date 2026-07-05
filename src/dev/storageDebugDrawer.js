@@ -33,6 +33,10 @@
       ['Mode', storageRead && storageRead.mode ? storageRead.mode : 'unknown'],
       ['Money from storage', yesNo(details.moneyFromStorage)],
       ['Captures from storage', yesNo(details.capturesFromStorage)],
+      ['People from storage', yesNo(details.peopleFromStorage)],
+      ['People count', String(details.peopleCount || 0)],
+      ['Work shifts from storage', yesNo(details.workShiftsFromStorage)],
+      ['Work shift count', String(details.workShiftCount || 0)],
       ['Recommendations from storage', yesNo(details.recommendationsFromStorage)],
       ['Wrote data', yesNo(storageRead && storageRead.wroteData)],
       ['Migrated data', yesNo(storageRead && storageRead.migratedData)]
