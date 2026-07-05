@@ -1,0 +1,20 @@
+{
+  "name": "page-content-contracts",
+  "status": "product-layout-fixture",
+  "description": "Protects the rule that Perch layouts must be judged against defined page content responsibilities before visual polish.",
+  "given": {
+    "pages": ["today", "week", "brain", "life-map", "knowledge", "settings"]
+  },
+  "expect": {
+    "todayMainQuestion": "Where am I today, and what matters first?",
+    "todayMustShow": ["orientation", "primary-marker"],
+    "todaySupportingContent": ["money-terrain", "schedule-terrain", "brain-notes", "people-context", "trust-source"],
+    "weekMainQuestion": "What is coming up, and where are the pressure points?",
+    "brainMainQuestion": "What did I tell Perch, and what needs to happen to it?",
+    "lifeMapMainQuestion": "What parts of my life are active, quiet, stuck, or changing?",
+    "knowledgeMainQuestion": "What does Perch know, and how confident is it?",
+    "settingsMainQuestion": "How do I control Perch safely?",
+    "layoutRequiresContentContract": true,
+    "avoidEqualWeightEverything": true
+  }
+}
