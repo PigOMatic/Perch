@@ -1,0 +1,18 @@
+{
+  "name": "capture-waiting-item-basic",
+  "status": "initial-fixture",
+  "designBibleChapters": ["06-brain", "07-truth-engine"],
+  "description": "Protects waiting-item capture parsing and lifecycle behavior.",
+  "given": {
+    "today": "2026-07-05",
+    "rawText": "waiting on Maura to send the insurance card"
+  },
+  "expect": {
+    "parsedType": "waiting",
+    "personHint": "Maura",
+    "titleIncludes": ["insurance", "card"],
+    "lifecycle": "active",
+    "completionAction": "arrived_or_done",
+    "classification": "stored_record"
+  }
+}
