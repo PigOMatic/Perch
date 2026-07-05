@@ -9,6 +9,13 @@ const PerchPriority = require('../src/engines/priority.js');
 const PerchRecommendation = require('../src/engines/recommendation.js');
 const PerchTruth = require('../src/engines/truth.js');
 const PerchRoutes = require('../src/ui/routes.js');
+const PerchTodayState = require('../src/state/todayState.js');
+
+globalThis.PerchMoney = PerchMoney;
+globalThis.PerchCapture = PerchCapture;
+globalThis.PerchPriority = PerchPriority;
+globalThis.PerchRecommendation = PerchRecommendation;
+globalThis.PerchTruth = PerchTruth;
 
 const repoRoot = path.resolve(__dirname, '..');
 const fixtureRoot = path.join(repoRoot, 'tests', 'fixtures');
@@ -118,6 +125,16 @@ function checkUi(f, rel) {
   }
 }
 
+function checkTodayState(f, rel) {
+  if (!rel.endsWith('tests/fixtures/state/today-state-basic.json')) return;
+  const r = PerchTodayState.buildTodayState(f.given);
+  same(r.pageId, f.expect.pageId, `${rel} pageId`);
+  same(r.mode, f.expect.mode, `${rel} mode`);
+  same(r.legacyFallback, f.expect.legacyFallback, `${rel} legacyFallback`);
+  sameArray(r.sections.map((section) => section.id), f.expect.sectionIds, `${rel} sectionIds`);
+  same(Boolean(r.trustNotice), f.expect.trustNoticeRequired, `${rel} trustNoticeRequired`);
+}
+
 const results = files(fixtureRoot).map((file) => {
   const rel = path.relative(repoRoot, file);
   try {
@@ -129,6 +146,7 @@ const results = files(fixtureRoot).map((file) => {
     checkRecommendation(fixture, rel);
     checkTruth(fixture, rel);
     checkUi(fixture, rel);
+    checkTodayState(fixture, rel);
     return { rel, ok: true };
   } catch (error) {
     return { rel, ok: false, error: error.message };
