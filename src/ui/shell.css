@@ -113,7 +113,8 @@ h3 {
 .today-view-root p,
 .today-view-root li,
 .today-brief-root p,
-.today-brief-root li {
+.today-brief-root li,
+.today-field-guide-root p {
   max-width: 680px;
   color: var(--perch-muted);
   line-height: 1.55;
@@ -300,6 +301,109 @@ h3 {
   font-size: 0.95rem;
 }
 
+.today-field-guide-root {
+  display: grid;
+}
+
+.today-field-guide-page {
+  position: relative;
+  min-height: 68vh;
+  padding: clamp(28px, 6vw, 68px);
+  border: 1px solid rgba(33, 27, 21, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, rgba(33, 27, 21, 0.045) 1px, transparent 1px),
+    linear-gradient(rgba(33, 27, 21, 0.035) 1px, transparent 1px),
+    radial-gradient(circle at 82% 16%, rgba(127, 95, 63, 0.11), transparent 28%),
+    #fffaf2;
+  background-size: 28px 28px, 28px 28px, auto, auto;
+  box-shadow: 0 24px 90px rgba(33, 27, 21, 0.1);
+}
+
+.today-field-guide-page::before {
+  content: '';
+  position: absolute;
+  inset: 18px auto 18px 26px;
+  width: 2px;
+  background: rgba(127, 95, 63, 0.28);
+}
+
+.field-guide-header,
+.field-guide-map,
+.field-guide-compass,
+.field-guide-margin-note {
+  margin-left: clamp(12px, 4vw, 46px);
+}
+
+.field-guide-header h2 {
+  max-width: 760px;
+  font-size: clamp(2.4rem, 7vw, 5.8rem);
+  line-height: 0.94;
+}
+
+.field-guide-date-line {
+  margin-top: 18px;
+  font-size: 1.05rem;
+}
+
+.field-guide-map {
+  display: grid;
+  gap: 1px;
+  max-width: 780px;
+  margin-top: 42px;
+  border: 1px solid var(--perch-line);
+  background: rgba(33, 27, 21, 0.08);
+}
+
+.field-guide-map .eyebrow {
+  margin: 0;
+  padding: 14px 16px;
+  background: rgba(255, 250, 242, 0.88);
+}
+
+.field-guide-row {
+  display: grid;
+  grid-template-columns: 150px 1fr;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(255, 250, 242, 0.84);
+}
+
+.field-guide-label {
+  color: var(--perch-accent);
+  font-weight: 850;
+}
+
+.field-guide-value {
+  color: var(--perch-ink);
+}
+
+.field-guide-compass {
+  max-width: 680px;
+  margin-top: 34px;
+  padding: 22px;
+  border-left: 4px solid rgba(127, 95, 63, 0.4);
+  background: rgba(127, 95, 63, 0.08);
+}
+
+.field-guide-compass p:last-child {
+  margin-bottom: 0;
+  color: var(--perch-ink);
+  font-size: 1.18rem;
+}
+
+.field-guide-margin-note {
+  max-width: 620px;
+  margin-top: 34px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--perch-line);
+}
+
+.field-guide-margin-note p {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
 .storage-debug-drawer {
   padding: 22px 28px;
   border: 1px dashed var(--perch-line);
@@ -332,7 +436,8 @@ h3 {
 @media (max-width: 780px) {
   .today-grid,
   .storage-debug-drawer dl,
-  .brief-evidence li {
+  .brief-evidence li,
+  .field-guide-row {
     grid-template-columns: 1fr;
   }
 
@@ -343,5 +448,9 @@ h3 {
 
   .today-brief {
     border-radius: 28px;
+  }
+
+  .today-field-guide-page {
+    border-radius: 14px;
   }
 }

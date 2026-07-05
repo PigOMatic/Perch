@@ -13,6 +13,7 @@ const PerchTodayState = require('../src/state/todayState.js');
 const PerchTodayStorageInput = require('../src/state/todayStorageInput.js');
 const PerchStorageDebugDrawer = require('../src/dev/storageDebugDrawer.js');
 const PerchTodayBriefView = require('../src/ui/todayBriefView.js');
+const PerchTodayFieldGuideView = require('../src/ui/todayFieldGuideView.js');
 
 globalThis.PerchMoney = PerchMoney;
 globalThis.PerchCapture = PerchCapture;
@@ -178,6 +179,19 @@ function checkTodayBriefView(f, rel) {
   same(typeof PerchTodayBriefView.renderTodayBriefView, 'function', `${rel} renderTodayBriefView`);
 }
 
+function checkTodayFieldGuideView(f, rel) {
+  if (!rel.endsWith('tests/fixtures/ui/today-field-guide-view.json')) return;
+  same(f.expect.renderer, 'PerchTodayFieldGuideView.renderTodayFieldGuideView', `${rel} renderer`);
+  same(f.expect.mode, 'field-guide', `${rel} mode`);
+  same(f.expect.metaphor, 'page-journal-map-guidebook', `${rel} metaphor`);
+  same(f.expect.notDashboard, true, `${rel} notDashboard`);
+  same(f.expect.orientationPage, true, `${rel} orientationPage`);
+  same(f.expect.hasTodayMap, true, `${rel} hasTodayMap`);
+  same(f.expect.hasCompass, true, `${rel} hasCompass`);
+  same(f.expect.hasMarginNote, true, `${rel} hasMarginNote`);
+  same(typeof PerchTodayFieldGuideView.renderTodayFieldGuideView, 'function', `${rel} renderTodayFieldGuideView`);
+}
+
 function checkTodayStorageInput(f, rel) {
   if (!rel.endsWith('tests/fixtures/state/today-storage-input-basic.json')) return;
   const r = PerchTodayStorageInput.buildTodayInputFromStorageSnapshot(f.given.snapshot, f.given.fallbackInput);
@@ -224,6 +238,7 @@ const results = files(fixtureRoot).map((file) => {
     checkTodayView(fixture, rel);
     checkTodayVisionTarget(fixture, rel);
     checkTodayBriefView(fixture, rel);
+    checkTodayFieldGuideView(fixture, rel);
     checkTodayStorageInput(fixture, rel);
     checkStorageDebugDrawer(fixture, rel);
     return { rel, ok: true };
