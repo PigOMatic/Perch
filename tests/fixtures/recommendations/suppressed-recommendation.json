@@ -1,0 +1,24 @@
+{
+  "name": "suppressed-recommendation",
+  "status": "initial-fixture",
+  "designBibleChapters": ["09-recommendation-engine"],
+  "description": "Protects recommendation suppression so dismissed/suppressed suggestions do not keep resurfacing as top recommendations.",
+  "given": {
+    "today": "2026-07-05",
+    "candidateRecommendation": {
+      "id": "rec_add_more_detail_to_goal",
+      "title": "Add more detail to your goal",
+      "domain": "goals",
+      "sourceIds": ["goal_beach_house"]
+    },
+    "preferences": {
+      "suppressedRecommendationIds": ["rec_add_more_detail_to_goal"]
+    }
+  },
+  "expect": {
+    "shouldShow": false,
+    "suppressed": true,
+    "suppressionReason": "user_suppressed",
+    "userActionRequired": true
+  }
+}

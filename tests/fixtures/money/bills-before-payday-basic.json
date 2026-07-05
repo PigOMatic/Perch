@@ -1,0 +1,36 @@
+{
+  "name": "bills-before-payday-basic",
+  "status": "initial-fixture",
+  "designBibleChapters": ["02-money", "01-today"],
+  "description": "Protects the basic Money calculation: bills due before payday reduce the available cushion.",
+  "given": {
+    "today": "2026-07-05",
+    "checkingBalance": 1200,
+    "nextPayday": "2026-07-12",
+    "bills": [
+      {
+        "id": "bill_mortgage",
+        "name": "Mortgage",
+        "amount": 800,
+        "dueDate": "2026-07-08",
+        "paidStatus": "unpaid",
+        "autopay": false
+      },
+      {
+        "id": "bill_phone",
+        "name": "Phone",
+        "amount": 100,
+        "dueDate": "2026-07-14",
+        "paidStatus": "unpaid",
+        "autopay": true
+      }
+    ]
+  },
+  "expect": {
+    "billsBeforePayday": 800,
+    "excludedBills": ["bill_phone"],
+    "cushionBeforePayday": 400,
+    "classification": "derived_fact",
+    "requiredSourceIds": ["checkingBalance", "nextPayday", "bill_mortgage"]
+  }
+}

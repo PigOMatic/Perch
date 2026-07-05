@@ -1,0 +1,23 @@
+{
+  "name": "manual-stale-balance",
+  "status": "initial-fixture",
+  "designBibleChapters": ["07-truth-engine", "02-money", "01-today"],
+  "description": "Protects trust labeling for a manually entered balance that may be stale.",
+  "given": {
+    "today": "2026-07-05",
+    "statement": "You have $1,200 available before payday.",
+    "source": {
+      "id": "checkingBalance",
+      "type": "manual_entry",
+      "value": 1200,
+      "timestamp": "2026-06-20T08:00:00-04:00",
+      "confidence": 0.55
+    }
+  },
+  "expect": {
+    "truthStatus": "limited",
+    "requiredLabel": "Based on your last manual balance",
+    "shouldShowAsCertain": false,
+    "trustNoticeSeverity": "warning"
+  }
+}
