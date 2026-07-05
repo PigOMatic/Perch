@@ -11,10 +11,11 @@
 
 The fixture runner is the first validation tool for the restored Perch source rebuild.
 
-It validates fixture shape and now executes the first extracted behavior:
+It validates fixture shape and now executes extracted behavior for:
 
 ```text
-Money: bills before payday
+Money
+Capture
 ```
 
 ---
@@ -44,6 +45,8 @@ expect
 | Fixture | Module | Behavior |
 |---|---|---|
 | `tests/fixtures/money/bills-before-payday-basic.json` | `src/domain/money.js` | Calculates bills due before payday and remaining cushion. |
+| `tests/fixtures/capture/reminder-basic.json` | `src/domain/capture.js` | Parses basic reminder capture text. |
+| `tests/fixtures/capture/waiting-item-basic.json` | `src/domain/capture.js` | Parses basic waiting-item capture text. |
 
 ---
 
@@ -81,7 +84,7 @@ This runner does not yet:
 ## 6. Next targets
 
 ```text
-capture reminder parsing
-capture waiting-item parsing
 priority ordering
+recommendation suppression
+trust labeling
 ```
