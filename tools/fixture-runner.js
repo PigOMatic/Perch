@@ -154,6 +154,17 @@ function checkTodayView(f, rel) {
   same(f.expect.legacyIsVisualTarget, false, `${rel} legacyIsVisualTarget`);
 }
 
+function checkTodayVisionTarget(f, rel) {
+  if (!rel.endsWith('tests/fixtures/ui/today-vision-target.json')) return;
+  same(f.expect.notDashboard, true, `${rel} notDashboard`);
+  same(f.expect.notLegacyPolish, true, `${rel} notLegacyPolish`);
+  same(f.expect.requiresDominantDailyAnswer, true, `${rel} requiresDominantDailyAnswer`);
+  same(f.expect.requiresHumanBriefingTone, true, `${rel} requiresHumanBriefingTone`);
+  same(f.expect.requiresQuietTrustDisclosure, true, `${rel} requiresQuietTrustDisclosure`);
+  same(f.expect.debugToolsAreNotProductSurface, true, `${rel} debugToolsAreNotProductSurface`);
+  same(f.expect.nextPrototype, 'src/ui/todayBriefView.js', `${rel} nextPrototype`);
+}
+
 function checkTodayStorageInput(f, rel) {
   if (!rel.endsWith('tests/fixtures/state/today-storage-input-basic.json')) return;
   const r = PerchTodayStorageInput.buildTodayInputFromStorageSnapshot(f.given.snapshot, f.given.fallbackInput);
@@ -198,6 +209,7 @@ const results = files(fixtureRoot).map((file) => {
     checkUi(fixture, rel);
     checkTodayState(fixture, rel);
     checkTodayView(fixture, rel);
+    checkTodayVisionTarget(fixture, rel);
     checkTodayStorageInput(fixture, rel);
     checkStorageDebugDrawer(fixture, rel);
     return { rel, ok: true };
