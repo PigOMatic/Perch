@@ -149,16 +149,42 @@ h3 {
   max-width: 780px;
 }
 
-.today-trust-note {
+.today-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   margin-top: 22px;
+}
+
+.today-source-indicator,
+.today-trust-note {
+  min-width: min(100%, 260px);
   padding: 16px;
   border: 1px solid var(--perch-line);
   border-radius: 20px;
   background: var(--perch-soft);
 }
 
+.today-source-indicator p,
 .today-trust-note p {
   margin: 0;
+}
+
+.today-source-indicator.browser-storage {
+  background: rgba(50, 100, 72, 0.1);
+}
+
+.today-source-indicator.mixed {
+  background: rgba(127, 95, 63, 0.12);
+}
+
+.today-source-indicator.sample-fallback {
+  background: rgba(120, 120, 120, 0.1);
+}
+
+.today-source-meta {
+  margin-top: 4px !important;
+  font-size: 0.9rem;
 }
 
 .today-attention {
