@@ -111,7 +111,9 @@ h3 {
 
 .perch-page-placeholder p:not(.eyebrow),
 .today-view-root p,
-.today-view-root li {
+.today-view-root li,
+.today-brief-root p,
+.today-brief-root li {
   max-width: 680px;
   color: var(--perch-muted);
   line-height: 1.55;
@@ -226,6 +228,78 @@ h3 {
   margin: 0;
 }
 
+.today-brief-root {
+  display: grid;
+}
+
+.today-brief {
+  min-height: 62vh;
+  padding: clamp(28px, 6vw, 72px);
+  border: 1px solid var(--perch-line);
+  border-radius: 36px;
+  background:
+    radial-gradient(circle at 86% 10%, rgba(127, 95, 63, 0.13), transparent 32%),
+    linear-gradient(145deg, rgba(255, 250, 242, 0.96), rgba(247, 243, 236, 0.72));
+  box-shadow: 0 24px 80px rgba(33, 27, 21, 0.09);
+}
+
+.brief-opening {
+  max-width: 860px;
+  padding: 8vh 0 5vh;
+}
+
+.brief-opening h2 {
+  max-width: 820px;
+  font-size: clamp(2.7rem, 8vw, 6.8rem);
+  line-height: 0.91;
+}
+
+.brief-primary-line {
+  margin: 28px 0 0;
+  max-width: 680px;
+  color: var(--perch-ink) !important;
+  font-size: clamp(1.25rem, 3vw, 2rem);
+  line-height: 1.22 !important;
+}
+
+.brief-evidence {
+  margin-top: 16px;
+  max-width: 780px;
+  padding-top: 26px;
+  border-top: 1px solid var(--perch-line);
+}
+
+.brief-evidence ul {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.brief-evidence li {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 18px;
+}
+
+.brief-evidence-label {
+  color: var(--perch-accent);
+  font-weight: 800;
+}
+
+.brief-quiet-notes {
+  display: grid;
+  gap: 4px;
+  margin-top: 34px;
+  max-width: 780px;
+}
+
+.brief-quiet-notes p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
 .storage-debug-drawer {
   padding: 22px 28px;
   border: 1px dashed var(--perch-line);
@@ -257,12 +331,17 @@ h3 {
 
 @media (max-width: 780px) {
   .today-grid,
-  .storage-debug-drawer dl {
+  .storage-debug-drawer dl,
+  .brief-evidence li {
     grid-template-columns: 1fr;
   }
 
   .perch-shell-root {
     width: min(100% - 20px, 1040px);
     padding: 20px 0;
+  }
+
+  .today-brief {
+    border-radius: 28px;
   }
 }
