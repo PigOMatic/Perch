@@ -1,7 +1,8 @@
 # Perch Fixture Runner
 
-**Status:** Initial validation tool  
+**Status:** Initial behavior validation tool  
 **Created:** July 5, 2026  
+**Updated:** July 5, 2026  
 **Tool:** `tools/fixture-runner.js`
 
 ---
@@ -10,9 +11,11 @@
 
 The fixture runner is the first validation tool for the restored Perch source rebuild.
 
-Right now it validates fixture shape only. It does not yet execute Perch business logic.
+It validates fixture shape and now executes the first extracted behavior:
 
-This is intentional. Perch's restored logic still needs stable wrappers before the runner should execute real behavior.
+```text
+Money: bills before payday
+```
 
 ---
 
@@ -36,7 +39,15 @@ expect
 
 ---
 
-## 3. How to run
+## 3. Current executable checks
+
+| Fixture | Module | Behavior |
+|---|---|---|
+| `tests/fixtures/money/bills-before-payday-basic.json` | `src/domain/money.js` | Calculates bills due before payday and remaining cushion. |
+
+---
+
+## 4. How to run
 
 From the repo root:
 
@@ -55,20 +66,6 @@ Failed: 0
 
 ---
 
-## 4. Why this matters
-
-This gives Perch a simple test entrypoint before the UI rebuild begins.
-
-Future work can upgrade the runner in stages:
-
-1. Validate fixture shape.
-2. Load storage adapter.
-3. Load extracted domain helpers.
-4. Compare actual outputs to expected outputs.
-5. Run in GitHub Actions.
-
----
-
 ## 5. Non-goals
 
 This runner does not yet:
@@ -81,20 +78,10 @@ This runner does not yet:
 
 ---
 
-## 6. Next step
-
-Add the first wrapper/module that can be safely tested without the DOM.
-
-Recommended next target:
+## 6. Next targets
 
 ```text
-src/core/storage.js
+capture reminder parsing
+capture waiting-item parsing
+priority ordering
 ```
-
-Then:
-
-```text
-src/domain/money.js
-```
-
-for bills-before-payday math.
