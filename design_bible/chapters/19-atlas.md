@@ -1,50 +1,97 @@
 # Chapter 19 — Atlas
 
-## Purpose
-Atlas is a first-class domain within Perch and follows the principles defined by the Design Bible.
+> **Chapter:** Atlas
+> **Chapter ID:** PERCH-19
+> **Version:** 1.0
+> **Status:** Concept — the Atlas is the organizing model for the full Life OS; individual chapters exist, but a dedicated Atlas navigation/intelligence page is not verified as implemented.
+> **Confidence:** 86% — the one-question-per-domain model is settled; the user-facing Atlas surface remains future work.
+> **Owner:** Jeff
+> **Implementation:** Planning — no dedicated Atlas page is verified as implemented.
+> **Depends On:** Today *(Prototype)*, all domain chapters, Truth Engine *(Prototype)*, Priority Engine *(Prototype)*, Recommendation Engine *(Prototype)*
+> **Last Updated:** July 5, 2026
 
-## Primary Question
+Atlas is the map of Perch. It explains how every domain works together as one Life OS rather than a pile of disconnected pages.
+
+---
+
+## 1. Primary Question
+
 **How does every domain work together as one Life OS?**
 
-## Design Intent
-This chapter defines the user experience, responsibilities, and architectural boundaries for the Atlas domain.
+---
 
-## Read Mode
-Shows the most relevant information immediately with minimal cognitive load.
+## 2. Design Intent
 
-## Explore Mode
-Allows users to browse, filter, and understand deeper information without cluttering the default view.
+The Atlas gives Perch a coherent shape. Every page answers one primary question. Every feature belongs somewhere. Every cross-domain recommendation must be traceable to the domains it uses.
 
-## Core Information
-- Canonical data for this domain
-- Relationships to other domains
-- History where appropriate
-- Status and confidence
-- Evidence and source tracking where applicable
+---
 
-## Core Actions
-- View
-- Create
-- Edit
-- Archive
-- Link to related domains
+## 3. Core Rule
 
-## Connected Engines
-- Truth Engine
-- Priority Engine
-- Recommendation Engine
+> Every feature must have a home.
 
-## Connected Domains
-Describe how this domain integrates with the rest of the Atlas.
+If a feature does not belong to a chapter, either the chapter map is incomplete or the feature does not belong in Perch.
 
-## AI Responsibilities
-AI assists, explains, recommends, and surfaces relevant information without inventing facts.
+---
 
-## Does NOT Belong
-Features that do not support clarity or violate the scope of this domain.
+## 4. Read Mode
 
-## Future Expansion
-Reserved for post-v1.0 capabilities.
+Shows:
 
-## Success Criteria
-The user can answer the primary question confidently after visiting this page.
+- The user's current life map
+- Domains with active attention items
+- Domain status and maturity
+- Cross-domain relationships
+- Where Perch is confident vs incomplete
+
+---
+
+## 5. Explore Mode
+
+Allows browsing by:
+
+- Domain
+- Engine
+- Status
+- Confidence
+- Data source
+- User goal
+- Current attention
+
+---
+
+## 6. Core Information
+
+- Domain list
+- Primary question per domain
+- Connected engines
+- Connected data sources
+- Implementation status
+- Known gaps
+- Build dependencies
+
+---
+
+## 7. AI Responsibilities
+
+The AI should:
+
+- Route ideas to the correct chapter.
+- Detect orphan features.
+- Explain cross-domain recommendations.
+- Preserve boundaries between fact, priority, recommendation, and voice.
+
+---
+
+## 8. Does Not Belong
+
+- A random app menu
+- A feature wishlist without status
+- Hidden architecture
+- Claims that current implementation is more complete than verified
+
+---
+
+## 9. Success Criteria
+
+A user or builder can understand where every part of Perch belongs and why.
