@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Perch — Capture</title>
+<script src="perch_core.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --cream: #f0ebe0; --cream2: #ede7d9; --card: #ffffff;
+    --ink: #1e1c14; --ink2: #2d2a1e;
+    --green: #2d6a4f; --green-light: #52b788; --green-bg: #eef7f2; --green-check: #3a8c62;
+    --orange: #e07b39; --orange-bg: #fef3eb;
+    --purple: #6b4fbb; --purple-bg: #f0ecf9;
+    --muted: #7a7060; --muted2: #a09880;
+    --border: rgba(30,28,20,0.10);
+    --shadow: 0 2px 12px rgba(30,28,20,0.08);
+    --shadow2: 0 4px 20px rgba(30,28,20,0.12);
+    --radius: 18px; --radius-sm: 12px;
+  }
+
+  html, body {
+    background: var(--cream);
+    font-family: 'Inter', -apple-system, system-ui, sans-serif;
+    color: var(--ink); min-height: 100vh; overflow-x: hidden;
+  }
+
+  /* ── STATUS + HEADER ── */  .app-header { display:flex; align-items:center; justify-content:space-between; padding:6px 20px 14px; background:var(--cream); }
+  .perch-logo { display:flex; align-items:center; gap:8px; }
+  .perch-wordmark { font-family:'Playfair Display',Georgia,serif; font-size:26px; font-weight:800; color:var(--ink2); letter-spacing:-.02em; }
+  /* ── SCROLL ── */
+  .scroll-area { padding:0 16px 120px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+  /* ── PAGE TITLE ── */
+  .page-title { padding:4px 4px 18px; }
+  .page-title h1 { font-family:'Playfair Display',Georgia,serif; font-size:30px; font-weight:800; color:var(--ink2); margin-bottom:4px; }
+  .page-title p { font-size:14px; color:var(--muted); line-height:1.5; }
+
+  /* ── CARD ── */
+  .card { background:var(--card); border-radius:var(--radius); box-shadow:0 2px 16px rgba(30,28,20,0.10),0 1px 4px rgba(30,28,20,0.06); margin-bottom:14px; overflow:hidden; }
+  .card-inner { padding:16px; }
+
+  /* ── INPUT AREA ── */
+  .input-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow2); margin-bottom:12px; overflow:hidden; border:2px solid transparent; transition:border-color 0.2s; }
+  .input-card.focused { border-color:var(--green); }
+  .input-wrap { padding:16px 16px 10px; }
+  .input-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted2); margin-bottom:10px; }
+  .capture-input {
+    width:100%; border:none; outline:none; resize:none;
+    font-family:'Inter',sans-serif; font-size:16px; font-weight:500;
+    color:var(--ink); background:transparent; line-height:1.5;
+    min-height:72px;
+  }
+  .capture-input::placeholder { color:var(--muted2); font-weight:400; }
+  .input-footer { display:flex; align-items:center; justify-content:space-between; padding:8px 16px 12px; border-top:1px solid rgba(30,28,20,0.06); margin-top:4px; }
+  .char-count { font-size:11px; color:var(--muted2); }
+  .submit-btn {
+    background:var(--green); color:white; border:none;
+    border-radius:10px; padding:10px 20px;
+    font-size:13px; font-weight:700; cursor:pointer;
+    font-family:'Inter',sans-serif; transition:opacity 0.15s;
+  }
+  .submit-btn:disabled { opacity:0.4; cursor:default; }
+  .submit-btn:not(:disabled):active { opacity:0.85; }
+
+  /* ── EXAMPLE CHIPS ── */
+  .chips-label { font-size:12px; font-weight:600; color:var(--muted); margin-bottom:8px; padding-left:2px; }
+  .chips-row { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:14px; }
+  .chip {
+    background:var(--card); border:1px solid var(--border);
+    border-radius:999px; padding:7px 13px;
+    font-size:12px; font-weight:600; color:var(--ink);
+    cursor:pointer; transition:all 0.15s;
+    box-shadow:0 1px 4px rgba(30,28,20,0.06);
+  }
+  .chip:active { background:var(--green-bg); border-color:var(--green-check); color:var(--green); }
+
+  /* ── INTERPRETATION PANEL ── */
+  .interp-card {
+    background:var(--card); border-radius:var(--radius);
+    box-shadow:var(--shadow2); margin-bottom:12px;
+    border:2px solid var(--green-check); overflow:hidden;
+    animation:slideIn 0.25s ease;
+  }
+  @keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+  .interp-header { padding:14px 16px 10px; border-bottom:1px solid rgba(30,28,20,0.06); }
+  .interp-title { font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--green); margin-bottom:2px; }
+  .interp-text { font-size:15px; font-weight:600; color:var(--ink); line-height:1.4; }
+  .interp-body { padding:12px 16px; }
+  .interp-row { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid rgba(30,28,20,0.05); }
+  .interp-row:last-child { border-bottom:none; padding-bottom:0; }
+  .interp-icon { font-size:16px; width:22px; text-align:center; flex-shrink:0; margin-top:1px; }
+  .interp-key { font-size:12px; color:var(--muted); width:90px; flex-shrink:0; font-weight:600; }
+  .interp-val { font-size:13px; font-weight:600; color:var(--ink); flex:1; }
+  .interp-tag { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:999px; margin-right:4px; }
+  .interp-actions { display:flex; gap:8px; padding:12px 16px; border-top:1px solid rgba(30,28,20,0.06); }
+  .btn-confirm { flex:1; background:var(--green); color:white; border:none; border-radius:10px; padding:12px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+  .btn-confirm:active { opacity:0.85; }
+  .btn-edit { background:var(--cream2); color:var(--ink); border:1px solid var(--border); border-radius:10px; padding:12px 16px; font-size:14px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+  .btn-cancel { color:var(--muted); border:none; background:transparent; padding:12px 10px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; }
+
+  /* ── CONFIRMATION ── */
+  .confirm-card {
+    background:var(--green-bg); border:1px solid rgba(58,140,98,0.25);
+    border-radius:var(--radius); padding:18px;
+    display:flex; gap:14px; align-items:center;
+    margin-bottom:12px; animation:slideIn 0.25s ease;
+  }
+  .confirm-eagle { font-size:36px; animation:bob 3s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-4px)} }
+  .confirm-text h3 { font-family:'Playfair Display',Georgia,serif; font-size:17px; font-weight:700; color:var(--green); margin-bottom:3px; }
+  .confirm-text p { font-size:13px; color:var(--muted); line-height:1.4; }
+
+  /* ── EDITABLE CONFIRMATION ── */
+  .edit-field-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted2); margin-bottom:5px; }
+  .edit-input {
+    width:100%; border:1.5px solid var(--border); border-radius:10px;
+    padding:9px 12px; font-family:'Inter',sans-serif; font-size:14px;
+    color:var(--ink); background:#fafaf7; outline:none;
+    transition:border-color 0.15s; margin-bottom:12px;
+  }
+  .edit-input:focus { border-color:var(--green-check); background:#fff; }
+  .edit-select {
+    width:100%; border:1.5px solid var(--border); border-radius:10px;
+    padding:9px 12px; font-family:'Inter',sans-serif; font-size:14px;
+    color:var(--ink); background:#fafaf7; outline:none; appearance:none;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7060' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 12px center;
+    padding-right:32px; margin-bottom:12px; cursor:pointer;
+  }
+  .edit-select:focus { border-color:var(--green-check); }
+  .priority-checks { display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+  .priority-check-row { display:flex; align-items:center; gap:10px; }
+  .priority-check-row input[type=checkbox] { width:18px; height:18px; accent-color:var(--green); cursor:pointer; flex-shrink:0; }
+  .priority-check-label { font-size:13px; font-weight:600; color:var(--ink); flex:1; }
+  .priority-check-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .edit-section { padding:12px 16px; border-bottom:1px solid rgba(30,28,20,0.06); }
+  .edit-section:last-of-type { border-bottom:none; }
+  /* Recent edit button */
+  .cap-action-btn { font-size:11px; font-weight:700; padding:4px 9px; border-radius:8px; border:1px solid var(--border); background:var(--cream2); color:var(--muted); cursor:pointer; }
+  .cap-action-btn:active { background:var(--green-bg); border-color:var(--green-check); color:var(--green); }
+  .cap-action-btn.danger:active { background:#fef2f2; border-color:#fecdd3; color:#c0392b; }
+  .cap-action-btn.done { background:var(--green-bg); color:var(--green-check); border-color:rgba(58,140,98,0.3); }
+  .cap-action-btn.waiting { background:#e0f2fe; color:#0369a1; border-color:rgba(3,105,161,0.25); }
+  .cap-done-strip { font-size:11px; color:var(--green-check); font-weight:600; margin-top:4px; }
+  /* Inline edit panel for recent captures */
+  .cap-edit-panel { background:var(--cream2); border-radius:10px; padding:12px; margin-top:8px; border:1px solid var(--border); }
+  .cap-edit-panel .edit-input, .cap-edit-panel .edit-select { margin-bottom:8px; font-size:13px; }
+  .cap-edit-actions { display:flex; gap:7px; margin-top:4px; }
+  .cap-save-btn { flex:1; background:var(--green); color:white; border:none; border-radius:8px; padding:9px; font-size:13px; font-weight:700; cursor:pointer; }
+  .type-reminder   { background:#fef3c7; color:#92400e; }
+  .type-waiting_on { background:#e0f2fe; color:#0369a1; }
+  .type-recurring  { background:var(--green-bg); color:var(--green-check); }
+  .type-opportunity{ background:var(--orange-bg); color:var(--orange); }
+  .type-event      { background:var(--purple-bg); color:var(--purple); }
+  .type-goal       { background:#fdf4ff; color:#7e22ce; }
+
+  /* ── RECENT CAPTURES ── */
+  .section-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted2); margin:6px 2px 10px; }
+  .capture-row { display:flex; align-items:flex-start; gap:12px; padding:11px 0; border-bottom:1px solid rgba(30,28,20,0.06); }
+  .capture-row:last-child { border-bottom:none; padding-bottom:0; }
+  .capture-row-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+  .capture-body { flex:1; min-width:0; }
+  .capture-label { font-size:14px; font-weight:600; color:var(--ink); margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .capture-meta { display:flex; flex-wrap:wrap; gap:5px; align-items:center; }
+  .capture-date { font-size:11px; color:var(--muted2); }
+  .capture-del { font-size:18px; color:var(--muted2); cursor:pointer; flex-shrink:0; padding:4px; line-height:1; }
+  .capture-del:active { color:var(--orange); }
+
+  /* ── EMPTY STATE ── */
+  .empty { text-align:center; padding:28px 0; color:var(--muted2); font-size:14px; }
+  .empty-icon { font-size:32px; margin-bottom:8px; opacity:0.5; }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(240,235,224,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;padding:8px 0 env(safe-area-inset-bottom,16px);z-index:100}
+  .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer;font-size:10px;font-weight:600;color:var(--muted2);text-decoration:none;border:none;background:none;font-family:inherit}
+  .nav-tab.active{color:var(--green)}
+  .nav-tab-icon{font-size:21px;line-height:1;transition:transform .18s ease}
+  .nav-tab.active .nav-tab-icon{transform:translateY(-2px)}
+  .nav-tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; font-weight:600; color:var(--muted2); cursor:pointer; padding:4px 0; }
+  .nav-tab.active { color:var(--green); }
+  .nav-tab-icon { font-size:22px; line-height:1; }
+</style>
+</head>
+<body>
+
+  <div id="coming-soon-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(30,28,20,0.55);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="closeComingSoon()">
+    <div style="background:#fff;border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:430px;animation:slideUp 0.25s ease" onclick="event.stopPropagation()">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:36px;margin-bottom:8px" id="cs-icon">📆</div>
+        <div style="font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:800;color:#1e1c14;margin-bottom:6px" id="cs-title">Coming soon</div>
+        <div style="font-size:14px;color:#7a7060;line-height:1.5" id="cs-desc">This screen is being built.</div>
+      </div>
+      <button onclick="closeComingSoon()" style="width:100%;background:#2d6a4f;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Got it</button>
+    </div>
+  </div>
+  <style>@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
+
+<!-- Status bar -->
+
+<!-- App header -->
+<div class="app-header">
+  <div class="perch-logo">
+    <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+      <path d="M6 16L14 20L10 28L6 16Z" fill="#2d2a1e"/>
+      <path d="M20 6L28 14L22 16L20 12L18 16L12 14L20 6Z" fill="#2d2a1e"/>
+      <path d="M20 12L26 20L20 24L14 20L20 12Z" fill="#3a3525"/>
+      <circle cx="17" cy="15" r="1.5" fill="#1e1c14"/>
+      <path d="M20 24L24 32L20 30L16 32L20 24Z" fill="#2d2a1e"/>
+    </svg>
+    <span class="perch-wordmark">Perch</span>
+  </div></div>
+
+<!-- Scroll area -->
+<div class="scroll-area">
+
+  <!-- Page title -->
+  <div class="page-title">
+    <h1>Tell Perch</h1>
+    <p>What do you want me to remember?</p>
+  </div>
+
+  <!-- Input card -->
+  <div class="input-card" id="input-card">
+    <div class="input-wrap">
+      <div class="input-label">Tell Perch something…</div>
+      <textarea
+        class="capture-input"
+        id="capture-input"
+        placeholder="Maura's ring should be back in 2 weeks…"
+        maxlength="300"
+        rows="3"
+      ></textarea>
+    </div>
+    <div class="input-footer">
+      <span class="char-count" id="char-count">0 / 300</span>
+      <button class="submit-btn" id="submit-btn" disabled onclick="handleSubmit()">Perch it →</button>
+    </div>
+  </div>
+
+  <!-- Example chips -->
+  <div class="chips-label">Try saying…</div>
+  <div class="chips-row" id="chips-row">
+    <div class="chip" onclick="useChip(this)">Maura's ring should be back in 2 weeks</div>
+    <div class="chip" onclick="useChip(this)">Noah has baseball every Thursday</div>
+    <div class="chip" onclick="useChip(this)">Call county about the permit</div>
+    <div class="chip" onclick="useChip(this)">Extra shift available June 18</div>
+    <div class="chip" onclick="useChip(this)">Save $400 for the greenhouse</div>
+    <div class="chip" onclick="useChip(this)">Dentist appointment in 3 weeks</div>
+  </div>
+
+  <!-- Interpretation panel (hidden until submit) -->
+  <div id="interp-panel" style="display:none"></div>
+
+  <!-- Confirmation (hidden until confirm) -->
+  <div id="confirm-panel" style="display:none"></div>
+
+  <!-- Recent captures -->
+  <div class="section-label">Recent things you told Perch</div>
+  <div class="card"><div class="card-inner" id="recent-list">Loading…</div></div>
+
+  <!-- Quick access — from B -->
+  <div class="card">
+    <div class="card-inner">
+      <div class="section-label" style="margin-top:0">Manage Perch</div>
+      <div class="capture-row" onclick="location.href='perch_memory_explorer.html'" style="cursor:pointer">
+        <div class="capture-row-icon" style="background:#eef7f2">🧠</div>
+        <div class="capture-body">
+          <div class="capture-label">Perch Brain</div>
+          <div class="capture-date">Edit priorities, bills, people, goals, and memory.</div>
+        </div>
+        <span style="color:var(--muted2);font-size:18px">›</span>
+      </div>
+      <div class="capture-row" onclick="location.href='perch_settings.html'" style="cursor:pointer;border-bottom:none;padding-bottom:0">
+        <div class="capture-row-icon" style="background:#f5f2eb">⚙️</div>
+        <div class="capture-body">
+          <div class="capture-label">Perch Settings</div>
+          <div class="capture-date">Appearance and preferences.</div>
+        </div>
+        <span style="color:var(--muted2);font-size:18px">›</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Bottom nav -->
+<nav class="bottom-nav">
+  <a class="nav-tab" href="perch_today_live.html"><div class="nav-tab-icon">&#127968;</div><span>Today</span></a>
+  <a class="nav-tab" href="perch_week_live.html"><div class="nav-tab-icon">&#128197;</div><span>Week</span></a>
+  <a class="nav-tab" href="perch_month_live.html"><div class="nav-tab-icon">&#128198;</div><span>Month</span></a>
+  <a class="nav-tab" href="perch_life.html"><div class="nav-tab-icon">&#127807;</div><span>Life</span></a>
+  <a class="nav-tab active" href="perch_capture.html"><div class="nav-tab-icon">&#129413;</div><span>Perch</span></a>
+</nav>
+
+<script>
+// ════════════════════════════════════════════
+// RULE-BASED PARSER
+// ════════════════════════════════════════════
+
+const RULES = [
+  // waiting_on
+  { type: 'waiting_on', label: 'Waiting On',
+    patterns: [/back in/i, /returns? in/i, /should be (back|ready|done)/i, /waiting (for|on)/i, /expect(ed)? (in|back)/i],
+    icon: '⏳', iconBg: '#e0f2fe' },
+  // recurring
+  { type: 'recurring', label: 'Recurring',
+    patterns: [/every (monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i, /every week/i, /each (week|month)/i, /most (thursday|friday|monday|tuesday|wednesday|saturday|sunday)/i, /thursdays/i, /weekly/i, /monthly/i, /always on/i],
+    icon: '🔁', iconBg: '#eef7f2' },
+  // opportunity
+  { type: 'opportunity', label: 'Opportunity',
+    patterns: [/available shift/i, /shift available/i, /extra shift/i, /job opportunity/i, /chance to/i, /open position/i],
+    icon: '⚡', iconBg: '#fef3eb' },
+  // goal
+  { type: 'goal', label: 'Goal',
+    patterns: [/save (for|up|\$)/i, /goal is/i, /want to (save|build|pay|reach)/i, /saving for/i, /pay off/i, /build (a|the|my)/i],
+    icon: '🎯', iconBg: '#fdf4ff' },
+  // event
+  { type: 'event', label: 'Event',
+    patterns: [/appointment/i, /meeting/i, /game on/i, /show on/i, /trip (on|in|to)/i, /festival/i, /wedding/i, /graduation/i, /concert/i],
+    icon: '📅', iconBg: '#f0ecf9' },
+  // reminder (catch-all action words)
+  { type: 'reminder', label: 'Reminder',
+    patterns: [/call/i, /remind/i, /don.t forget/i, /need to/i, /have to/i, /must /i, /check on/i, /follow up/i, /contact/i, /email/i, /text/i, /renew/i, /schedule/i, /book/i, /make an? appointment/i],
+    icon: '🔔', iconBg: '#fef3c7' },
+];
+
+const DATE_PATTERNS = [
+  { re: /in (\d+) weeks?/i,     resolve: m => PerchDate.fmt(PerchDate.plusDays(parseInt(m[1])*7)) },
+  { re: /in (\d+) days?/i,      resolve: m => PerchDate.fmt(PerchDate.plusDays(parseInt(m[1]))) },
+  { re: /in (\d+) months?/i,    resolve: m => PerchDate.fmt(PerchDate.plusMonths(parseInt(m[1]))) },
+  { re: /tomorrow/i,             resolve: () => PerchDate.fmt(PerchDate.plusDays(1)) },
+  { re: /next (monday|mon)/i,   resolve: () => PerchDate.fmt(PerchDate.nextWeekday(1)) },
+  { re: /next (tuesday|tue)/i,  resolve: () => PerchDate.fmt(PerchDate.nextWeekday(2)) },
+  { re: /next (wednesday|wed)/i,resolve: () => PerchDate.fmt(PerchDate.nextWeekday(3)) },
+  { re: /next (thursday|thu)/i, resolve: () => PerchDate.fmt(PerchDate.nextWeekday(4)) },
+  { re: /next (friday|fri)/i,   resolve: () => PerchDate.fmt(PerchDate.nextWeekday(5)) },
+  { re: /next (saturday|sat)/i, resolve: () => PerchDate.fmt(PerchDate.nextWeekday(6)) },
+  { re: /next (sunday|sun)/i,   resolve: () => PerchDate.fmt(PerchDate.nextWeekday(0)) },
+  { re: /june (\d+)/i,          resolve: m => resolveMonthDay(5, parseInt(m[1])) },
+  { re: /july (\d+)/i,          resolve: m => resolveMonthDay(6, parseInt(m[1])) },
+  { re: /august (\d+)/i,        resolve: m => resolveMonthDay(7, parseInt(m[1])) },
+  { re: /september (\d+)/i,     resolve: m => resolveMonthDay(8, parseInt(m[1])) },
+  { re: /(\d+) weeks?/i,        resolve: m => PerchDate.fmt(PerchDate.plusDays(parseInt(m[1])*7)) },
+];
+
+const PRIORITY_RULES = [
+  { tags: ['financial_freedom'],   patterns: [/shift|pay|money|debt|credit|save|saving|rent|mortgage|bill|afford|fund|cost|expensive|cheap/i] },
+  { tags: ['family_experiences'],  patterns: [/noah|emma|wife|family|kid|son|daughter|game|trip|together|birthday|anniversary|school|park|festival/i] },
+  { tags: ['homestead_expansion'], patterns: [/garden|chicken|coop|greenhouse|permit|county|property|fence|land|homestead|livestock|animals?/i] },
+  { tags: ['health_recovery'],     patterns: [/dentist|doctor|appointment|health|medical|sleep|rest|recovery|workout|medicine/i] },
+  { tags: ['career_growth'],       patterns: [/shift|work|icu|hospital|overtime|certification|training|career|job|schedule/i] },
+];
+
+function resolveMonthDay(month, day) {
+  const d = new Date(); d.setMonth(month); d.setDate(day);
+  if (d < PerchDate.today()) d.setFullYear(d.getFullYear()+1);
+  return PerchDate.fmt(d);
+}
+
+function parse(text) {
+  if (!text.trim()) return null;
+
+  // Detect type
+  let matched = null;
+  for (const rule of RULES) {
+    if (rule.patterns.some(p => p.test(text))) { matched = rule; break; }
+  }
+  if (!matched) matched = { type:'reminder', label:'Reminder', icon:'🔔', iconBg:'#fef3c7' };
+
+  // Detect date
+  let detectedDate = null;
+  for (const dp of DATE_PATTERNS) {
+    const m = text.match(dp.re);
+    if (m) { detectedDate = dp.resolve(m); break; }
+  }
+
+  // Detect priority tags
+  const tags = [];
+  for (const pr of PRIORITY_RULES) {
+    if (pr.patterns.some(p => p.test(text))) {
+      pr.tags.forEach(t => { if (!tags.includes(t)) tags.push(t); });
+    }
+  }
+  if (!tags.length) tags.push('financial_freedom'); // default
+
+  // Generate label
+  const label = text.length > 50 ? text.slice(0, 50).trim() + '…' : text.trim();
+
+  // Destination
+  const dest = matched.type === 'recurring' ? 'captures (recurring activity)'
+             : matched.type === 'goal'      ? 'captures → Goals section'
+             : matched.type === 'event'     ? 'future_horizon'
+             : 'captures';
+
+  return { type: matched.type, typeLabel: matched.label, icon: matched.icon, iconBg: matched.iconBg,
+           label, text: text.trim(), detectedDate, priority_tags: tags, destination: dest };
+}
+
+// ════════════════════════════════════════════
+// PRIORITY TAG DISPLAY
+// ════════════════════════════════════════════
+function priorityTagHtml(tags) {
+  const priorities = PerchMemory.get('priorities') || [];
+  return (tags||[]).map(pid => {
+    const p = priorities.find(x=>x.id===pid);
+    if (!p) return '';
+    return `<span class="interp-tag" style="background:${p.bg};color:${p.color}">${p.name}</span>`;
+  }).join('');
+}
+
+function typeBadge(type, label) {
+  return `<span class="interp-tag type-${type}">${label}</span>`;
+}
+
+// ════════════════════════════════════════════
+// UI STATE
+// ════════════════════════════════════════════
+let currentParsed = null;
+
+function handleInput() {
+  const val = document.getElementById('capture-input').value;
+  document.getElementById('char-count').textContent = `${val.length} / 300`;
+  document.getElementById('submit-btn').disabled = val.trim().length < 3;
+  // Clear any previous interpretation on typing
+  if (currentParsed) {
+    currentParsed = null;
+    document.getElementById('interp-panel').style.display = 'none';
+    document.getElementById('confirm-panel').style.display = 'none';
+  }
+}
+
+function handleFocus() {
+  document.getElementById('input-card').classList.add('focused');
+}
+function handleBlur() {
+  document.getElementById('input-card').classList.remove('focused');
+}
+
+function handleSubmit() {
+  const text = document.getElementById('capture-input').value.trim();
+  if (!text) return;
+  currentParsed = parse(text);
+  showInterpretation(currentParsed);
+}
+
+function useChip(el) {
+  const input = document.getElementById('capture-input');
+  input.value = el.textContent;
+  handleInput();
+  input.focus();
+  // Scroll to input
+  document.getElementById('input-card').scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function showInterpretation(parsed) {
+  const priorities = PerchMemory.get('priorities') || [];
+  const TYPES = ['reminder','waiting_on','recurring','opportunity','event','goal'];
+  const TYPE_LABELS = {reminder:'Reminder',waiting_on:'Waiting On',recurring:'Recurring',opportunity:'Opportunity',event:'Event',goal:'Goal'};
+
+  const typeOptions = TYPES.map(t =>
+    `<option value="${t}" ${t===parsed.type?'selected':''}>${TYPE_LABELS[t]||t}</option>`
+  ).join('');
+
+  const priorityChecks = priorities.map(p => `
+    <div class="priority-check-row">
+      <input type="checkbox" id="ptag_${p.id}" value="${p.id}" ${(parsed.priority_tags||[]).includes(p.id)?'checked':''}>
+      <div class="priority-check-dot" style="background:${p.color}"></div>
+      <label class="priority-check-label" for="ptag_${p.id}">${p.name}</label>
+    </div>`).join('');
+
+  document.getElementById('interp-panel').innerHTML = `
+    <div class="interp-card">
+      <div class="interp-header">
+        <div class="interp-title">Perch thinks this is… — edit before saving</div>
+      </div>
+
+      <div class="edit-section">
+        <div class="edit-field-label">Label / memory text</div>
+        <input class="edit-input" id="edit-label" type="text" value="${parsed.label.replace(/"/g,'&quot;')}" maxlength="120">
+
+        <div class="edit-field-label">Type</div>
+        <select class="edit-select" id="edit-type">${typeOptions}</select>
+
+        <div class="edit-field-label">Date (leave blank if none)</div>
+        <input class="edit-input" id="edit-date" type="date" value="${parsed.detectedDate||''}">
+      </div>
+
+      <div class="edit-section">
+        <div class="edit-field-label">Priority tags — check all that apply</div>
+        <div class="priority-checks">${priorityChecks}</div>
+      </div>
+
+      <div class="edit-section" style="background:var(--cream2);border-radius:0 0 16px 16px">
+        <div style="font-size:11px;color:var(--muted2);font-weight:600">Saves to: <span id="dest-preview">${parsed.destination}</span></div>
+      </div>
+
+      <div class="interp-actions">
+        <button class="btn-confirm" onclick="handleConfirm()">✓ Save to memory</button>
+        <button class="btn-cancel" onclick="handleCancel()">Cancel</button>
+      </div>
+    </div>`;
+
+  // Update dest preview when type changes
+  document.getElementById('edit-type').addEventListener('change', function() {
+    const destMap = {recurring:'captures (recurring)',goal:'captures → Goals',event:'future_horizon',waiting_on:'captures (waiting on)',opportunity:'captures (opportunity)',reminder:'captures (reminder)'};
+    document.getElementById('dest-preview').textContent = destMap[this.value] || 'captures';
+  });
+
+  document.getElementById('interp-panel').style.display = 'block';
+  document.getElementById('confirm-panel').style.display = 'none';
+  document.getElementById('interp-panel').scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function handleConfirm() {
+  if (!currentParsed) return;
+
+  // Read edited values from DOM
+  const labelEl = document.getElementById('edit-label');
+  const typeEl  = document.getElementById('edit-type');
+  const dateEl  = document.getElementById('edit-date');
+
+  const label = labelEl ? labelEl.value.trim() : currentParsed.label;
+  const type  = typeEl  ? typeEl.value          : currentParsed.type;
+  const date  = dateEl  ? dateEl.value || null  : currentParsed.detectedDate;
+
+  // Read checked priority tags
+  const allPriorities = PerchMemory.get('priorities') || [];
+  const tags = allPriorities.map(p => p.id).filter(id => {
+    const el = document.getElementById('ptag_' + id);
+    return el && el.checked;
+  });
+  if (!tags.length) tags.push('financial_freedom'); // default fallback
+
+  // Build capture object from edited values
+  const capture = {
+    id: 'cap_' + Date.now(),
+    label: label || currentParsed.label,
+    text: currentParsed.text,
+    perch_action: type,
+    expected: date || null,
+    priority_tags: tags,
+    created: PerchDate.fmt(PerchDate.today())
+  };
+
+  // Detect day_of_week for recurring
+  if (type === 'recurring') {
+    const src = currentParsed.text.toLowerCase();
+    const dowMap = {sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6};
+    for (const [day, dow] of Object.entries(dowMap)) {
+      if (src.includes(day)) { capture.day_of_week = dow; break; }
+    }
+  }
+
+  PerchMemory.remember('captures', capture);
+  if (window.PerchEvents?.refresh) PerchEvents.refresh();
+
+  document.getElementById('interp-panel').style.display = 'none';
+  document.getElementById('confirm-panel').innerHTML = `
+    <div class="confirm-card" style="flex-direction:column;align-items:stretch;gap:0">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        <span class="confirm-eagle">🦅</span>
+        <div class="confirm-text">
+          <h3>Got it.</h3>
+          <p>Saved: <strong>${capture.label}</strong></p>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <a href="perch_memory_explorer.html" style="flex:1;background:var(--green-bg);border:1px solid rgba(58,140,98,0.25);border-radius:10px;padding:10px;font-size:13px;font-weight:700;color:var(--green-check);text-decoration:none;text-align:center">View in Brain →</a>
+        <button onclick="dismissConfirm()" style="flex:1;background:transparent;border:1px solid var(--border);border-radius:10px;padding:10px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif">Add another</button>
+      </div>
+    </div>`;
+  document.getElementById('confirm-panel').style.display = 'block';
+
+  document.getElementById('capture-input').value = '';
+  document.getElementById('char-count').textContent = '0 / 300';
+  document.getElementById('submit-btn').disabled = true;
+  currentParsed = null;
+  renderRecent();
+  // No auto-dismiss — user chooses what to do next
+}
+
+function handleCancel() {
+  document.getElementById('interp-panel').style.display = 'none';
+  document.getElementById('capture-input').value = '';
+  document.getElementById('char-count').textContent = '0 / 300';
+  document.getElementById('submit-btn').disabled = true;
+  currentParsed = null;
+}
+
+// ════════════════════════════════════════════
+// RECENT CAPTURES
+// ════════════════════════════════════════════
+function renderRecent() {
+  const captures = (PerchMemory.get('captures') || []).slice().reverse().slice(0, 5);
+  const el = document.getElementById('recent-list');
+  const priorities = PerchMemory.get('priorities') || [];
+  const TYPES = ['reminder','waiting_on','recurring','opportunity','event','goal'];
+  const TYPE_LABELS = {reminder:'Reminder',waiting_on:'Waiting On',recurring:'Recurring',opportunity:'Opportunity',event:'Event',goal:'Goal'};
+
+  if (!captures.length) {
+    el.innerHTML = `<div class="empty"><div class="empty-icon">🦅</div>Nothing yet. Tell Perch something above.</div>`;
+    return;
+  }
+
+  el.innerHTML = captures.map(c => {
+    const rule = RULES.find(r => r.type === c.perch_action) || { icon:'💬', iconBg:'#f5f2eb', label: c.perch_action };
+    const dateStr = c.expected
+      ? new Date(c.expected+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})
+      : c.created
+      ? new Date(c.created+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})
+      : '';
+    const tagHtml = (c.priority_tags||[]).map(pid => {
+      const p = priorities.find(x=>x.id===pid);
+      return p ? `<span class="interp-tag" style="background:${p.bg};color:${p.color}">${p.name}</span>` : '';
+    }).join('');
+
+    const typeOptions = TYPES.map(t =>
+      `<option value="${t}" ${t===c.perch_action?'selected':''}>${TYPE_LABELS[t]||t}</option>`
+    ).join('');
+
+    const priorityChecks = priorities.map(p => `
+      <div class="priority-check-row" style="margin-bottom:4px">
+        <input type="checkbox" id="ep_${c.id}_${p.id}" value="${p.id}" ${(c.priority_tags||[]).includes(p.id)?'checked':''}>
+        <div class="priority-check-dot" style="background:${p.color}"></div>
+        <label style="font-size:12px;font-weight:600;color:var(--ink)" for="ep_${c.id}_${p.id}">${p.name}</label>
+      </div>`).join('');
+
+    return `<div class="capture-row" id="crow_${c.id}">
+      <div class="capture-row-icon" style="background:${rule.iconBg}">${rule.icon}</div>
+      <div class="capture-body" style="flex:1;min-width:0">
+        <div class="capture-label">${c.label || c.text || 'Unnamed'}</div>
+        <div class="capture-meta">
+          <span class="interp-tag type-${c.perch_action}">${rule.label}</span>
+          ${tagHtml}
+          ${dateStr ? `<span class="capture-date">· ${dateStr}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:6px;margin-top:7px;flex-wrap:wrap">
+          <button class="cap-action-btn" onclick="toggleEditCapture('${c.id}')">✏️ Edit</button>
+          <button class="cap-action-btn" onclick="rerunCapture('${c.id}','${(c.text||c.label||'').replace(/'/g,"\\'")}')">↺ Re-run</button>
+          ${c.status==='completed'
+            ? `<button class="cap-action-btn done" onclick="capReopen('${c.id}')">✓ Done</button>`
+            : c.status==='waiting'
+            ? `<button class="cap-action-btn waiting" onclick="capArrived('${c.id}')">⏳ Arrived?</button>`
+            : c.perch_action==='waiting_on'
+            ? `<button class="cap-action-btn waiting" onclick="capArrived('${c.id}')">✓ Arrived</button>`
+            : `<button class="cap-action-btn done" onclick="capComplete('${c.id}')">✓ Done</button>`
+          }
+          <button class="cap-action-btn danger" onclick="deleteCapture('${c.id}')">✕ Delete</button>
+          ${c.status==='completed' ? `<div class="cap-done-strip">✓ Completed${c.completed_date?' '+c.completed_date:''}</div>` : ''}
+        </div>
+        <!-- Inline edit panel -->
+        <div class="cap-edit-panel" id="cedit_${c.id}" style="display:none">
+          <div class="edit-field-label" style="margin-bottom:4px">Label</div>
+          <input class="edit-input" id="cel_${c.id}" type="text" value="${(c.label||'').replace(/"/g,'&quot;')}" maxlength="120">
+          <div class="edit-field-label" style="margin-bottom:4px">Type</div>
+          <select class="edit-select" id="cet_${c.id}">${typeOptions}</select>
+          <div class="edit-field-label" style="margin-bottom:4px">Date</div>
+          <input class="edit-input" id="ced_${c.id}" type="date" value="${c.expected||''}">
+          <div class="edit-field-label" style="margin-bottom:4px">Priorities</div>
+          <div>${priorityChecks}</div>
+          <div class="cap-edit-actions">
+            <button class="cap-save-btn" onclick="saveEditCapture('${c.id}')">Save changes</button>
+            <button class="cap-action-btn" onclick="toggleEditCapture('${c.id}')">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleEditCapture(id) {
+  const panel = document.getElementById('cedit_' + id);
+  if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveEditCapture(id) {
+  const captures = PerchMemory.get('captures') || [];
+  const cap = captures.find(c => c.id === id);
+  if (!cap) return;
+
+  const labelEl = document.getElementById('cel_' + id);
+  const typeEl  = document.getElementById('cet_' + id);
+  const dateEl  = document.getElementById('ced_' + id);
+
+  if (labelEl) cap.label = labelEl.value.trim() || cap.label;
+  if (typeEl)  cap.perch_action = typeEl.value;
+  if (dateEl)  cap.expected = dateEl.value || null;
+
+  const priorities = PerchMemory.get('priorities') || [];
+  cap.priority_tags = priorities.map(p => p.id).filter(pid => {
+    const el = document.getElementById(`ep_${id}_${pid}`);
+    return el && el.checked;
+  });
+  if (!cap.priority_tags.length) cap.priority_tags = ['financial_freedom'];
+
+  // Persist — memory set doesn't support array item update, so patch in place
+  PerchMemory.set('captures', captures);
+  if (window.PerchEvents?.refresh) PerchEvents.refresh();
+  renderRecent();
+}
+
+function rerunCapture(id, text) {
+  // Populate input with original text and re-submit
+  const input = document.getElementById('capture-input');
+  input.value = text;
+  handleInput();
+  input.focus();
+  document.getElementById('input-card').scrollIntoView({behavior:'smooth', block:'center'});
+  // Delete the old capture so it doesn't duplicate
+  deleteCapture(id);
+}
+
+// ════════════════════════════════════════════
+// COMPLETION + WAITING-ON
+// ════════════════════════════════════════════
+function capComplete(id) {
+  try { PerchComplete.markComplete(id); renderRecent(); }
+  catch(e) { console.error('[Perch Capture] capComplete error:', e); }
+}
+function capArrived(id) {
+  try { PerchComplete.markComplete(id); renderRecent(); }
+  catch(e) { console.error('[Perch Capture] capArrived error:', e); }
+}
+function capReopen(id) {
+  try { PerchComplete.unmark(id); renderRecent(); }
+  catch(e) { console.error('[Perch Capture] capReopen error:', e); }
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+function dismissConfirm() {
+  document.getElementById('confirm-panel').style.display = 'none';
+  document.getElementById('capture-input').focus();
+}
+
+function showComingSoon(icon, title, desc) {
+  document.getElementById('cs-icon').textContent = icon;
+  document.getElementById('cs-title').textContent = title;
+  document.getElementById('cs-desc').textContent = desc;
+  document.getElementById('coming-soon-overlay').style.display = 'flex';
+}
+function closeComingSoon() {
+  document.getElementById('coming-soon-overlay').style.display = 'none';
+}
+
+window.addEventListener('load', () => {
+  if (window.PerchAppearance) PerchAppearance.apply();
+  if (window.PerchMemory?.recordCheckin) PerchMemory.recordCheckin();
+  if (window.PerchMemory?.takeMonthlySnapshot) PerchMemory.takeMonthlySnapshot();
+  // Clock
+  const now = new Date();
+  const statusTime = document.getElementById('status-time');
+  if (statusTime) {
+    statusTime.textContent =
+      now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+  }
+
+  // Wire input events
+  const input = document.getElementById('capture-input');
+  input.addEventListener('input', handleInput);
+  input.addEventListener('focus', handleFocus);
+  input.addEventListener('blur', handleBlur);
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey && input.value.trim().length >= 3) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  });
+
+  // Render recent
+  renderRecent();
+
+  // Pick up reminder promote from Brain
+  try {
+    const promoReminder = sessionStorage.getItem('perch_promo_reminder');
+    if (promoReminder) {
+      const p = JSON.parse(promoReminder);
+      sessionStorage.removeItem('perch_promo_reminder');
+      if (p.text && input) {
+        input.value = p.text;
+        input.focus();
+        // Trigger parse preview so user sees the interpretation before submitting
+        handleInput();
+      }
+    }
+  } catch(e) {}
+});
+</script>
+</body>
+</html>

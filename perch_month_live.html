@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,viewport-fit=cover">
+<title>Perch — Month</title>
+<script src="perch_core.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  :root{
+    --cream:#f0ebe0;--cream2:#ede7d9;--card:#fff;
+    --ink:#1e1c14;--ink2:#2d2a1e;--muted:#7a7060;--muted2:#a09880;
+    --green:#2d6a4f;--green-bg:#eef7f2;--green-check:#3a8c62;--green-ink:#2d6a4f;
+    --gold:#c08a2e;--amber:#d97706;--amber-bg:#fef9ec;
+    --red:#c0392b;--rust:#b5562e;--rust-bg:#fbeee9;
+    --purple:#6b4fbb;--purple-bg:#f0ecf9;
+    --line:rgba(30,28,20,0.10);--line2:rgba(30,28,20,0.06);
+    --shadow:0 2px 16px rgba(30,28,20,0.10),0 1px 4px rgba(30,28,20,0.06);
+    --radius:18px;
+  }
+  html,body{background:var(--cream);font-family:'Inter',-apple-system,system-ui,sans-serif;color:var(--ink);min-height:100vh;overflow-x:hidden}
+  .app-header{display:flex;align-items:center;justify-content:space-between;padding:6px 20px 14px;background:var(--cream)}
+  .perch-wordmark{font-family:'Playfair Display',Georgia,serif;font-size:26px;font-weight:800;color:var(--ink2);letter-spacing:-.02em}
+  .scroll-area{padding:0 16px 100px}
+  .page-title{font-family:'Playfair Display',Georgia,serif;font-size:30px;font-weight:800;color:var(--ink2);padding:4px 4px 16px}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden}
+  .card-inner{padding:16px}
+  .section-label{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gold);margin:20px 0 8px 2px}
+  .card-title{font-size:15px;font-weight:700;color:var(--ink);margin-bottom:12px}
+  /* Brief */
+  .brief-opening{font-size:16px;font-weight:800;color:var(--ink);line-height:1.3;margin-bottom:10px}
+  .brief-facts{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
+  .brief-fact{font-size:12.5px;color:var(--muted);line-height:1.4}
+  /* Timeline */
+  .tl-day{margin-bottom:14px}
+  .tl-day-hdr{display:flex;align-items:baseline;gap:8px;margin-bottom:5px}
+  .tl-day-name{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;min-width:28px}
+  .tl-day-date{font-size:13px;font-weight:700;color:var(--ink)}
+  .tl-day-today{font-size:10px;font-weight:700;color:var(--amber);background:var(--amber-bg);border-radius:6px;padding:1px 6px;margin-left:2px}
+  .tl-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:10px;margin-bottom:4px;font-size:13px}
+  .tl-icon{font-size:14px;flex-shrink:0;width:20px;text-align:center}
+  .tl-text{flex:1;line-height:1.3}
+  .tl-badge{font-size:11px;font-weight:700;padding:2px 7px;border-radius:6px;flex-shrink:0}
+  /* Bill rows */
+  .bill-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line2)}
+  .bill-row:last-child{border-bottom:none}
+  .bill-name{font-size:13px;font-weight:700;color:var(--ink);flex:1}
+  .bill-meta{font-size:11px;color:var(--muted);margin-top:2px}
+  .bill-status-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:6px;flex-shrink:0;white-space:nowrap}
+  .bill-status-badge.paid{background:var(--green-bg);color:var(--green-check)}
+  .bill-status-badge.pulled{background:var(--amber-bg);color:var(--amber)}
+  .bill-status-badge.skipped{background:var(--cream2);color:var(--muted)}
+  .bill-status-badge.due{background:var(--rust-bg);color:var(--rust)}
+  .bill-status-badge.auto{background:var(--amber-bg);color:var(--amber)}
+  .bill-action-btn{font-size:11px;font-weight:700;padding:5px 10px;border-radius:8px;border:none;cursor:pointer;font-family:'Inter',sans-serif;flex-shrink:0}
+  /* Nav */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(240,235,224,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;padding:8px 0 env(safe-area-inset-bottom,16px);z-index:100}
+  .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer;font-size:10px;font-weight:600;color:var(--muted2);text-decoration:none;border:none;background:none;font-family:inherit}
+  .nav-tab.active{color:var(--green)}
+  .nav-tab-icon{font-size:21px;line-height:1;transition:transform .18s ease}
+  .nav-tab.active .nav-tab-icon{transform:translateY(-2px)}
+  .nav-tab-icon{font-size:20px;line-height:1}
+  /* Coming soon */
+  .cs-overlay{display:none;position:fixed;inset:0;background:rgba(30,28,20,0.55);z-index:200;align-items:flex-end}
+  .cs-sheet{background:#fff;border-radius:22px 22px 0 0;padding:28px 24px 40px;width:100%;max-width:480px;margin:0 auto}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div style="display:flex;align-items:center;gap:8px">
+    <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+      <path d="M6 16L14 20L10 28L6 16Z" fill="#2d2a1e"/>
+      <path d="M20 6L28 14L22 16L20 12L18 16L12 14L20 6Z" fill="#2d2a1e"/>
+      <path d="M20 12L26 20L20 24L14 20L20 12Z" fill="#3a3525"/>
+      <circle cx="17" cy="15" r="1.5" fill="#1e1c14"/>
+      <path d="M20 24L24 32L20 30L16 32L20 24Z" fill="#2d2a1e"/>
+    </svg>
+    <span class="perch-wordmark">Perch</span>
+  </div>
+</div>
+
+<div class="scroll-area">
+  <div class="page-title" id="month-title">This Month</div>
+  <div id="month-content">Loading…</div>
+</div>
+
+<nav class="bottom-nav">
+  <a class="nav-tab" href="perch_today_live.html"><div class="nav-tab-icon">&#127968;</div><span>Today</span></a>
+  <a class="nav-tab" href="perch_week_live.html"><div class="nav-tab-icon">&#128197;</div><span>Week</span></a>
+  <a class="nav-tab active" href="perch_month_live.html"><div class="nav-tab-icon">&#128198;</div><span>Month</span></a>
+  <a class="nav-tab" href="perch_life.html"><div class="nav-tab-icon">&#127807;</div><span>Life</span></a>
+  <a class="nav-tab" href="perch_capture.html"><div class="nav-tab-icon">&#129413;</div><span>Perch</span></a>
+</nav>
+
+<script>
+// ── HELPERS ──────────────────────────────────
+const DAYS_FULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const SETTLED=new Set(['completed','dismissed','paid_this_month','pulled_this_month','skipped_this_month']);
+const CAP_SKIP=new Set(['completed','resolved','dismissed','archived','snoozed']);
+
+function fmtMoney(n){return '$'+(Math.round(n)||0).toLocaleString();}
+function ordinal(n){const s=['th','st','nd','rd'],v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+function isoDate(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+// Returns all days in a given month as {date, iso, dayOfWeek} objects
+function monthDays(year,month){
+  const days=[];
+  const d=new Date(year,month,1);
+  while(d.getMonth()===month){
+    days.push({date:new Date(d),iso:isoDate(d),dayOfWeek:d.getDay(),day:d.getDate()});
+    d.setDate(d.getDate()+1);
+  }
+  return days;
+}
+
+// Bill due date within a given month (handles end-of-month clamping)
+function billDateInMonth(bill,year,month){
+  const lastDay=new Date(year,month+1,0).getDate();
+  const day=Math.min(bill.due_day||1,lastDay);
+  return new Date(year,month,day);
+}
+
+// ── MAIN RENDER ──────────────────────────────
+function renderMonth(){
+  if(window.PerchAppearance) PerchAppearance.apply();
+  if(window.PerchMemory?.recordCheckin) PerchMemory.recordCheckin();
+  if(window.PerchMemory?.resetMonthlyBillStatuses) PerchMemory.resetMonthlyBillStatuses();
+  if(window.PerchEvents) PerchEvents.refresh();
+
+  const today=new Date(); today.setHours(0,0,0,0);
+  const year=today.getFullYear(), month=today.getMonth();
+  const days=monthDays(year,month);
+  const todayIso=isoDate(today);
+  const in30=new Date(today); in30.setDate(in30.getDate()+30);
+  const in60=new Date(today); in60.setDate(in60.getDate()+60);
+
+  document.getElementById('month-title').textContent=MONTHS[month]+' '+year;
+
+  // ── RAW DATA ─────────────────────────────────────────────────────────
+  const fin         = PerchMemory.financeSnapshot();
+  const allBills    = PerchMemory.get('bills')||[];
+  const paycheck    = PerchMemory.get('finances.paycheck');
+  const schedule    = PerchMemory.get('work.schedule')||[];
+  const people      = PerchMemory.get('people')||[];
+  const captures    = PerchMemory.get('captures')||[];
+  const horizon     = (PerchMemory.get('future_horizon')||[]).filter(h=>h.user_created&&!h.seed&&h.name);
+
+  const unsettled   = allBills.filter(b=>!SETTLED.has(b.status||'active'));
+  const activeCaps  = captures.filter(c=>!CAP_SKIP.has(c.status||''));
+  const shiftDays   = days.filter(({dayOfWeek,iso})=>
+    schedule.some(s=>s.day_of_week===dayOfWeek)&&iso>=todayIso).length;
+
+  // ── HOLIDAY HELPER (self-contained, no Today dependency) ─────────────
+  const HOLS=[
+    {label:"New Year's Day",  month:0, day:1},
+    {label:'Memorial Day',    month:4, day:26, lastMonday:true},
+    {label:'Independence Day',month:6, day:4},
+    {label:'Labor Day',       month:8, day:1,  firstMonday:true},
+    {label:'Thanksgiving',    month:10,day:1,  nthThursday:4},
+    {label:'Christmas',       month:11,day:25},
+  ];
+  const hDate=(h,y)=>{
+    if(h.lastMonday){const d=new Date(y,h.month+1,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
+    if(h.firstMonday){const d=new Date(y,h.month,1);const dd=(8-d.getDay())%7;d.setDate(1+(dd===0?7:dd));return d;}
+    if(h.nthThursday){const d=new Date(y,h.month,1);let c=0;while(c<h.nthThursday){if(d.getDay()===4)c++;if(c<h.nthThursday)d.setDate(d.getDate()+1);}return d;}
+    return new Date(y,h.month,h.day);
+  };
+  const daysUntil=(d)=>Math.round((d-today)/86400000);
+  const fmtShort=(d)=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  // ── COLLECT MEANINGFUL UPCOMING ITEMS (next 60 days) ─────────────────
+  // "Meaningful" = needs awareness or action. Shifts and auto-pay bills excluded.
+  const upcoming=[];
+
+  // Holidays within 60 days
+  [year,year+1].forEach(y=>{
+    HOLS.forEach(h=>{
+      const d=hDate(h,y);
+      const n=daysUntil(d);
+      if(n>=0&&n<=60)
+        upcoming.push({type:'holiday',label:h.label,date:d,days:n,icon:'\uD83D\uDCC5',
+          needsAction:false, planningNote:null});
+    });
+  });
+
+  // Birthdays & anniversaries (next 60 days)
+  people.forEach(per=>{
+    if(per.birthday){
+      const parts=per.birthday.split('-');
+      const bd=new Date(year,parseInt(parts[1])-1,parseInt(parts[2]));
+      if(bd<today) bd.setFullYear(year+1);
+      const n=daysUntil(bd);
+      if(n>=0&&n<=60){
+        const age=new Date(today.getFullYear(),...parts.slice(1).map((v,i)=>i===0?parseInt(v)-1:parseInt(v))).getFullYear()
+          ? year-parseInt(parts[0]) : null;
+        upcoming.push({type:'birthday',label:per.name+'\u2019s birthday',date:bd,days:n,icon:'\uD83C\uDF82',
+          sub:age?'Turns '+age:null, needsAction:n<=14, person:per.name,
+          planningNote:n<=14?per.name+'\u2019s birthday in '+n+' day'+(n===1?'':'s')+'.'+(n<=7?' Worth having something ready.':''):null});
+      }
+    }
+    if(per.anniversary){
+      const parts=per.anniversary.split('-');
+      const ad=new Date(year,parseInt(parts[1])-1,parseInt(parts[2]));
+      if(ad<today) ad.setFullYear(year+1);
+      const n=daysUntil(ad);
+      if(n>=0&&n<=60){
+        const yrs=year-parseInt(parts[0]);
+        upcoming.push({type:'anniversary',label:'Anniversary'+(per.name?' with '+per.name:''),date:ad,days:n,icon:'\uD83D\uDC8D',
+          sub:yrs>0?yrs+' year'+(yrs===1?'':'s'):null, needsAction:n<=21,
+          planningNote:n<=21?'Anniversary in '+n+' day'+(n===1?'':'s')+(n<=14?'. Worth setting aside some time.':'. Good time to start planning.'):null});
+      }
+    }
+  });
+
+  // Big manual bills (>$50, next 30 days)
+  allBills.filter(b=>!b.autopay&&!SETTLED.has(b.status||'active')&&(b.amount||0)>50).forEach(b=>{
+    const d=billDateInMonth(b,year,month);
+    const n=daysUntil(d);
+    if(n>=0&&n<=30)
+      upcoming.push({type:'bill',label:b.name+' \u2014 $'+(b.amount||0).toLocaleString(),date:d,days:n,icon:'\u26A1',
+        needsAction:n<=7, amount:b.amount,
+        planningNote:n<=7?b.name+' ($'+(b.amount||0).toLocaleString()+') is due in '+n+' day'+(n===1?'':'s')+'.':null});
+  });
+
+  // Goal target dates (next 60 days)
+  horizon.filter(h=>h.target_date).forEach(h=>{
+    const d=new Date(h.target_date+'T00:00:00');
+    const n=daysUntil(d);
+    if(n>=0&&n<=60){
+      const pct=h.target_amount>0?Math.round((h.saved_amount||0)/h.target_amount*100):null;
+      upcoming.push({type:'goal',label:(h.icon?h.icon+' ':'')+h.name+(pct!=null?' \u2014 '+pct+'% funded':''),date:d,days:n,icon:'\uD83C\uDFAF',
+        needsAction:pct!=null&&pct<80&&n<=30,
+        planningNote:pct!=null&&pct<90&&n<=30
+          ?h.name+' is '+pct+'% funded with '+n+' day'+(n===1?'':'s')+' to go.'+(pct<70?' Worth a contribution this payday.':''):null});
+    }
+  });
+
+  // Dated captures with expected dates (next 30 days)
+  activeCaps.filter(c=>c.expected).forEach(c=>{
+    const d=new Date(c.expected+'T00:00:00');
+    const n=daysUntil(d);
+    if(n>=0&&n<=30){
+      const label=c.clean_label||c.label||'Reminder';
+      upcoming.push({type:'capture',label:label,date:d,days:n,icon:'\uD83D\uDD14',
+        needsAction:n<=3,
+        planningNote:null});
+    }
+  });
+
+  // Trips / horizon items with dates (no target_date filter, check for date field)
+  horizon.filter(h=>!h.target_date&&h.horizon_date).forEach(h=>{
+    const d=new Date(h.horizon_date+'T00:00:00');
+    const n=daysUntil(d);
+    if(n>=0&&n<=60)
+      upcoming.push({type:'trip',label:(h.icon?h.icon+' ':'')+h.name,date:d,days:n,icon:'\uD83C\uDFD4',
+        needsAction:false,planningNote:null});
+  });
+
+  // Sort chronologically; secondary sort: needsAction first
+  upcoming.sort((a,b)=>a.days-b.days||(b.needsAction?1:0)-(a.needsAction?1:0));
+
+  // ── 1. MONTH OUTLOOK — one conclusion ────────────────────────────────
+  const needsActionItems=upcoming.filter(u=>u.needsAction);
+  const bigEvents=upcoming.filter(u=>['birthday','anniversary','holiday','goal'].includes(u.type));
+  const shortMoney=fin.payday&&fin.projected<0;
+
+  let outlookSentence;
+  if(!paycheck?.next_date&&!allBills.length&&!schedule.length&&!people.length)
+    outlookSentence='Nothing major scheduled yet. Add your basics in Settings.';
+  else if(shortMoney)
+    outlookSentence='Finances are tight before the next payday.';
+  else if(needsActionItems.length===0&&bigEvents.length===0&&shiftDays<8)
+    outlookSentence='The next 30 days look manageable.';
+  else if(needsActionItems.length===1)
+    outlookSentence='One thing deserves attention this month: '+needsActionItems[0].label.split('\u2014')[0].trim()+'.';
+  else if(needsActionItems.length>=2)
+    outlookSentence=needsActionItems.length+' things deserve attention this month.';
+  else if(shiftDays>=8)
+    outlookSentence='Busy shift month ahead. '+shiftDays+' shifts remaining.';
+  else if(bigEvents.length>=1)
+    outlookSentence='A few things worth knowing about in the next 30 days.';
+  else
+    outlookSentence='Things look calm this month.';
+
+  // Two supporting facts (no emojis, conclusions before numbers)
+  const outlookFacts=[];
+  if(fin.payday&&fin.daysToPayday!=null)
+    outlookFacts.push('Payday in '+fin.daysToPayday+' day'+(fin.daysToPayday===1?'':'s')+' \u2014 '+fmtMoney(fin.paydayAmount)+'.');
+  if(shortMoney)
+    outlookFacts.push('Projected '+fmtMoney(fin.projected)+' after bills before payday.');
+  else if(fin.balance>0&&!shortMoney&&outlookFacts.length<2)
+    outlookFacts.push(fmtMoney(fin.balance)+' in checking'+
+      (fin.payday&&fin.totalBefore>0?' \u2014 '+fmtMoney(fin.projected)+' after upcoming bills.':'.'));
+  if(shiftDays>0&&outlookFacts.length<2)
+    outlookFacts.push(shiftDays+' shift'+(shiftDays>1?'s':'')+' remaining this month.');
+
+  // ── 2. COMING UP — meaningful items only ────────────────────────────
+  const comingUpItems=upcoming.slice(0,8);
+
+  const comingUpHtml=comingUpItems.length
+    ?comingUpItems.map(u=>{
+      const daysLabel=u.days===0?'Today':u.days===1?'Tomorrow':'In '+u.days+' day'+(u.days===1?'':'s');
+      const urgentDot=u.needsAction
+        ?'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--rust);margin-right:6px;vertical-align:middle;flex-shrink:0"></span>'
+        :'';
+      return '<div style="display:flex;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--line2)">'
+        +'<div style="flex-shrink:0;min-width:72px;font-size:11px;font-weight:700;color:'
+        +(u.needsAction?'var(--rust)':'var(--muted2)')+';text-transform:uppercase;letter-spacing:.04em">'+daysLabel+'</div>'
+        +'<div style="flex:1;font-size:13.5px;color:var(--ink);line-height:1.4">'+urgentDot+u.label
+        +(u.sub?'<span style="font-size:11px;color:var(--muted);margin-left:6px">'+u.sub+'</span>':'')
+        +'</div></div>';
+    }).join('')
+    :'';
+
+  // ── 3. PLANNING WINDOWS ──────────────────────────────────────────────
+  const planningItems=upcoming.filter(u=>u.planningNote);
+
+  const planningHtml=planningItems.length
+    ?planningItems.map(u=>{
+      const typeColor={bill:'var(--rust)',goal:'var(--green-ink)',birthday:'#6b4fbb',anniversary:'#6b4fbb',holiday:'var(--gold)'}[u.type]||'var(--muted)';
+      const typeBg={bill:'var(--rust-bg)',goal:'var(--green-bg)',birthday:'var(--purple-bg)',anniversary:'var(--purple-bg)',holiday:'#fffae6'}[u.type]||'var(--cream2)';
+      return '<div style="display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line2)">'
+        +'<div style="flex-shrink:0;width:28px;height:28px;border-radius:8px;background:'+typeBg
+        +';display:flex;align-items:center;justify-content:center;font-size:14px">'+u.icon+'</div>'
+        +'<div style="flex:1;font-size:13px;color:var(--ink);line-height:1.5">'+u.planningNote+'</div>'
+        +'</div>';
+    }).join('')
+    :'';
+
+  // ── 4. BILLS THIS MONTH (unchanged) ──────────────────────────────────
+  const SETTLED_LABEL={paid_this_month:'Paid',pulled_this_month:'Pulled',skipped_this_month:'Skipped'};
+  const billsHtml=allBills.length?allBills.map(b=>{
+    const st=b.status||'active';
+    const settled=SETTLED.has(st);
+    const isAuto=b.autopay||b.payment_type==='autopay';
+    const dueDate=billDateInMonth(b,year,month);
+    let badge='',actionHtml='';
+    if(st==='paid_this_month') badge='<span class="bill-status-badge paid">\u2713 Paid</span>';
+    else if(st==='pulled_this_month') badge='<span class="bill-status-badge pulled">\u2713 Pulled</span>';
+    else if(st==='skipped_this_month') badge='<span class="bill-status-badge skipped">Skipped</span>';
+    else if(isAuto) badge='<span class="bill-status-badge auto">Autopay</span>';
+    else badge='<span class="bill-status-badge due">Manual</span>';
+    if(!settled){
+      if(isAuto) actionHtml='<button class="bill-action-btn" style="background:var(--amber-bg);color:var(--amber)" onclick="window.monthBillPulled(\''+b.id+'\')">\u2713 Mark pulled</button>';
+      else actionHtml='<button class="bill-action-btn" style="background:var(--green-bg);color:var(--green-check)" onclick="window.monthBillPaid(\''+b.id+'\')">\u2713 Mark paid</button>';
+    } else {
+      actionHtml='<button class="bill-action-btn" style="background:var(--cream2);color:var(--muted)" onclick="window.monthBillUndo(\''+b.id+'\')">\u21BA Undo</button>';
+    }
+    return '<div class="bill-row" style="opacity:'+(settled?.7:1)+'">'
+      +'<div style="flex:1;min-width:0">'
+      +'<div class="bill-name">'+b.name+'</div>'
+      +'<div class="bill-meta">'+(isAuto?'Autopay':'Manual')+' \u00B7 due '+ordinal(b.due_day||1)+' \u00B7 '+fmtMoney(b.amount||0)+'</div>'
+      +'</div>'+badge+actionHtml+'</div>';
+  }).join(''):'<div style="font-size:13px;color:var(--muted);padding:4px 0">No bills recorded. Add bills in Settings \u2192 Add My Basics.</div>';
+
+  // ── BUILD DAY MAP (for 30-day timeline — now secondary) ───────────────
+  const dayMap={};
+  days.forEach(({iso})=>{ dayMap[iso]={bills:[],shifts:[],paydays:[],birthdays:[],captures:[]}; });
+  allBills.forEach(b=>{const d=billDateInMonth(b,year,month);const iso=isoDate(d);if(dayMap[iso])dayMap[iso].bills.push(b);});
+  if(paycheck?.next_date&&paycheck?.repeat){
+    let pd=new Date(paycheck.next_date+'T00:00:00');
+    while(pd.getFullYear()>year||(pd.getFullYear()===year&&pd.getMonth()>month)){
+      if(paycheck.repeat==='biweekly')pd=new Date(pd.getTime()-14*86400000);
+      else if(paycheck.repeat==='weekly')pd=new Date(pd.getTime()-7*86400000);
+      else break;
+    }
+    let cur=new Date(pd);
+    for(let i=0;i<10;i++){
+      if(cur.getFullYear()===year&&cur.getMonth()===month){const iso=isoDate(cur);if(dayMap[iso])dayMap[iso].paydays.push({amount:paycheck.amount||0});}
+      if(cur>new Date(year,month+1,0))break;
+      if(paycheck.repeat==='biweekly')cur=new Date(cur.getTime()+14*86400000);
+      else if(paycheck.repeat==='weekly')cur=new Date(cur.getTime()+7*86400000);
+      else if(paycheck.repeat==='monthly'){cur.setMonth(cur.getMonth()+1);break;}
+      else break;
+    }
+    const npd=new Date(paycheck.next_date+'T00:00:00');
+    if(npd.getFullYear()===year&&npd.getMonth()===month){const iso=isoDate(npd);if(dayMap[iso]&&!dayMap[iso].paydays.length)dayMap[iso].paydays.push({amount:paycheck.amount||0});}
+  }
+  schedule.forEach(s=>{days.filter(({dayOfWeek})=>dayOfWeek===s.day_of_week).forEach(({iso})=>{if(dayMap[iso])dayMap[iso].shifts.push(s);});});
+  people.forEach(p=>{
+    const bday=p.birthday;if(!bday)return;
+    try{const pts=bday.split('-');const bM=parseInt(pts[1])-1,bD=parseInt(pts[2]);
+      if(bM===month){const iso=isoDate(new Date(year,month,bD));if(dayMap[iso])dayMap[iso].birthdays.push(p);}
+    }catch(e){}
+  });
+  captures.filter(c=>!CAP_SKIP.has(c.status||'')&&c.expected).forEach(c=>{const iso=c.expected;if(dayMap[iso])dayMap[iso].captures.push(c);});
+
+  // Timeline (collapsed by default — secondary)
+  const tlItems=days.filter(({iso})=>{const m=dayMap[iso];return iso===todayIso||m.bills.length||m.paydays.length||m.birthdays.length||m.captures.length;});
+  const tlHtml=tlItems.map(({iso,day,dayOfWeek})=>{
+    const m=dayMap[iso];const isToday=iso===todayIso;const isPast=iso<todayIso;
+    const items=[];
+    m.paydays.forEach(pd=>{items.push('<div class="tl-item" style="background:var(--green-bg)"><span class="tl-icon">\uD83D\uDCB5</span><span class="tl-text" style="font-weight:700;color:var(--green-check)">Payday \u2014 '+fmtMoney(pd.amount)+'</span></div>');});
+    m.bills.forEach(b=>{
+      const settled=SETTLED.has(b.status||'active');const isAuto=b.autopay;
+      const bg=settled?'var(--cream2)':isAuto?'var(--amber-bg)':'var(--rust-bg)';
+      const col=settled?'var(--muted)':isAuto?'#9a5a14':'var(--rust)';
+      const statusStr=b.status==='paid_this_month'?'Paid':b.status==='pulled_this_month'?'Pulled':isAuto?'Autopay':'Manual';
+      items.push('<div class="tl-item" style="background:'+bg+';opacity:'+(settled||isPast?.7:1)+'"><span class="tl-icon">\u26A1</span><span class="tl-text" style="color:'+col+'"><strong>'+b.name+'</strong> \u2014 '+fmtMoney(b.amount||0)+'</span><span class="tl-badge" style="background:'+bg+';color:'+col+';border:1px solid '+col+'20">'+statusStr+'</span></div>');
+    });
+    m.birthdays.forEach(per=>{const age=per.birthday?year-parseInt(per.birthday.split('-')[0]):null;items.push('<div class="tl-item" style="background:var(--purple-bg)"><span class="tl-icon">\uD83C\uDF82</span><span class="tl-text" style="color:var(--purple);font-weight:600">'+per.name+'\u2019s birthday'+(age?' \u2014 turns '+age:'')+'</span></div>');});
+    m.captures.forEach(c=>{const label=c.clean_label||c.label||'item';items.push('<div class="tl-item" style="background:var(--cream2)"><span class="tl-icon">\uD83D\uDD14</span><span class="tl-text" style="color:var(--ink2)">'+label+'</span></div>');});
+    if(!items.length)return '';
+    return '<div class="tl-day"><div class="tl-day-hdr"><span class="tl-day-name">'+DAYS_FULL[dayOfWeek].slice(0,3)+'</span><span class="tl-day-date">'+ordinal(day)+'</span>'+(isToday?'<span class="tl-day-today">Today</span>':'')+'</div>'+items.join('')+'</div>';
+  }).join('');
+
+  // ── ASSEMBLE ─────────────────────────────────────────────────────────
+  document.getElementById('month-content').innerHTML=
+
+    // 1. Month Outlook
+    '<div class="card"><div class="card-inner">'
+    +'<div style="font-size:11px;font-weight:700;letter-spacing:.07em;color:var(--gold);text-transform:uppercase;margin-bottom:6px">\uD83D\uDCC6 Month Outlook</div>'
+    +'<div class="brief-opening">'+outlookSentence+'</div>'
+    +(outlookFacts.length?'<div class="brief-facts">'+outlookFacts.map(f=>'<div class="brief-fact">'+f+'</div>').join('')+'</div>':'')
+    +'</div></div>'
+
+    // 2. Coming Up (hidden if nothing)
+    +(comingUpHtml
+      ?'<div class="section-label">Coming Up</div>'
+       +'<div class="card"><div class="card-inner">'+comingUpHtml+'</div></div>'
+      :'')
+
+    // 3. Planning Windows (hidden if nothing)
+    +(planningHtml
+      ?'<div class="section-label">Worth Planning For</div>'
+       +'<div class="card"><div class="card-inner">'+planningHtml+'</div></div>'
+      :'')
+
+    // 4. Bills (always shown)
+    +'<div class="section-label">Bills This Month</div>'
+    +'<div class="card"><div class="card-inner">'+billsHtml+'</div></div>'
+
+    // 5. 30-Day Timeline (secondary — collapsible)
+    +(tlHtml
+      ?'<div class="section-label" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between" onclick="window.toggleMonthTimeline()">'
+       +'<span>Month Timeline</span><span id="month-tl-caret" style="font-size:14px;color:var(--muted2);transition:transform .2s">\u203A</span>'
+       +'</div>'
+       +'<div id="month-timeline-body" style="display:none"><div class="card"><div class="card-inner">'+tlHtml+'</div></div></div>'
+      :'');
+}
+
+window.toggleMonthTimeline=function(){
+  const body=document.getElementById('month-timeline-body');
+  const caret=document.getElementById('month-tl-caret');
+  if(!body) return;
+  const open=body.style.display==='block';
+  body.style.display=open?'none':'block';
+  if(caret) caret.style.transform=open?'':'rotate(90deg)';
+};
+
+window.monthBillPaid=function(id){ PerchCorrect.markBillPaid(id); renderMonth(); };
+window.monthBillPulled=function(id){ PerchCorrect.markBillPulled(id); renderMonth(); };
+window.monthBillUndo=function(id){
+  const bills=PerchMemory.get('bills')||[];
+  const b=bills.find(x=>x.id===id);
+  if(b){b.status='active';delete b.status_date;PerchMemory.set('bills',bills);}
+  if(window.PerchEvents) PerchEvents.refresh();
+  renderMonth();
+};
+window.addEventListener('load', renderMonth);
+</script>
+</body>
+</html>

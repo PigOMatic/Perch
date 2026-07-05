@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Perch — Week</title>
+<script src="perch_core.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --cream:#f0ebe0; --cream2:#ede7d9; --card:#ffffff;
+    --ink:#1e1c14; --ink2:#2d2a1e;
+    --green:#2d6a4f; --green-light:#52b788; --green-bg:#eef7f2; --green-check:#3a8c62;
+    --orange:#e07b39; --orange-bg:#fef3eb;
+    --purple:#6b4fbb; --purple-bg:#f0ecf9;
+    --red:#c0392b;
+    --muted:#7a7060; --muted2:#a09880;
+    --border:rgba(30,28,20,0.10);
+    --shadow:0 2px 12px rgba(30,28,20,0.08);
+    --radius:18px; --radius-sm:12px;
+  }
+  html,body { background:var(--cream); font-family:'Inter',-apple-system,system-ui,sans-serif; color:var(--ink); overflow-x:hidden; min-height:100vh; }  .app-header { display:flex; align-items:center; justify-content:space-between; padding:6px 20px 14px; background:var(--cream); }
+  .perch-logo { display:flex; align-items:center; gap:8px; }
+  .perch-wordmark { font-family:Georgia,serif; font-size:26px; font-weight:800; color:var(--ink2); letter-spacing:-.02em; }
+  .scroll-area { padding:0 16px 100px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+
+  .week-title-row { display:flex; align-items:baseline; justify-content:space-between; padding:4px 4px 16px; }
+  .week-title { font-family:'Playfair Display',Georgia,serif; font-size:30px; font-weight:800; color:var(--ink2); }
+  .week-subtitle { font-size:13px; color:var(--muted); margin-left:8px; }
+  .view-timeline { font-size:13px; font-weight:600; color:var(--green); cursor:pointer; white-space:nowrap; }
+
+  /* Day strip */
+  .day-strip-card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:12px; padding:18px 14px 16px; }
+  .days-row { display:flex; gap:4px; margin-bottom:14px; }
+  .day-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .day-label { font-size:10px; font-weight:700; color:var(--muted2); text-transform:uppercase; letter-spacing:.05em; }
+  .day-num { font-size:16px; font-weight:800; color:var(--ink); }
+  .day-num.today { color:var(--orange); }
+  .day-circle { width:38px; height:38px; border-radius:50%; background:var(--cream2); border:2px solid transparent; display:flex; align-items:center; justify-content:center; font-size:16px; }
+  .day-circle.today-ring { border-color:var(--orange); background:var(--orange-bg); }
+  .day-circle.green-ring { border-color:var(--green-check); background:var(--green-bg); }
+  .day-circle.green-fill { background:var(--green-check); }
+  .day-circle.purple-ring { border-color:var(--purple); background:var(--purple-bg); }
+  .day-circle.gray-ring { border-color:var(--muted2); background:#f5f2ec; }
+  .day-event { font-size:10px; font-weight:700; text-align:center; line-height:1.2; }
+  .day-event.orange{color:var(--orange)} .day-event.green{color:var(--green-check)} .day-event.purple{color:var(--purple)} .day-event.muted{color:var(--muted2)}
+  .day-amount { font-size:10px; font-weight:700; text-align:center; }
+  .day-amount.orange{color:var(--orange)} .day-amount.green{color:var(--green-check)} .day-amount.red{color:var(--red)}
+
+  .timeline-row { display:flex; align-items:center; position:relative; height:16px; margin:0 4px; }
+  .timeline-line { position:absolute; top:50%; left:0; right:0; height:2px; background:rgba(30,28,20,0.12); transform:translateY(-50%); }
+  .timeline-dots { display:flex; justify-content:space-around; width:100%; position:relative; z-index:1; }
+  .tl-dot { width:10px; height:10px; border-radius:50%; border:2px solid white; flex-shrink:0; }
+
+  /* Cards */
+  .card { background:var(--card); border-radius:var(--radius); box-shadow:0 2px 16px rgba(30,28,20,0.10),0 1px 4px rgba(30,28,20,0.06); margin-bottom:14px; overflow:hidden; }
+  .card-inner { padding:16px; }
+  .card-title-row { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+  .card-title-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:15px; flex-shrink:0; }
+  .card-section-title { font-size:15px; font-weight:700; color:var(--ink); flex:1; }
+
+  .insight-row { display:flex; align-items:flex-start; gap:10px; padding:8px 0; border-bottom:1px solid rgba(30,28,20,0.06); }
+  .insight-row:last-child { border-bottom:none; padding-bottom:0; }
+  .insight-icon { font-size:15px; flex-shrink:0; margin-top:1px; width:20px; text-align:center; }
+  .insight-text { font-size:13px; color:var(--ink); line-height:1.5; font-weight:500; }
+
+  .opp-row { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid rgba(30,28,20,0.06); }
+  .opp-row:last-child { border-bottom:none; padding-bottom:0; }
+  .opp-thumb { width:54px; height:54px; border-radius:12px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:24px; }
+  .opp-body { flex:1; }
+  .opp-name { font-size:14px; font-weight:700; color:var(--ink); margin-bottom:2px; }
+  .opp-where { font-size:12px; color:var(--green); font-weight:600; margin-bottom:3px; }
+  .opp-desc { font-size:12px; color:var(--muted); line-height:1.35; }
+  .opp-chevron { color:var(--muted2); font-size:18px; align-self:center; flex-shrink:0; }
+
+  /* ── FEEDBACK + WHY ── */
+  .fb-row { display:flex; align-items:center; gap:6px; margin-top:9px; flex-wrap:wrap; }
+  .fb-btn {
+    display:inline-flex; align-items:center; gap:4px;
+    font-size:11px; font-weight:700; padding:5px 10px; border-radius:99px;
+    border:1.5px solid var(--border); background:var(--cream2);
+    cursor:pointer; transition:all 0.15s; color:var(--muted);
+    font-family:'Inter',sans-serif;
+  }
+  .fb-btn:active { transform:scale(0.95); }
+  .fb-btn.good  { border-color:rgba(58,140,98,0.35);  background:var(--green-bg);  color:var(--green-check); }
+  .fb-btn.more  { border-color:rgba(245,166,35,0.35);  background:#fef9ec;          color:#d97706; }
+  .fb-btn.bad   { border-color:rgba(192,57,43,0.25);   background:#fef2f2;          color:var(--red); }
+  .fb-btn.active-good { background:var(--green-check); color:white; border-color:var(--green-check); }
+  .fb-btn.active-more { background:#d97706;            color:white; border-color:#d97706; }
+  .fb-btn.active-bad  { background:var(--red);         color:white; border-color:var(--red); }
+  .fb-why-btn {
+    font-size:11px; font-weight:700; color:var(--green); background:transparent;
+    border:none; cursor:pointer; padding:0; margin-left:auto;
+    font-family:'Inter',sans-serif; text-decoration:underline; text-underline-offset:2px;
+  }
+  .why-panel {
+    display:none; margin-top:9px; background:var(--cream2);
+    border-radius:10px; padding:10px 12px;
+    border-left:3px solid var(--green);
+  }
+  .why-panel.open { display:block; animation:fadeIn 0.2s ease; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+  .why-row { display:flex; align-items:flex-start; gap:8px; padding:4px 0; }
+  .why-icon { font-size:13px; flex-shrink:0; margin-top:1px; width:18px; text-align:center; }
+  .why-text { font-size:12px; color:var(--ink); line-height:1.4; }
+  .why-text.primary { font-weight:700; }
+  .why-text.secondary { color:var(--muted); font-weight:500; }
+  .fb-stored-label { font-size:10px; color:var(--muted2); margin-top:4px; font-style:italic; }
+
+  .protected-row { display:flex; align-items:flex-start; gap:12px; padding:10px 0; border-bottom:1px solid rgba(30,28,20,0.06); }
+  .protected-row:last-child { border-bottom:none; padding-bottom:0; }
+  .protected-icon-wrap { width:36px; height:36px; border-radius:10px; background:var(--cream2); display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+  .protected-name { font-size:14px; font-weight:700; color:var(--ink); margin-bottom:2px; }
+  .protected-sub { font-size:12px; color:var(--muted); }
+
+  /* Day details */
+  .day-details-inner { padding:14px 16px; }
+  .day-details-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.07em; color:var(--muted2); margin-bottom:12px; }
+  .detail-day-block { margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid rgba(30,28,20,0.06); }
+  .detail-day-block:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+  .detail-day-header { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+  .detail-day-name { font-size:13px; font-weight:800; color:var(--ink); min-width:40px; }
+  .detail-day-date { font-size:12px; color:var(--muted2); }
+  .detail-day-today-pill { background:var(--orange); color:white; font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; }
+  .detail-item { display:flex; align-items:flex-start; gap:8px; padding:4px 0; }
+  .detail-item-icon { font-size:14px; width:20px; text-align:center; flex-shrink:0; margin-top:1px; }
+  .detail-item-text { font-size:13px; color:var(--ink); line-height:1.35; flex:1; }
+  .detail-item-badge { font-size:10px; font-weight:700; padding:1px 7px; border-radius:99px; margin-left:5px; white-space:nowrap; }
+  .detail-complete-btn { font-size:11px; font-weight:700; padding:3px 9px; border-radius:7px; border:1.5px solid rgba(58,140,98,0.3); background:var(--green-bg); color:var(--green-check); cursor:pointer; font-family:'Inter',sans-serif; flex-shrink:0; white-space:nowrap; }
+  .detail-complete-btn:active { background:var(--green-check); color:white; }
+  .detail-item.done .detail-item-text { text-decoration:line-through; color:var(--muted2); }
+  .detail-item.done .detail-complete-btn { background:var(--cream2); color:var(--muted2); border-color:var(--border); }
+  /* Week Quick Fix */
+  .wqf-btn { background:transparent; border:none; color:var(--muted2); cursor:pointer; font-size:16px; line-height:1; padding:2px 5px; border-radius:6px; flex-shrink:0; }
+  .wqf-btn:active { background:rgba(60,48,32,0.08); }
+  .wqf-backdrop { position:fixed; inset:0; z-index:290; background:transparent; }
+  .wqf-menu { position:fixed; z-index:300; background:var(--card,#fff); border:1px solid var(--border,rgba(0,0,0,0.12)); border-radius:13px; box-shadow:0 12px 34px rgba(30,28,20,0.18); padding:7px; min-width:208px; max-width:260px; font-family:'Inter',sans-serif; }
+  .wqf-item { display:flex; align-items:center; gap:9px; padding:9px 11px; border-radius:8px; font-size:13px; color:var(--ink,#2a2317); cursor:pointer; border:none; background:transparent; width:100%; text-align:left; font-family:'Inter',sans-serif; }
+  .wqf-item:hover { background:var(--cream2,#f5f2eb); }
+  .wqf-item.danger { color:#b5562e; }
+  .wqf-item-icon { font-size:13px; width:17px; flex-shrink:0; text-align:center; }
+  .wqf-sub { font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted2); padding:7px 11px 3px; }
+  .wqf-input-row { display:flex; gap:6px; padding:3px 9px 7px; align-items:center; }
+  .wqf-input-row input, .wqf-input-row select { flex:1; min-width:0; font-size:13px; padding:6px 8px; border:1px solid var(--border,rgba(0,0,0,0.15)); border-radius:7px; font-family:'Inter',sans-serif; }
+  .wqf-input-row button { font-size:12px; font-weight:700; padding:6px 11px; border-radius:7px; border:none; background:var(--green-bg,#eef7f2); color:var(--green-check,#2d6a4f); cursor:pointer; flex-shrink:0; font-family:'Inter',sans-serif; }
+  .wqf-toast { position:fixed; left:50%; bottom:84px; transform:translateX(-50%); z-index:320; background:var(--ink,#2a2317); color:#fff; font-size:13px; font-weight:600; padding:11px 18px; border-radius:11px; box-shadow:0 8px 24px rgba(0,0,0,0.22); max-width:84%; text-align:center; font-family:'Inter',sans-serif; }
+  .detail-waiting-tag { font-size:10px; font-weight:700; padding:2px 7px; border-radius:99px; background:#e0f2fe; color:#0369a1; margin-left:6px; white-space:nowrap; }
+  .detail-empty { font-size:12px; color:var(--muted2); font-style:italic; padding:2px 0; }
+
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(240,235,224,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;padding:8px 0 env(safe-area-inset-bottom,16px);z-index:100}
+  .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer;font-size:10px;font-weight:600;color:var(--muted2);text-decoration:none;border:none;background:none;font-family:inherit}
+  .nav-tab.active{color:var(--green)}
+  .nav-tab-icon{font-size:21px;line-height:1;transition:transform .18s ease}
+  .nav-tab.active .nav-tab-icon{transform:translateY(-2px)}
+  .nav-tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; font-weight:600; color:var(--muted2); cursor:pointer; padding:4px 0; }
+  .nav-tab.active { color:var(--green); }
+  .nav-tab-icon { font-size:22px; line-height:1; }
+</style>
+</head>
+<body>
+
+  <div id="coming-soon-overlay" style="display:none;position:fixed;inset:0;z-index:200;background:rgba(30,28,20,0.55);backdrop-filter:blur(4px);align-items:flex-end;justify-content:center" onclick="closeComingSoon()">
+    <div style="background:#fff;border-radius:24px 24px 0 0;padding:28px 24px 40px;width:100%;max-width:430px;animation:slideUp 0.25s ease" onclick="event.stopPropagation()">
+      <div style="text-align:center;margin-bottom:16px">
+        <div style="font-size:36px;margin-bottom:8px" id="cs-icon">📆</div>
+        <div style="font-family:'Playfair Display',Georgia,serif;font-size:22px;font-weight:800;color:#1e1c14;margin-bottom:6px" id="cs-title">Coming soon</div>
+        <div style="font-size:14px;color:#7a7060;line-height:1.5" id="cs-desc">This screen is being built.</div>
+      </div>
+      <button onclick="closeComingSoon()" style="width:100%;background:#2d6a4f;color:white;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">Got it</button>
+    </div>
+  </div>
+  <style>@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}</style>
+
+<div class="app-header">
+  <div class="perch-logo">
+    <svg width="30" height="30" viewBox="0 0 40 40" fill="none">
+      <path d="M6 16L14 20L10 28L6 16Z" fill="#2d2a1e"/>
+      <path d="M20 6L28 14L22 16L20 12L18 16L12 14L20 6Z" fill="#2d2a1e"/>
+      <path d="M20 12L26 20L20 24L14 20L20 12Z" fill="#3a3525"/>
+      <circle cx="17" cy="15" r="1.5" fill="#1e1c14"/>
+      <path d="M20 24L24 32L20 30L16 32L20 24Z" fill="#2d2a1e"/>
+    </svg>
+    <span class="perch-wordmark">Perch</span>
+  </div></div>
+
+<div class="scroll-area">
+  <div class="week-title-row">
+    <div>
+      <span class="week-title">This Week</span>
+      <span class="week-subtitle" id="week-range">Loading…</span>
+    </div>
+    <span class="view-timeline" onclick="document.getElementById('day-details-card').scrollIntoView({behavior:'smooth',block:'start'})" style="cursor:pointer">View full timeline</span>
+  </div>
+
+  <!-- Week Brief — first card -->
+  <div id="week-brief-card"></div>
+
+  <!-- Day strip — rendered by JS -->
+  <div class="day-strip-card" id="day-strip">Loading…</div>
+
+  <!-- Day Details — event-driven, grouped by day -->
+  <div class="card" id="day-details-card" style="margin-bottom:12px"></div>
+
+  <!-- Needs Attention This Week -->
+  <div id="week-attn-card"></div>
+
+  <!-- Perch Noticed -->
+  <div id="week-noticed-wrap"><div class="card"><div class="card-inner" id="card-insight">Loading…</div></div></div>
+
+  <!-- Opportunities -->
+  <div id="week-opps-wrap"><div class="card"><div class="card-inner" id="card-opps">Loading…</div></div></div>
+
+  <!-- Protected Time -->
+  <div id="week-protected-wrap"><div class="card"><div class="card-inner" id="card-protected">Loading…</div></div></div>
+</div>
+
+<nav class="bottom-nav">
+  <a class="nav-tab" href="perch_today_live.html"><div class="nav-tab-icon">&#127968;</div><span>Today</span></a>
+  <a class="nav-tab active" href="perch_week_live.html"><div class="nav-tab-icon">&#128197;</div><span>Week</span></a>
+  <a class="nav-tab" href="perch_month_live.html"><div class="nav-tab-icon">&#128198;</div><span>Month</span></a>
+  <a class="nav-tab" href="perch_life.html"><div class="nav-tab-icon">&#127807;</div><span>Life</span></a>
+  <a class="nav-tab" href="perch_capture.html"><div class="nav-tab-icon">&#129413;</div><span>Perch</span></a>
+</nav>
+
+<script>
+function showComingSoon(icon, title, desc) {
+  document.getElementById('cs-icon').textContent = icon;
+  document.getElementById('cs-title').textContent = title;
+  document.getElementById('cs-desc').textContent = desc;
+  const el = document.getElementById('coming-soon-overlay');
+  el.style.display = 'flex';
+}
+function closeComingSoon() {
+  document.getElementById('coming-soon-overlay').style.display = 'none';
+}
+
+function renderWeek() {
+  if (window.PerchAppearance) PerchAppearance.apply();
+  if (window.PerchMemory?.recordCheckin) PerchMemory.recordCheckin();
+  if (window.PerchMemory?.takeMonthlySnapshot) PerchMemory.takeMonthlySnapshot();
+  if (window.PerchActions) PerchActions.resolveSnoozed();
+  // Always rebuild events from current memory so Week reflects any changes made
+  // elsewhere (Today captures, Quick Fix shift edits, My OK / work-stretch updates).
+  if (window.PerchEvents) PerchEvents.refresh();
+  const now = new Date();
+  const statusTime = document.getElementById('status-time');
+  if (statusTime) {
+    statusTime.textContent =
+      now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false});
+  }
+
+  const today = PerchDate.today();
+  const DOW_SHORT = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const DOW_FULL  = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  // ── SINGLE SOURCE OF TRUTH ─────────────────
+  // Every part of this screen reads from next7 and byDate. Nothing else.
+  const next7 = PerchEvents.getNext7Days();
+  const fin   = PerchMemory.financeSnapshot();
+
+  // ── WEEK BRIEF ─────────────────────────────
+  (function renderWeekBrief(){
+    const el=document.getElementById('week-brief-card'); if(!el) return;
+
+    // Read from engine where available — Week owns next7/billsDue/waitingItems (7-day specific)
+    const brief      = (window.PerchBrief&&window.PerchBrief.build) ? window.PerchBrief.build() : {};
+    const shortMoney = brief.shortMoney  ?? (fin.payday&&fin.projected<0);
+    const activeCaps = brief.activeCaps  || (PerchMemory.get('captures')||[]).filter(c=>!new Set(['completed','resolved','dismissed','archived','snoozed']).has(c.status||''));
+    const schedShifts= brief.shifts      || (PerchMemory.get('work.schedule')||[]);
+    const shiftCount = schedShifts.length||next7.filter(e=>e.type==='work_shift').length;
+    const billsDue   = next7.filter(e=>e.type==='bill');
+    const waitingItems=next7.filter(e=>e.type==='waiting_on'||e.status==='waiting');
+    const topGoal    = brief.topGoal || null;
+
+    // Opening — Week-scoped, same voice as Today
+    let opening;
+    if(shortMoney)
+      opening='Finances are tight before payday.';
+    else if(shiftCount===0&&billsDue.length===0&&activeCaps.length===0)
+      opening='Nothing urgent this week \u2014 you\u2019re clear.';
+    else if(shiftCount>=4)
+      opening='Heavy week. Make sure you rest between shifts.';
+    else if(shiftCount>=2)
+      opening=shiftCount+' shifts this week.';
+    else if(shiftCount===1)
+      opening='One shift this week.';
+    else
+      opening='Here\u2019s what\u2019s ahead.';
+
+    // Facts — no emojis, conclusions before numbers, matches Today voice
+    const facts=[];
+    if(fin.payday){
+      if(shortMoney)
+        facts.push('Projected \u2212$'+Math.abs(fin.projected).toLocaleString()+' after bills before payday.');
+      else if(billsDue.length>0)
+        facts.push('$'+fin.projected.toLocaleString()+' clear after upcoming bills.');
+      else
+        facts.push('$'+fin.balance.toLocaleString()+' in checking \u2014 no bills before payday.');
+      if(fin.daysToPayday!=null&&fin.daysToPayday<=7)
+        facts.push('Payday in '+fin.daysToPayday+' day'+(fin.daysToPayday===1?'':'s')+' \u2014 $'+fin.paydayAmount.toLocaleString()+'.');
+    }
+    if(shiftCount>0&&facts.length<3)
+      facts.push(shiftCount+' shift'+(shiftCount>1?'s':'')+' this week.');
+    if(activeCaps.length>0&&facts.length<3)
+      facts.push((activeCaps.length===1?'One thing':activeCaps.length+' things')+' open in Brain.');
+    if(waitingItems.length>0&&facts.length<3)
+      facts.push(waitingItems.length+' waiting item'+(waitingItems.length>1?'s':'')+' this week.');
+
+    // Goal connection line — surfaces engine's top goal in Week context
+    const goalLine = topGoal && topGoal.target_amount > 0
+      ? '<div style="margin-top:8px;font-size:11.5px;color:var(--muted);font-style:italic">'
+        +topGoal.icon+' '+topGoal.name+' \u2014 '
+        +Math.round((topGoal.saved_amount||0)/(topGoal.target_amount)*100)+'% funded.'
+        +'</div>'
+      : '';
+
+    const factHtml=facts.length
+      ?'<ul style="margin:10px 0 0;padding-left:0;list-style:none;display:flex;flex-direction:column;gap:5px">'
+        +facts.map(f=>'<li style="font-size:12.5px;color:var(--muted);line-height:1.4">'+f+'</li>').join('')+'</ul>'
+      :'';
+
+    el.innerHTML='<div class="card"><div class="card-inner">'
+      +'<div style="font-size:11px;font-weight:700;letter-spacing:0.07em;color:var(--green);text-transform:uppercase;margin-bottom:6px">\uD83D\uDCC6 Week Brief</div>'
+      +'<div style="font-size:15px;font-weight:800;color:var(--ink);line-height:1.3">'+opening+'</div>'
+      +factHtml
+      +goalLine
+      +'</div></div>';
+  })();
+
+  // ── NEEDS ATTENTION THIS WEEK ────────────────
+  (function renderWeekAttn(){
+    const el=document.getElementById('week-attn-card'); if(!el) return;
+    const SKIP=new Set(['completed','resolved','dismissed','archived','snoozed','paid_this_month','pulled_this_month','skipped_this_month']);
+    const items=[];
+    const bills=PerchMemory.get('bills')||[];
+
+    // Unpaid manual bills before payday
+    bills.filter(b=>!b.autopay&&!SKIP.has(b.status||'active')&&fin.beforeBills.some(bb=>bb.id===b.id)).forEach(b=>{
+      items.push({icon:'\u26A0\uFE0F',text:'<strong>'+b.name+'</strong> \u2014 $'+(b.amount||0)+' manual payment needed',col:'#c0392b'});
+    });
+    // Autopay not confirmed
+    bills.filter(b=>b.autopay&&!SKIP.has(b.status||'active')&&fin.beforeBills.some(bb=>bb.id===b.id)).forEach(b=>{
+      items.push({icon:'\uD83D\uDD04',text:'<strong>'+b.name+'</strong> \u2014 autopay expected but not confirmed',col:'#d97706'});
+    });
+    // Waiting items this week
+    next7.filter(e=>e.type==='waiting_on'||e.status==='waiting').slice(0,3).forEach(e=>{
+      items.push({icon:'\u23F3',text:'<strong>'+e.name.split('\u2014')[0].trim()+'</strong> \u2014 still waiting',col:'#0369a1'});
+    });
+    // Old Brain captures (oldest 2)
+    const CAPS_SKIP=new Set(['completed','resolved','dismissed','archived','snoozed']);
+    const oldCaps=(PerchMemory.get('captures')||[]).filter(c=>!CAPS_SKIP.has(c.status||'')).slice(0,2);
+    oldCaps.forEach(c=>{
+      const label=c.clean_label||c.label||'item';
+      items.push({icon:'\uD83E\uDDE0',text:'\u201C'+label+'\u201D \u2014 open in Brain',col:'#6b4fbb'});
+    });
+
+    if(!items.length){el.innerHTML='';return;}
+
+    el.innerHTML='<div class="card"><div class="card-inner">'
+      +'<div class="card-title-row"><div class="card-title-icon" style="background:#fef2f2">\u26A0\uFE0F</div>'
+      +'<span class="card-section-title">Needs attention this week</span></div>'
+      +items.slice(0,5).map(i=>'<div class="insight-row"><span class="insight-icon">'+i.icon+'</span>'
+        +'<span class="insight-text" style="color:'+i.col+'">'+i.text+'</span></div>').join('')
+      +'</div></div>';
+  })();
+
+
+  const days = [];
+  for (let i = 0; i < 7; i++) {
+    const d = PerchDate.plusDays(i, today);
+    days.push({ d, ds: PerchDate.fmt(d), isToday: i === 0 });
+  }
+
+  // Group events by date — ONE map, used by both strip and details
+  const byDate = {};
+  days.forEach(({ds}) => { byDate[ds] = []; });
+  next7.forEach(e => {
+    if (byDate[e.date] !== undefined) byDate[e.date].push(e);
+  });
+
+  // Week range label: today → today+6
+  const rangeStart = today.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const rangeEnd   = PerchDate.plusDays(6,today).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  document.getElementById('week-range').textContent = `${rangeStart} – ${rangeEnd}`;
+
+  // ── HELPER: top priority icon for a day's events ──
+  function topIcon(evs) {
+    if (!evs.length) return null;
+    // Sorted by priority_score desc (already done by getNext7Days)
+    const top = evs[0];
+    const iconMap = {
+      bill: '⚡', work_shift: '🏥', opportunity: top.icon || '🌿',
+      maintenance: '🔧', future_horizon: top.icon || '🏔️',
+      reminder: '🔔', waiting_on: '⏳', recurring: '🔁'
+    };
+    return top.icon || iconMap[top.type] || '📅';
+  }
+
+  function dotColor(evs) {
+    if (!evs.length) return '#a09880';
+    const top = evs[0];
+    const colorMap = { bill:'#e07b39', work_shift:'#52b788', opportunity:'#6b4fbb', maintenance:'#c0392b', future_horizon:'#0e7490' };
+    return colorMap[top.type] || '#3a8c62';
+  }
+
+  function circleClass(evs, isToday) {
+    if (isToday) return 'today-ring';
+    if (!evs.length) return 'gray-ring';
+    const top = evs[0];
+    if (top.type === 'bill') return 'today-ring';
+    if (top.type === 'work_shift') return 'green-ring';
+    if (top.type === 'opportunity' || top.type === 'future_horizon') return 'purple-ring';
+    return 'green-ring';
+  }
+
+  // ── DAY STRIP — tap to expand ────────────────
+  // Mood classification per day
+  function dayMood(evs){
+    if(!evs.length) return{label:'Calm',color:'#7a9e8a',bg:'#f0f7f3'};
+    const hasShift=evs.some(e=>e.type==='work_shift');
+    const hasBill=evs.some(e=>e.type==='bill');
+    const hasPayday=evs.some(e=>e.type==='payday');
+    const hasMaint=evs.some(e=>e.type==='maintenance');
+    const score=(hasShift?3:0)+(hasBill?2:0)+(hasMaint?2:0)+(hasPayday?-1:0);
+    if(score>=5) return{label:'Busy',color:'#9a5a14',bg:'#fef3e2'};
+    if(score>=3) return{label:'Watch',color:'#b5562e',bg:'#fbeee9'};
+    if(hasPayday&&!hasShift) return{label:'Payday',color:'#2d6a4f',bg:'#eef7f2'};
+    return{label:'Calm',color:'#2d6a4f',bg:'#f0f7f3'};
+  }
+
+  // Tiny icon set per day (up to 4 distinct types)
+  function dayIcons(evs){
+    const seen=new Set();const icons=[];
+    const MAP={work_shift:'\uD83C\uDFE5',bill:'\u26A1',opportunity:'\uD83C\uDF3F',maintenance:'\uD83D\uDD27',
+      future_horizon:'\uD83D\uDCC5',reminder:'\uD83D\uDD14',waiting_on:'\u23F3',recurring:'\uD83D\uDD01',birthday:'\uD83C\uDF82'};
+    evs.forEach(e=>{
+      const ic=e.icon||(e.type==='birthday'?'\uD83C\uDF82':MAP[e.type]||'\u2022');
+      if(!seen.has(ic)&&icons.length<4){seen.add(ic);icons.push(ic);}
+    });
+    return icons;
+  }
+
+  // Track which day is selected
+  let selectedDay=days.findIndex(d=>d.isToday);
+  if(selectedDay<0) selectedDay=0;
+
+  function renderDayStrip(){
+    const stripEl=document.getElementById('day-strip');
+    if(!stripEl) return;
+    stripEl.innerHTML='<div style="display:flex;gap:4px">'
+      +days.map(({d,ds,isToday},i)=>{
+        const evs=byDate[ds];
+        const mood=dayMood(evs);
+        const icons=dayIcons(evs);
+        const isSel=i===selectedDay;
+        const hasEvents=evs.length>0;
+        const bg=isSel?(isToday?'#fff5ee':mood.bg):'transparent';
+        const border=isToday&&isSel?'2px solid var(--orange)'
+          :isToday?'2px solid rgba(224,123,57,0.35)'
+          :isSel?'2px solid '+mood.color
+          :'2px solid transparent';
+        const shadow=isSel?'0 2px 10px rgba(30,28,20,0.10)':'none';
+        const nameColor=isToday?'var(--orange)':isSel?mood.color:'var(--muted2)';
+        const numColor=isToday?'var(--orange)':isSel?mood.color:'var(--ink)';
+        const moodStyle=mood.label==='Calm'||!hasEvents
+          ?'font-size:10px;font-style:italic;font-weight:500;color:'+(isSel?mood.color:'var(--muted2)')
+          :'font-size:10px;font-weight:700;color:'+(isSel?mood.color:'var(--muted2)');
+        const emptyHtml='<div style="font-size:16px;color:rgba(160,152,128,0.28);margin-top:3px;line-height:1">\u00B7</div>';
+        const iconsHtml=icons.length
+          ?'<div style="font-size:10px;letter-spacing:1px;margin-top:2px;line-height:1.2">'+icons.join('')+'</div>'
+          :'';
+        return '<div onclick="window.selectWeekDay('+i+')"'
+          +' style="flex:1;border-radius:14px;padding:9px 2px 8px;text-align:center;cursor:pointer;'
+          +'background:'+bg+';border:'+border+';box-shadow:'+shadow+';transition:all .2s ease">'
+          +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;'
+          +'margin-bottom:3px;color:'+nameColor+'">'+DOW_SHORT[d.getDay()]+'</div>'
+          +'<div style="font-size:15px;font-weight:800;line-height:1;margin-bottom:4px;color:'+numColor+'">'+d.getDate()+'</div>'
+          +(hasEvents?'<div style="'+moodStyle+';margin-bottom:2px">'+mood.label+'</div>'+iconsHtml
+            :emptyHtml)
+          +'</div>';
+      }).join('')+'</div>';
+  }
+
+  // ── DAY DETAILS — single day, tap-driven ─────
+  const protectedTime=PerchMemory.get('protected_time')||[];
+  const colorMap={bill:'#e07b39',work_shift:'#3a8c62',opportunity:'#6b4fbb',maintenance:'#c0392b',future_horizon:'#0e7490',reminder:'#92400e',waiting_on:'#0369a1',recurring:'#3a8c62'};
+  const bgMap={bill:'#fef3eb',work_shift:'#eef7f2',opportunity:'#f0ecf9',maintenance:'#fef2f2',future_horizon:'#ecfeff'};
+
+  function renderDayDetail(idx){
+    const detEl=document.getElementById('day-details-card');
+    if(!detEl) return;
+    if(idx<0||idx>=days.length){detEl.innerHTML='';detEl.style.display='none';return;}
+    const{d,ds,isToday}=days[idx];
+    const evs=byDate[ds];
+    const dow=d.getDay();
+    const dayName=DOW_FULL[dow];
+    const shortDate=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    const mood=dayMood(evs);
+
+    const prot=protectedTime.filter(p=>
+      (p.id==='sun_morning'&&dow===0)||(p.id==='tue_evening'&&dow===2));
+
+    const itemsHtml=evs.length===0&&prot.length===0
+      ?'<div class="detail-empty" style="padding:10px 0">Open \u2014 nothing scheduled.</div>'
+      :[
+        ...evs.map(e=>{
+          const col=colorMap[e.type]||'#7a7060';
+          const bg=bgMap[e.type]||'#f5f2eb';
+          const badge=e.amount?'<span class="detail-item-badge" style="background:'+bg+';color:'+col+'">$'+e.amount+'</span>':'';
+          const done=e.status==='completed';
+          const waiting=e.status==='waiting';
+          const completable=['bill','maintenance','reminder','opportunity'].includes(e.type);
+          const actionBtn=done
+            ?'<button class="detail-complete-btn" onclick="window.completeWeekItem(\''+e.id+'\',true)">\u2713</button>'
+            :waiting
+            ?'<button class="detail-complete-btn" style="background:#e0f2fe;color:#0369a1;border-color:rgba(3,105,161,0.25)" onclick="window.completeWeekItem(\''+e.id+'\',false)">'+PerchActions.labelsFor(e).primary+'</button>'
+            :completable
+            ?'<button class="detail-complete-btn" onclick="window.completeWeekItem(\''+e.id+'\',false)">\u2713 Done</button>':'';
+          return '<div class="detail-item'+(done?' done':'')+'"><span class="detail-item-icon">'+(done?'\u2705':waiting?'\u23F3':(e.icon||'\uD83D\uDCC5'))+'</span><span class="detail-item-text">'+e.name.split('\u2014')[0].trim()+badge+(waiting?'<span class="detail-waiting-tag">waiting</span>':'')+'</span>'+actionBtn+weekQfBtn(e)+'</div>';
+        }),
+        ...prot.map(p=>'<div class="detail-item"><span class="detail-item-icon">'+p.icon+'</span><span class="detail-item-text" style="color:var(--muted)">'+p.label+' \u2014 '+p.description+'</span></div>')
+      ].join('');
+
+    detEl.style.display='';
+    // Mood badge — italic for Calm, normal for others
+    const moodBadge=mood.label==='Calm'
+      ?'<span style="margin-left:auto;font-size:11px;font-style:italic;font-weight:500;color:'+mood.color+'">Calm</span>'
+      :'<span style="margin-left:auto;font-size:11px;font-weight:700;padding:2px 10px;border-radius:99px;background:'+mood.bg+';color:'+mood.color+'">'+mood.label+'</span>';
+    detEl.innerHTML='<div class="day-details-inner">'
+      +'<div class="detail-day-header" style="margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--line2)">'
+      +'<span class="detail-day-name" style="font-family:Georgia,serif;font-size:17px;font-weight:700">'+dayName+'</span>'
+      +'<span class="detail-day-date" style="margin-left:8px;font-size:12px;color:var(--muted2)">'+shortDate+'</span>'
+      +(isToday?'<span class="detail-day-today-pill" style="margin-left:6px">Today</span>':'')
+      +moodBadge
+      +'</div>'
+      +itemsHtml
+      +'</div>';
+  }
+
+  // Global tap handler
+  window.selectWeekDay=function(idx){
+    selectedDay=idx;
+    renderDayStrip();
+    renderDayDetail(idx);
+  };
+
+  // Initial render
+  renderDayStrip();
+  renderDayDetail(selectedDay);
+
+  // ── PERCH NOTICED — uses financeSnapshot, not safeToSpend ─────────────
+  const paycheck     = PerchMemory.get('finances.paycheck');
+  const next7Sorted  = [...next7].sort((a,b) => (b.priority_score||0) - (a.priority_score||0));
+  const topBill      = next7Sorted.find(e => e.type==='bill' && e.status!=='completed');
+  const topOpp       = next7Sorted.find(e => e.type==='opportunity');
+  const nextPayDate  = paycheck?.next_date
+    ? new Date(paycheck.next_date+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})
+    : null;
+
+  const insights = [];
+  if (paycheck && nextPayDate && fin.paydayAmount>0) {
+    const projStr = fin.projected>=0 ? '$'+fin.projected.toLocaleString()+' projected' : 'tight (\u2212$'+Math.abs(fin.projected).toLocaleString()+')';
+    insights.push({ icon:'\uD83D\uDCB5', text:`Payday of <strong>$${(fin.paydayAmount||0).toLocaleString()}</strong> lands ${nextPayDate}. Balance looks <strong>${projStr}</strong> before then.` });
+  }
+  if (topBill) {
+    insights.push({ icon:'\u26A1', text:`<strong>${topBill.name.split('\u2014')[0].trim()}</strong> ${topBill.daysLabel?.toLowerCase()||'is due'} ${topBill.detail ? '\u2014 '+topBill.detail : ''}` });
+  }
+  if (topOpp) {
+    insights.push({ icon: topOpp.icon||'\uD83C\uDF3F', text:`<strong>${topOpp.name}</strong> this week \u2014 ${topOpp.why||topOpp.context||''}` });
+  }
+
+  const noticedWrap = document.getElementById('week-noticed-wrap');
+  if (!insights.length) {
+    if (noticedWrap) noticedWrap.style.display='none';
+  } else {
+    if (noticedWrap) noticedWrap.style.display='';
+    document.getElementById('card-insight').innerHTML = `
+      <div class="card-title-row">
+        <div class="card-title-icon" style="background:#fef3c7">\u2B50</div>
+        <span class="card-section-title">Perch noticed</span>
+      </div>
+      ${insights.map(i => `
+        <div class="insight-row">
+          <span class="insight-icon">${i.icon}</span>
+          <span class="insight-text">${i.text}</span>
+        </div>`).join('')}`;
+  }
+
+  // ── OPPORTUNITIES — rendered fresh on every call ──
+  const oppColors = [
+    'linear-gradient(135deg,#fde68a,#fbbf24)',
+    'linear-gradient(135deg,#bbf7d0,#4ade80)',
+    'linear-gradient(135deg,#dbeafe,#93c5fd)'
+  ];
+
+  window.weekFbBtnClass = function(id, signal) {
+    const existing = PerchFeedback.get(id);
+    if (!existing) return `fb-btn ${signal}`;
+    return existing.signal === signal ? `fb-btn active-${signal}` : `fb-btn ${signal}`;
+  };
+  const weekFbBtnClass = window.weekFbBtnClass; // local alias for template use
+
+  window.renderWeekOpps = function() {
+    const opps = PerchEvents.getOpportunitiesThisWeek().slice(0, 3);
+    const wrap = document.getElementById('week-opps-wrap');
+    if (!opps.length) { if(wrap) wrap.style.display='none'; return; }
+    if (wrap) wrap.style.display='';
+    document.getElementById('card-opps').innerHTML = `
+      <div class="card-title-row">
+        <div class="card-title-icon" style="background:var(--green-bg)">🌿</div>
+        <span class="card-section-title">Opportunities this week</span>
+      </div>
+      ${opps.length ? opps.map((o, i) => {
+        const existing   = PerchFeedback.get(o.id);
+        const whyReasons = PerchFeedback.buildWhy(o);
+        const safeId     = o.id.replace(/[^a-zA-Z0-9_]/g,'_');
+        return `<div class="opp-row">
+          <div class="opp-thumb" style="background:${oppColors[i%3]}">${o.icon}</div>
+          <div class="opp-body">
+            <div class="opp-name">${o.name}</div>
+            <div class="opp-where">${o.daysLabel||''} ${o.detail ? '· '+o.detail : ''}</div>
+            <div class="opp-desc">${o.why||o.context||''}</div>
+            <div class="fb-row">
+              <button class="${weekFbBtnClass(o.id,'good')}" onclick="window.weekFeedback('${o.id}','${(o.name||'').replace(/'/g,"\\'")}','good')">👍 Interested</button>
+              <button class="fb-btn" onclick="window.weekRemindLater('${o.id}', '${(o.name||'').replace(/'/g,'\\\'')}')" >🔔 Later</button>
+              <button class="${weekFbBtnClass(o.id,'bad')}"  onclick="window.weekFeedback('${o.id}','${(o.name||'').replace(/'/g,"\\'")}','bad')">👎 Not for me</button>
+              <button class="${weekFbBtnClass(o.id,'more')}" onclick="window.weekFeedback('${o.id}','${(o.name||'').replace(/'/g,"\\'")}','more')">⭐ More</button>
+              <button class="fb-why-btn" onclick="window.toggleWhy('why_week_${safeId}')">Why?</button>
+            </div>
+            ${existing ? `<div class="fb-stored-label">Saved: ${existing.signal === 'more' ? '⭐ More like this' : existing.signal === 'good' ? '👍 Good' : '👎 Suppressed'}</div>` : ''}
+            <div class="why-panel" id="why_week_${safeId}">
+              ${whyReasons.map(r => `
+                <div class="why-row">
+                  <span class="why-icon">${r.icon}</span>
+                  <span class="why-text ${r.weight}">${r.text}</span>
+                </div>`).join('')}
+            </div>
+          </div>
+        </div>`;
+      }).join('')
+      : '<div style="font-size:13px;color:var(--muted);padding:4px 0">No opportunities this week.</div>'}`;
+  };
+
+  window.weekRemindLater = function(id, name) {
+    try {
+      const snooze_until = PerchDate.fmt(PerchDate.plusDays(1));
+      PerchActions.record(id, name, 'snoozed', { snooze_until });
+      window.renderWeekOpps();
+    } catch(e) { console.error('[Perch Week] weekRemindLater error:', e); }
+  };
+
+  window.undoWeekFeedback = function(id) {
+    try {
+      PerchFeedback.undo(id);
+      PerchEvents.refresh();
+      window.renderWeekOpps();
+    } catch(e) { console.error('[Perch Week] undoWeekFeedback error:', e); }
+  };
+
+  window.weekFeedback = function(id, name, signal) {
+    try {
+      if (!id || id === 'undefined') { console.error('[Perch Week] id is undefined'); return; }
+      PerchFeedback.store(id, name, signal);
+      PerchEvents.refresh();
+      window.renderWeekOpps();
+    } catch(e) { console.error('[Perch Week] weekFeedback error:', e); }
+  };
+
+  window.toggleWhy = function(panelId) {
+    try {
+      const el = document.getElementById(panelId);
+      if (!el) { console.error('[Perch Week] why panel not found:', panelId); return; }
+      el.classList.toggle('open');
+    } catch(e) { console.error('[Perch Week] toggleWhy error:', e); }
+  };
+
+  window.renderWeekOpps();
+
+  // ── PROTECTED TIME — from memory ───────────
+  const pt = PerchMemory.get('protected_time') || [];
+  const ptWrap = document.getElementById('week-protected-wrap');
+  if (!pt.length) {
+    if(ptWrap) ptWrap.style.display='none';
+  } else {
+    if(ptWrap) ptWrap.style.display='';
+    document.getElementById('card-protected').innerHTML = `
+      <div class="card-title-row">
+        <div class="card-title-icon" style="background:#e8f4fd">\uD83D\uDEE1\uFE0F</div>
+        <span class="card-section-title">Protected Time</span>
+      </div>
+      ${pt.map(p => `
+        <div class="protected-row">
+          <div class="protected-icon-wrap">${p.icon}</div>
+          <div>
+            <div class="protected-name">${p.label}</div>
+            <div class="protected-sub">${p.description}</div>
+          </div>
+        </div>`).join('')}`;
+  }
+
+  // ── Completion: re-renders day details on complete/reopen ──
+  window.completeWeekItem = function(id, reopen) {
+    try {
+      if (reopen) PerchActions.undo(id);
+      else PerchActions.record(id, '', 'completed');
+
+      // Rebuild byDate from fresh events
+      const fresh = PerchEvents.getNext7Days();
+      const freshByDate = {};
+      days.forEach(({ds}) => { freshByDate[ds] = []; });
+      fresh.forEach(e => { if (freshByDate[e.date] !== undefined) freshByDate[e.date].push(e); });
+
+      const cMap = { bill:'#e07b39', work_shift:'#3a8c62', opportunity:'#6b4fbb', maintenance:'#c0392b', future_horizon:'#0e7490', reminder:'#92400e', waiting_on:'#0369a1', recurring:'#3a8c62' };
+      const bMap = { bill:'#fef3eb', work_shift:'#eef7f2', opportunity:'#f0ecf9', maintenance:'#fef2f2', future_horizon:'#ecfeff' };
+      const DOWS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+      const prot2 = PerchMemory.get('protected_time') || [];
+
+      const html = days.map(({d, ds, isToday}) => {
+        const evs2 = freshByDate[ds] || [];
+        const dow = d.getDay();
+        const shortDate = d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+        const pr = prot2.filter(p => (p.id==='sun_morning'&&dow===0)||(p.id==='tue_evening'&&dow===2));
+        const items = evs2.length===0&&pr.length===0
+          ? '<div class="detail-empty">Open — nothing scheduled.</div>'
+          : [...evs2.map(e => {
+              const col=cMap[e.type]||'#7a7060', bg=bMap[e.type]||'#f5f2eb';
+              const badge = e.amount?`<span class="detail-item-badge" style="background:${bg};color:${col}">$${e.amount}</span>`:'';
+              const done=e.status==='completed', wtg=e.status==='waiting';
+              const ok=['bill','maintenance','reminder','opportunity'].includes(e.type);
+              const btn = done
+                ? `<button class="detail-complete-btn" onclick="window.completeWeekItem('${e.id}',true)">✓</button>`
+                : wtg
+                ? `<button class="detail-complete-btn" style="background:#e0f2fe;color:#0369a1;border-color:rgba(3,105,161,0.25)" onclick="window.completeWeekItem('${e.id}',false)">Arrived</button>`
+                : ok ? `<button class="detail-complete-btn" onclick="window.completeWeekItem('${e.id}',false)">✓ Done</button>` : '';
+              return `<div class="detail-item${done?' done':''}">
+                <span class="detail-item-icon">${done?'✅':wtg?'⏳':(e.icon||'📅')}</span>
+                <span class="detail-item-text">${e.name.split('—')[0].trim()}${badge}${wtg?'<span class="detail-waiting-tag">waiting</span>':''}</span>
+                ${btn}${weekQfBtn(e)}</div>`;
+            }),
+            ...pr.map(p=>`<div class="detail-item"><span class="detail-item-icon">${p.icon}</span><span class="detail-item-text" style="color:var(--muted)">${p.label} — ${p.description}</span></div>`)
+          ].join('');
+        return `<div class="detail-day-block">
+          <div class="detail-day-header">
+            <span class="detail-day-name">${DOWS[dow].slice(0,3)}</span>
+            <span class="detail-day-date">${shortDate}</span>
+            ${isToday?'<span class="detail-day-today-pill">Today</span>':''}
+            ${evs2.length?`<span style="margin-left:auto;font-size:11px;color:var(--muted2)">${evs2.length} item${evs2.length!==1?'s':''}</span>`:''}
+          </div>${items}</div>`;
+      }).join('');
+
+      document.getElementById('day-details-card').innerHTML =
+        `<div class="day-details-inner"><div class="day-details-title">Day by day</div>${html}</div>`;
+
+      window.renderWeekOpps(); // refresh opps strip too
+    } catch(err) { console.error('[Perch Week] completeWeekItem error:', err); }
+  };
+
+}
+window.renderWeek = renderWeek;
+window.addEventListener('load', renderWeek);
+
+// ════════════════════════════════════════════
+// WEEK QUICK FIX — correct wrong items from Week
+// Reuses PerchCorrect / PerchActions (shared engine). Mutates source memory,
+// refreshes events, re-renders Week, persists, logs corrections.
+// ════════════════════════════════════════════
+const WQF_DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+// Map an event to a Quick Fix kind, or null if not correctable
+function weekQfKind(e){
+  if(!e) return null;
+  if(e.type==='work_shift'||e.type==='recurring'||(e.work_stretch)) return (e.day_of_week!=null||e.date)?'shift':null;
+  if(e.type==='bill') return 'bill';
+  if(e.type==='waiting_on'||e.type==='future_horizon') return 'waiting';
+  if(e.type==='reminder'||e.type==='context'||e.type==='event') return 'reminder';
+  return null;
+}
+function weekQfBtn(e){
+  const kind=weekQfKind(e);
+  if(!kind) return '';
+  const safeName=(e.name||'').replace(/'/g,"\\'").replace(/"/g,'&quot;');
+  // pass the event id and a resolved dow for shifts
+  let dow=e.day_of_week;
+  if(dow==null && e.date){ try{ dow=new Date(e.date+'T00:00:00').getDay(); }catch(_){} }
+  return `<button class="wqf-btn" onclick="window.openWeekQuickFix(event,'${kind}','${e.id}',${dow==null?'null':dow},'${safeName}')" aria-label="Fix">\u22EF</button>`;
+}
+
+function closeWeekQuickFix(){
+  document.querySelectorAll('.wqf-menu,.wqf-backdrop').forEach(el=>el.remove());
+}
+function weekToast(msg){
+  document.querySelectorAll('.wqf-toast').forEach(el=>el.remove());
+  const t=document.createElement('div'); t.className='wqf-toast'; t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(), 2200);
+}
+function weekRefreshAfterFix(){
+  if(window.PerchEvents) PerchEvents.refresh();
+  renderWeek();
+}
+
+window.openWeekQuickFix=function(ev, kind, id, dow, name){
+  ev.stopPropagation();
+  closeWeekQuickFix();
+  const rect=ev.currentTarget.getBoundingClientRect();
+  const backdrop=document.createElement('div');
+  backdrop.className='wqf-backdrop'; backdrop.onclick=closeWeekQuickFix;
+  document.body.appendChild(backdrop);
+
+  const menu=document.createElement('div'); menu.className='wqf-menu';
+  let html='';
+
+  if(kind==='shift'){
+    if(dow==null){ html='<div class="wqf-sub">This shift has no fixed day.</div>'; }
+    else{
+      html='<div class="wqf-sub">'+name+' \u00b7 '+WQF_DAYS[dow]+'</div>'
+        +'<button class="wqf-item danger" onclick="window.wqfShiftRemove('+dow+',\''+name.replace(/'/g,"\\'")+'\')"><span class="wqf-item-icon">\u2715</span>I don\u2019t work this day</button>'
+        +'<div class="wqf-sub">Move to</div>'
+        +'<div class="wqf-input-row"><select id="wqf-move-dow">'
+          +WQF_DAYS.map((d,i)=>'<option value="'+i+'"'+(i===dow?' disabled':'')+'>'+d+'</option>').join('')
+          +'</select><button onclick="window.wqfShiftMove('+dow+')">Move</button></div>'
+        +'<div class="wqf-sub">Edit time</div>'
+        +'<div class="wqf-input-row"><input id="wqf-time" type="text" placeholder="7am\u20137pm"><input id="wqf-hours" type="number" placeholder="12" style="max-width:64px"><button onclick="window.wqfShiftTime('+dow+')">Save</button></div>';
+    }
+  } else if(kind==='bill'){
+    const bid=id.replace(/^bill_/,'');
+    const b=(PerchMemory.get('bills')||[]).find(x=>x.id===bid||('bill_'+x.id)===id)||{};
+    html='<div class="wqf-sub">'+name+'</div>'
+      +'<button class="wqf-item" onclick="window.wqfBillPaid(\''+bid+'\')"><span class="wqf-item-icon">\u2713</span>Mark paid</button>'
+      +'<button class="wqf-item" onclick="window.wqfBillAutopay(\''+bid+'\','+(b.autopay?'false':'true')+')"><span class="wqf-item-icon">\u21BB</span>'+(b.autopay?'Switch to manual':'Switch to autopay')+'</button>'
+      +'<div class="wqf-sub">Edit due day / amount</div>'
+      +'<div class="wqf-input-row"><input id="wqf-due" type="number" placeholder="day" value="'+(b.due_day||'')+'" style="max-width:70px"><input id="wqf-amt" type="number" placeholder="$" value="'+(b.amount||'')+'"><button onclick="window.wqfBillEdit(\''+bid+'\')">Save</button></div>'
+      +'<button class="wqf-item danger" onclick="window.wqfBillRemove(\''+bid+'\',\''+name.replace(/'/g,"\\'")+'\')"><span class="wqf-item-icon">\u2715</span>Remove \u2014 this isn\u2019t mine</button>';
+  } else if(kind==='waiting'){
+    html='<div class="wqf-sub">'+name+'</div>'
+      +'<button class="wqf-item" onclick="window.wqfWaitArrived(\''+id+'\',\''+name.replace(/'/g,"\\'")+'\')"><span class="wqf-item-icon">\u2713</span>Mark arrived / resolved</button>'
+      +'<div class="wqf-sub">Edit expected date</div>'
+      +'<div class="wqf-input-row"><input id="wqf-wdate" type="date"><button onclick="window.wqfWaitDate(\''+id+'\')">Save</button></div>'
+      +'<button class="wqf-item danger" onclick="window.wqfWaitRemove(\''+id+'\',\''+name.replace(/'/g,"\\'")+'\')"><span class="wqf-item-icon">\u2715</span>Remove \u2014 this is wrong</button>';
+  } else if(kind==='reminder'){
+    html='<div class="wqf-sub">'+name+'</div>'
+      +'<button class="wqf-item" onclick="window.wqfItemDone(\''+id+'\',\''+name.replace(/'/g,"\\'")+'\')"><span class="wqf-item-icon">\u2713</span>Done</button>'
+      +'<button class="wqf-item" onclick="window.wqfItemSnooze(\''+id+'\',\''+name.replace(/'/g,"\\'")+'\')"><span class="wqf-item-icon">\u23F0</span>Snooze to tomorrow</button>'
+      +'<div class="wqf-sub">Edit date</div>'
+      +'<div class="wqf-input-row"><input id="wqf-rdate" type="date"><button onclick="window.wqfItemDate(\''+id+'\')">Save</button></div>'
+      +'<button class="wqf-item danger" onclick="window.wqfItemRemove(\''+id+'\',\''+name.replace(/'/g,"\\'")+'\')"><span class="wqf-item-icon">\u2715</span>Remove</button>';
+  }
+  menu.innerHTML=html;
+  document.body.appendChild(menu);
+  const mw=menu.offsetWidth, mh=menu.offsetHeight;
+  let left=Math.min(rect.left, window.innerWidth-mw-12);
+  let top=rect.bottom+6;
+  if(top+mh>window.innerHeight-12) top=Math.max(12, rect.top-mh-6);
+  menu.style.left=Math.max(12,left)+'px';
+  menu.style.top=top+'px';
+};
+
+// Shift corrections (PerchCorrect)
+window.wqfShiftRemove=function(dow,name){
+  closeWeekQuickFix();
+  if(!confirm('Remove '+WQF_DAYS[dow]+' '+name+' from your schedule?')) return;
+  PerchCorrect.removeShift(dow,name); weekRefreshAfterFix();
+  weekToast('Done. I\u2019ve taken '+WQF_DAYS[dow]+' off your schedule.');
+};
+window.wqfShiftMove=function(fromDow){
+  const to=parseInt(document.getElementById('wqf-move-dow').value);
+  closeWeekQuickFix();
+  PerchCorrect.moveShift(fromDow,to); weekRefreshAfterFix();
+  weekToast('Moved that shift to '+WQF_DAYS[to]+'.');
+};
+window.wqfShiftTime=function(dow){
+  const t=document.getElementById('wqf-time').value.trim();
+  const h=parseInt(document.getElementById('wqf-hours').value)||null;
+  closeWeekQuickFix();
+  PerchCorrect.editShiftTime(dow, t||null, h); weekRefreshAfterFix();
+  weekToast('Updated that shift\u2019s time.');
+};
+// Bill corrections
+window.wqfBillPaid=function(bid){ closeWeekQuickFix(); if(window.PerchComplete) PerchComplete.markComplete(bid); else PerchActions.record(bid,'','completed'); weekRefreshAfterFix(); weekToast('Marked paid.'); };
+window.wqfBillAutopay=function(bid,on){ closeWeekQuickFix(); PerchCorrect.editBill(bid,{autopay:on}); weekRefreshAfterFix(); weekToast(on?'Set to autopay.':'Set to manual.'); };
+window.wqfBillEdit=function(bid){
+  const due=parseInt(document.getElementById('wqf-due').value)||null;
+  const amt=parseInt(document.getElementById('wqf-amt').value);
+  closeWeekQuickFix();
+  const f={}; if(due)f.due_day=due; if(!isNaN(amt))f.amount=amt;
+  PerchCorrect.editBill(bid,f); weekRefreshAfterFix(); weekToast('Updated that bill.');
+};
+window.wqfBillRemove=function(bid,name){
+  closeWeekQuickFix();
+  if(!confirm('Remove '+name+'? Perch will stop tracking it.')) return;
+  PerchCorrect.removeBill(bid); weekRefreshAfterFix(); weekToast('Removed '+name+'.');
+};
+// Waiting corrections
+window.wqfWaitArrived=function(id,name){ closeWeekQuickFix(); PerchActions.record(id,name,'resolved'); weekRefreshAfterFix(); weekToast('Marked resolved.'); };
+window.wqfWaitDate=function(id){
+  const d=document.getElementById('wqf-wdate').value; closeWeekQuickFix();
+  if(d){ PerchCorrect.editWaitingDate(id,d); weekRefreshAfterFix(); weekToast('Updated the expected date.'); }
+};
+window.wqfWaitRemove=function(id,name){
+  closeWeekQuickFix();
+  if(!confirm('Delete \u201C'+name+'\u201D? This can\u2019t be undone.')) return;
+  PerchCorrect.removeCapture(id)||PerchCorrect.removeWaiting(id);
+  weekRefreshAfterFix(); weekToast('Deleted.');
+};
+// Reminder / context corrections
+window.wqfItemDone=function(id,name){ closeWeekQuickFix(); PerchActions.record(id,name,'completed'); weekRefreshAfterFix(); weekToast('Marked done.'); };
+window.wqfItemSnooze=function(id,name){ closeWeekQuickFix(); PerchActions.record(id,name,'snoozed',{snooze_until:PerchDate.fmt(PerchDate.plusDays(1))}); weekRefreshAfterFix(); weekToast('Snoozed to tomorrow.'); };
+window.wqfItemDate=function(id){
+  const d=document.getElementById('wqf-rdate').value; closeWeekQuickFix();
+  if(d && PerchCorrect.editWaitingDate){ PerchCorrect.editWaitingDate(id,d); weekRefreshAfterFix(); weekToast('Updated the date.'); }
+};
+window.wqfItemRemove=function(id,name){
+  closeWeekQuickFix();
+  if(!confirm('Delete \u201C'+name+'\u201D? This can\u2019t be undone.')) return;
+  PerchCorrect.removeCapture(id);
+  weekRefreshAfterFix(); weekToast('Deleted.');
+};
+</script>
+</body>
+</html>

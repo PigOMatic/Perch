@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,viewport-fit=cover">
+<title>Perch — What Perch Knows</title>
+<script src="perch_core.js"></script>
+<script src="perch_learn.js"></script>
+<script src="perch_voice.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Inter:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#f4efe6;--bg2:#efe8da;
+  --ink:#2b241a;--ink2:#3d352a;--muted:#8a7d68;--muted2:#a89a82;
+  --card:#ffffff;--card-soft:#fbf8f1;
+  --line:rgba(60,48,32,0.08);--line2:rgba(60,48,32,0.06);
+  --gold:#c08a2e;--gold-soft:#f3e6cb;
+  --green:#3f7a54;--green-bg:#e8f1e9;--green-ink:#2f6342;
+  --amber:#c4791f;--amber-bg:#fbeed8;
+  --rust:#b5562e;--rust-bg:#f8e7df;
+  --shadow:0 1px 2px rgba(60,48,32,0.04),0 4px 16px rgba(60,48,32,0.07);
+  --r:16px;--r2:12px;
+}
+html{min-height:100%}
+body{font-family:"Inter",-apple-system,system-ui,sans-serif;color:var(--ink);min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+  background:
+    radial-gradient(ellipse 100% 55% at 50% -5%, #faf3e4 0%, transparent 65%),
+    linear-gradient(175deg, #f5f0e7 0%, #ede5d5 60%, #e8dece 100%);
+  background-attachment:fixed}
+
+.top-bar{padding:16px 24px 8px;display:flex;align-items:center;justify-content:space-between;background:transparent}
+.brand-name{font-family:"Playfair Display",Georgia,serif;font-size:17px;opacity:0.55;letter-spacing:-0.01em}
+.icon-btn{background:transparent;border:none;box-shadow:none;opacity:0.4;font-size:17px;cursor:pointer}
+
+.wrap{padding:0 24px 120px;max-width:560px;margin:0 auto}
+
+.page-head{padding:24px 0 8px}
+.page-head h1{font-family:"Playfair Display",Georgia,serif;font-size:28px;font-weight:700;color:var(--ink);line-height:1.2;margin-bottom:6px}
+.page-head .sub{font-size:13px;color:var(--muted);line-height:1.5}
+.confidence-line{font-size:13px;font-style:italic;color:var(--green-ink);margin-top:14px;line-height:1.5}
+
+/* Section */
+.section{margin-top:30px}
+.section-title{font-family:"Playfair Display",Georgia,serif;font-size:19px;font-weight:600;color:var(--ink);margin-bottom:4px}
+.section-desc{font-size:12px;color:var(--muted2);margin-bottom:14px;line-height:1.5}
+
+/* Item — inline, warm, no heavy card */
+.item{padding:14px 0;border-top:1px solid var(--line2);display:flex;align-items:flex-start;gap:12px}
+.item:first-of-type{border-top:none}
+.item-body{flex:1;min-width:0}
+.item-primary{font-size:14px;font-weight:600;color:var(--ink);line-height:1.4}
+.item-secondary{font-size:12px;color:var(--muted);line-height:1.45;margin-top:3px}
+.item-meta{font-size:11px;color:var(--muted2);margin-top:5px}
+.item-actions{display:flex;gap:4px;flex-shrink:0;opacity:0.5;transition:opacity .15s}
+.item:hover .item-actions{opacity:1}
+.mini-btn{width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:var(--card-soft);
+  color:var(--muted);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-family:"Inter",sans-serif;padding:0}
+.mini-btn:hover{color:var(--ink)}
+.mini-btn.danger:hover{color:var(--rust);border-color:rgba(181,86,46,0.3)}
+
+/* Status pill */
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px;
+  text-transform:uppercase;letter-spacing:0.04em;margin-left:6px}
+.pill.considering{background:var(--gold-soft);color:#8a6216}
+.pill.exploring{background:var(--green-bg);color:var(--green-ink)}
+.pill.casual{background:var(--card-soft);color:var(--muted)}
+
+/* Person card */
+.person{padding:16px 0;border-top:1px solid var(--line2)}
+.person:first-of-type{border-top:none}
+.person-name{font-size:14px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:8px}
+.person-role{font-size:11px;color:var(--muted2);font-weight:600}
+.person-details{margin-top:8px;display:flex;flex-direction:column;gap:6px}
+.person-detail{font-size:13px;color:var(--muted);line-height:1.4;padding-left:14px;position:relative}
+.person-detail::before{content:'';position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;background:var(--green);opacity:0.5}
+.person-empty{font-size:12px;color:var(--muted2);font-style:italic;margin-top:6px}
+
+/* Question card */
+.q-card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;margin-top:12px}
+.q-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted2);margin-bottom:8px}
+.q-text{font-size:14px;color:var(--ink);line-height:1.5}
+.q-options{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.q-opt{padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card-soft);
+  color:var(--ink);font-size:12px;font-weight:600;cursor:pointer;font-family:"Inter",sans-serif}
+.q-opt:hover{border-color:var(--green);color:var(--green-ink)}
+.q-input{width:100%;padding:9px 11px;border-radius:8px;border:1px solid var(--line);background:var(--card-soft);
+  font-size:13px;font-family:"Inter",sans-serif;color:var(--ink);margin-top:10px}
+.q-dismiss-row{display:flex;gap:10px;margin-top:12px}
+.q-dismiss-row button{font-size:11px;color:var(--muted2);background:none;border:none;cursor:pointer;
+  font-family:"Inter",sans-serif;padding:2px 0}
+.q-dismiss-row button:hover{color:var(--ink2)}
+
+/* Add detail */
+.add-row{margin-top:16px;display:flex;gap:8px}
+.add-input{flex:1;padding:10px 12px;border-radius:var(--r2);border:1px solid var(--line);
+  background:var(--card-soft);font-size:13px;font-family:"Inter",sans-serif;color:var(--ink)}
+.add-input::placeholder{color:var(--muted2)}
+.add-btn{padding:10px 16px;border-radius:var(--r2);border:none;background:var(--green);color:#fff;
+  font-size:13px;font-weight:700;cursor:pointer;font-family:"Inter",sans-serif}
+
+.empty{padding:20px 0;font-size:13px;color:var(--muted2);font-style:italic;line-height:1.5;text-align:center}
+
+.reply-toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  background:var(--ink);color:#fff;font-size:13px;font-weight:600;padding:10px 18px;border-radius:99px;
+  box-shadow:var(--shadow);opacity:0;transition:opacity .25s;pointer-events:none;z-index:200;max-width:80%}
+.reply-toast.show{opacity:1}
+
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(240,235,224,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;padding:8px 0 env(safe-area-inset-bottom,16px);z-index:100}
+.nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer;font-size:10px;font-weight:600;color:var(--muted2);text-decoration:none;border:none;background:none;font-family:inherit}
+.nav-tab.active{color:var(--green)}
+.nav-tab-icon{font-size:21px;line-height:1;transition:transform .18s ease}
+.nav-tab.active .nav-tab-icon{transform:translateY(-2px)}
+</style>
+</head>
+<body>
+
+<div class="top-bar">
+  <span class="brand-name">Perch</span>
+  <button class="icon-btn" onclick="location.href='perch_settings.html'" title="Settings">&#9881;&#65039;</button>
+</div>
+
+<div class="wrap">
+  <div class="page-head">
+    <h1>What Perch Knows</h1>
+    <div class="sub">Everything Perch has picked up about your life, from the things you've told it. Nothing here was entered on a form.</div>
+    <div class="confidence-line" id="confidence-line"></div>
+  </div>
+
+  <div id="content"></div>
+</div>
+
+<div class="reply-toast" id="reply-toast"></div>
+
+<nav class="bottom-nav">
+  <a class="nav-tab" href="perch_today_live.html"><div class="nav-tab-icon">&#127968;</div><span>Today</span></a>
+  <a class="nav-tab" href="perch_week_live.html"><div class="nav-tab-icon">&#128197;</div><span>Week</span></a>
+  <a class="nav-tab" href="perch_month_live.html"><div class="nav-tab-icon">&#128198;</div><span>Month</span></a>
+  <a class="nav-tab" href="perch_life.html"><div class="nav-tab-icon">&#127807;</div><span>Life</span></a>
+  <a class="nav-tab active" href="perch_capture.html"><div class="nav-tab-icon">&#129413;</div><span>Perch</span></a>
+</nav>
+
+<script>
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg){
+  const el=document.getElementById('reply-toast');
+  el.textContent=msg; el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2400);
+}
+
+function render(){
+  if(!window.PerchLearn){ document.getElementById('content').innerHTML='<div class="empty">Learning engine not available.</div>'; return; }
+  const ctx=PerchLearn.getContext();
+  const people=(PerchMemory.get('people')||[]).filter(p=>p.name&&!p.seed);
+
+  // Confidence summary line
+  const summary=PerchLearn.confidenceSummary();
+  document.getElementById('confidence-line').textContent=summary||'';
+
+  let html='';
+
+  // ── ABOUT ME (traits/preferences) ──────────────────────────────
+  const traits=(ctx.personal_context||[]).filter(m=>(m.type==='trait'||m.type==='preference')&&m.status!=='archived');
+  html+='<div class="section"><div class="section-title">About you</div>'
+    +'<div class="section-desc">Traits and preferences Perch has noticed.</div>';
+  if(traits.length){
+    traits.forEach(t=>{ html+=itemRow(t, t.clean_summary||t.label); });
+  } else {
+    html+='<div class="empty">Nothing yet. Tell Perch something like "I\u2019m usually forgetful" or "I prefer reminders early."</div>';
+  }
+  html+=addRow('about','Add something about yourself\u2026');
+  html+='</div>';
+
+  // ── FAMILY (people + known_details) ────────────────────────────
+  html+='<div class="section"><div class="section-title">Family &amp; people</div>'
+    +'<div class="section-desc">What Perch knows about the people in your life.</div>';
+  if(people.length){
+    people.forEach(p=>{
+      const details=(p.known_details||[]);
+      html+='<div class="person">'
+        +'<div class="person-name">'+esc(p.name)+(p.role?' <span class="person-role">'+esc(p.role)+'</span>':'')+'</div>';
+      if(details.length){
+        html+='<div class="person-details">';
+        details.forEach(d=>{
+          const verb=d.sentiment==='dislikes'?'doesn\u2019t like':'likes';
+          html+='<div class="person-detail">'+esc(p.name)+' '+verb+' '+esc(d.label)+'</div>';
+        });
+        html+='</div>';
+      } else {
+        html+='<div class="person-empty">Nothing specific yet.</div>';
+      }
+      html+='</div>';
+    });
+  } else {
+    html+='<div class="empty">No people added yet. You can add family in the Memory Brain.</div>';
+  }
+  html+=addRow('family','Tell Perch about someone (e.g. "Emma likes drawing")\u2026');
+  html+='</div>';
+
+  // ── INTERESTS ──────────────────────────────────────────────────
+  const interests=(ctx.interests||[]).filter(i=>i.status!=='archived');
+  html+='<div class="section"><div class="section-title">Interests &amp; projects</div>'
+    +'<div class="section-desc">Things you\u2019re exploring or thinking about.</div>';
+  if(interests.length){
+    interests.forEach(i=>{
+      const pillClass=i.status==='actively_exploring'?'exploring':i.status==='casual'?'casual':'considering';
+      const pillText=i.status==='actively_exploring'?'Exploring':i.status==='casual'?'Casual':'Considering';
+      // Related memories
+      const related=(ctx.personal_context||[]).filter(m=>(i.related_memories||[]).includes(m.id));
+      html+='<div class="item"><div class="item-body">'
+        +'<div class="item-primary">'+esc(i.label)+'<span class="pill '+pillClass+'">'+pillText+'</span></div>'
+        +(related.length?'<div class="item-secondary">Related: '+related.map(r=>esc(r.label)).join(', ')+'</div>':'')
+        +(i.related_people&&i.related_people.length?'<div class="item-meta">With '+i.related_people.map(esc).join(', ')+'</div>':'')
+        +'</div>'
+        +'<div class="item-actions">'
+        +'<button class="mini-btn danger" onclick="delItem(\''+i.id+'\')" title="Remove">\u00D7</button>'
+        +'</div></div>';
+    });
+  } else {
+    html+='<div class="empty">Nothing yet. Tell Perch something like "I\u2019m considering getting into woodworking."</div>';
+  }
+  html+=addRow('interest','Add an interest (e.g. "I\u2019m considering\u2026")\u2026');
+  html+='</div>';
+
+  // ── MEMORIES ───────────────────────────────────────────────────
+  const memories=(ctx.personal_context||[]).filter(m=>m.type==='memory'&&m.status!=='archived');
+  html+='<div class="section"><div class="section-title">Memories</div>'
+    +'<div class="section-desc">Things you\u2019ve asked Perch to remember.</div>';
+  if(memories.length){
+    memories.forEach(m=>{
+      html+='<div class="item"><div class="item-body">'
+        +'<div class="item-primary">'+esc(m.clean_summary||m.label)+'</div>'
+        +(m.original_text&&m.original_text!==m.clean_summary?'<div class="item-secondary">You said: \u201C'+esc(m.original_text)+'\u201D</div>':'')
+        +(m.related_people&&m.related_people.length?'<div class="item-meta">With '+m.related_people.map(esc).join(', ')+'</div>':'')
+        +'</div>'
+        +'<div class="item-actions">'
+        +'<button class="mini-btn" onclick="editItem(\''+m.id+'\')" title="Edit">\u270E</button>'
+        +'<button class="mini-btn danger" onclick="delItem(\''+m.id+'\')" title="Delete">\u00D7</button>'
+        +'</div></div>';
+    });
+  } else {
+    html+='<div class="empty">Nothing yet. Say "did you know\u2026" or "remember that\u2026" to Perch.</div>';
+  }
+  html+=addRow('memory','Add a memory (e.g. "Did you know\u2026")\u2026');
+  html+='</div>';
+
+  // ── QUESTIONS PERCH HAS ────────────────────────────────────────
+  const pending=PerchLearn.allPendingQuestions?PerchLearn.allPendingQuestions():[];
+  if(pending.length){
+    html+='<div class="section"><div class="section-title">Perch is curious</div>'
+      +'<div class="section-desc">Optional \u2014 answering helps Perch give better suggestions.</div>';
+    pending.forEach(q=>{
+      html+='<div class="q-card"><div class="q-label">A question</div>'
+        +'<div class="q-text">'+esc(q.text)+'</div>';
+      if(q.options){
+        html+='<div class="q-options">'
+          +q.options.map(o=>'<button class="q-opt" onclick="answerQ(\''+q.id+'\',\''+o.replace(/'/g,"\\'")+'\')">'+esc(o)+'</button>').join('')
+          +'</div>';
+      } else {
+        html+='<input class="q-input" id="qi-'+q.id+'" placeholder="Type your answer\u2026" '
+          +'onkeydown="if(event.key===\'Enter\')answerQFree(\''+q.id+'\')"/>';
+      }
+      html+='<div class="q-dismiss-row">'
+        +'<button onclick="snoozeQ(\''+q.id+'\')">Ask me later</button>'
+        +'<button onclick="dismissQ(\''+q.id+'\')">Not interested</button>'
+        +'</div></div>';
+    });
+    html+='</div>';
+  }
+
+  // ── CONFIDENCE (per-dimension + per-person, plain English) ─────
+  const dims=['family','interests','person','goals','work','money'];
+  let phrases=[];
+  if(window.PerchVoice&&PerchVoice.confidencePhrase){
+    phrases=dims.map(d=>PerchVoice.confidencePhrase(d)).filter(Boolean);
+    // Per-person confidence for each known person
+    people.forEach(p=>{ const ph=PerchVoice.confidencePhrase('person',p.name); if(ph) phrases.push(ph); });
+    // Comparative insight
+    const cmp=PerchVoice.compareAreas&&PerchVoice.compareAreas();
+    if(cmp) phrases.push(cmp);
+  } else {
+    phrases=dims.map(d=>PerchLearn.dimensionPhrase?PerchLearn.dimensionPhrase(d,ctx.confidence[d]||0):null).filter(Boolean);
+  }
+  // Dedup
+  phrases=[...new Set(phrases)];
+  if(phrases.length){
+    html+='<div class="section"><div class="section-title">How well Perch knows you</div>'
+      +'<div class="section-desc">This grows quietly as you share more.</div>';
+    phrases.forEach(p=>{ html+='<div class="item"><div class="item-body"><div class="item-secondary" style="font-size:13px;color:var(--ink2)">'+esc(p)+'</div></div></div>'; });
+    html+='</div>';
+  }
+
+  document.getElementById('content').innerHTML=html;
+}
+
+function itemRow(m, primary){
+  return '<div class="item"><div class="item-body">'
+    +'<div class="item-primary">'+esc(primary)+'</div>'
+    +(m.original_text&&m.original_text!==primary&&m.original_text!==m.clean_summary?'<div class="item-secondary">You said: \u201C'+esc(m.original_text)+'\u201D</div>':'')
+    +'</div>'
+    +'<div class="item-actions">'
+    +'<button class="mini-btn" onclick="editItem(\''+m.id+'\')" title="Edit">\u270E</button>'
+    +'<button class="mini-btn danger" onclick="delItem(\''+m.id+'\')" title="Delete">\u00D7</button>'
+    +'</div></div>';
+}
+
+function addRow(kind, placeholder){
+  return '<div class="add-row">'
+    +'<input class="add-input" id="add-'+kind+'" placeholder="'+placeholder+'" '
+    +'onkeydown="if(event.key===\'Enter\')addDetail(\''+kind+'\')"/>'
+    +'<button class="add-btn" onclick="addDetail(\''+kind+'\')">Add</button>'
+    +'</div>';
+}
+
+window.addDetail=function(kind){
+  const inp=document.getElementById('add-'+kind);
+  if(!inp||!inp.value.trim()) return;
+  const result=PerchLearn.addDetail(inp.value.trim());
+  inp.value='';
+  if(result&&result.reply) toast(result.reply);
+  else toast('Got it.');
+  render();
+};
+
+window.editItem=function(id){
+  const ctx=PerchLearn.getContext();
+  const m=(ctx.personal_context||[]).find(x=>x.id===id)||(ctx.interests||[]).find(x=>x.id===id);
+  if(!m) return;
+  const current=m.clean_summary||m.label;
+  const updated=prompt('Edit this memory:',current);
+  if(updated!==null&&updated.trim()){
+    PerchLearn.editMemory(id,updated.trim());
+    toast('Updated.');
+    render();
+  }
+};
+
+window.delItem=function(id){
+  if(!confirm('Remove this? Perch will forget it.')) return;
+  PerchLearn.deleteMemory(id);
+  toast('Removed.');
+  render();
+};
+
+window.answerQ=function(qId,answer){
+  PerchLearn.answerQuestion(qId,answer);
+  toast('Thanks \u2014 that helps.');
+  render();
+};
+window.answerQFree=function(qId){
+  const inp=document.getElementById('qi-'+qId);
+  if(!inp||!inp.value.trim()) return;
+  PerchLearn.answerQuestion(qId,inp.value.trim());
+  toast('Thanks \u2014 that helps.');
+  render();
+};
+window.snoozeQ=function(qId){ PerchLearn.snoozeQuestion(qId); render(); };
+window.dismissQ=function(qId){ PerchLearn.dismissQuestion(qId); render(); };
+
+document.addEventListener('DOMContentLoaded',render);
+render();
+</script>
+</body>
+</html>

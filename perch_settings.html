@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Perch — Settings</title>
+<script src="perch_core.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+  :root {
+    --cream:#f0ebe0; --cream2:#ede7d9; --card:#ffffff;
+    --ink:#1e1c14; --ink2:#2d2a1e;
+    --green:#2d6a4f; --green-bg:#eef7f2; --green-check:#3a8c62;
+    --orange:#e07b39;
+    --muted:#7a7060; --muted2:#a09880;
+    --border:rgba(30,28,20,0.10);
+    --shadow:0 2px 16px rgba(30,28,20,0.10),0 1px 4px rgba(30,28,20,0.06);
+    --radius:18px;
+  }
+  html,body { background:var(--cream); font-family:'Inter',-apple-system,system-ui,sans-serif; color:var(--ink); min-height:100vh; }
+  .app-header { display:flex; align-items:center; justify-content:space-between; padding:18px 20px 10px; background:var(--cream); }
+  .perch-logo { display:flex; align-items:center; gap:8px; }
+  .perch-wordmark { font-family:'Playfair Display',Georgia,serif; font-size:26px; font-weight:800; color:var(--ink2); letter-spacing:-.02em; }
+  .scroll-area { padding:0 16px 100px; }
+  .page-title { padding:4px 2px 18px; }
+  .page-title h1 { font-family:'Playfair Display',Georgia,serif; font-size:28px; font-weight:800; color:var(--ink2); margin-bottom:4px; }
+  .page-title p  { font-size:13px; color:var(--muted); }
+  .card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:14px; overflow:hidden; }
+  .card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 10px; border-bottom:1px solid rgba(30,28,20,0.06); }
+  .card-title  { font-size:14px; font-weight:700; color:var(--ink); }
+  .card-inner  { padding:14px 16px; }
+  .field-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted2); margin-bottom:8px; margin-top:14px; }
+  .field-label:first-child { margin-top:0; }
+  .theme-row { display:flex; gap:10px; }
+  .theme-btn {
+    flex:1; padding:12px 8px; border-radius:12px; border:2px solid var(--border);
+    background:var(--cream2); font-size:13px; font-weight:700; color:var(--muted);
+    cursor:pointer; text-align:center; transition:all 0.15s; font-family:'Inter',sans-serif;
+  }
+  .theme-btn.active { border-color:var(--green); background:var(--green-bg); color:var(--green-check); }
+  .theme-btn:active { opacity:0.8; }
+  .accent-row { display:flex; gap:10px; flex-wrap:wrap; }
+  .accent-swatch {
+    width:40px; height:40px; border-radius:50%; border:3px solid transparent;
+    cursor:pointer; transition:all 0.15s; flex-shrink:0;
+  }
+  .accent-swatch.active { border-color:var(--ink); transform:scale(1.15); }
+  .accent-swatch:active { opacity:0.8; }
+  .save-bar {
+    display:none; background:var(--green-bg); border:1px solid rgba(58,140,98,0.25);
+    border-radius:10px; padding:10px 14px; font-size:13px; font-weight:600;
+    color:var(--green-check); margin-top:12px; align-items:center; gap:8px;
+  }
+  .save-bar.show { display:flex; }
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(240,235,224,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;padding:8px 0 env(safe-area-inset-bottom,16px);z-index:100}
+  .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer;font-size:10px;font-weight:600;color:var(--muted2);text-decoration:none;border:none;background:none;font-family:inherit}
+  .nav-tab.active{color:var(--green)}
+  .nav-tab-icon{font-size:21px;line-height:1;transition:transform .18s ease}
+  .nav-tab.active .nav-tab-icon{transform:translateY(-2px)}
+  .nav-tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; font-weight:600; color:var(--muted2); cursor:pointer; padding:4px 0; }
+  .nav-tab.active { color:var(--green); }
+  .nav-tab-icon { font-size:22px; line-height:1; }
+  .section-link { display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid rgba(30,28,20,0.06); cursor:pointer; }
+  .section-link:last-child { border-bottom:none; }
+  .section-link-icon { width:36px; height:36px; border-radius:10px; background:var(--cream2); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0; }
+  .section-link-label { flex:1; font-size:14px; font-weight:600; color:var(--ink); }
+  .section-link-arrow { color:var(--muted2); font-size:18px; }
+  .ok-intro { font-size:13px; color:var(--muted); line-height:1.55; margin-bottom:6px; }
+  .ok-row { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid rgba(30,28,20,0.06); }
+  .ok-row:last-child { border-bottom:none; padding-bottom:0; }
+  .ok-row-body { flex:1; min-width:0; }
+  .ok-row-label { font-size:13.5px; font-weight:600; color:var(--ink); }
+  .ok-row-sub { font-size:11.5px; color:var(--muted); margin-top:2px; line-height:1.4; }
+  .ok-toggle { width:46px; height:28px; border-radius:99px; background:rgba(30,28,20,0.14); border:none; cursor:pointer; position:relative; flex-shrink:0; transition:background 0.2s; }
+  .ok-toggle.on { background:var(--green-check); }
+  .ok-toggle::after { content:''; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,0.2); transition:transform 0.2s; }
+  .ok-toggle.on::after { transform:translateX(18px); }
+  .ok-num { display:inline-flex; align-items:center; gap:6px; margin-top:8px; }
+  .ok-num button { width:26px; height:26px; border-radius:7px; border:1px solid var(--border); background:var(--cream2); font-size:15px; font-weight:700; color:var(--green-check); cursor:pointer; font-family:'Inter',sans-serif; }
+  .ok-num-val { font-size:13px; font-weight:700; color:var(--ink); min-width:54px; text-align:center; }
+  .ok-master { display:flex; align-items:center; gap:12px; padding-bottom:12px; margin-bottom:4px; border-bottom:1px solid rgba(30,28,20,0.06); }
+  /* Add My Basics */
+  .basics-section{border-bottom:1px solid rgba(30,28,20,0.06)}
+  .basics-sec-hdr{display:flex;justify-content:space-between;align-items:center;padding:13px 16px;font-size:13px;font-weight:700;color:var(--ink);cursor:pointer}
+  .basics-sec-hdr:hover{background:rgba(30,28,20,0.02)}
+  .basics-sec-caret{font-size:16px;color:var(--muted);transition:transform .15s}
+  .basics-sec-body{padding:0 16px 14px}
+  .basics-input{width:100%;margin-top:6px;padding:10px 12px;border:1px solid rgba(30,28,20,0.15);border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;color:var(--ink);background:#fff;outline:none}
+  .basics-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(45,106,79,0.10)}
+  .basics-save-btn{margin-top:12px;width:100%;padding:11px;background:var(--green);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+  .basics-save-btn:active{opacity:.85}
+  .basics-saved{margin-top:8px;font-size:12px;font-weight:600;color:var(--green-check);min-height:18px}
+  .basics-day-row{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .basics-day-btn{padding:7px 11px;border-radius:8px;border:1.5px solid rgba(30,28,20,0.15);font-size:12px;font-weight:700;background:#fff;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s}
+  .basics-day-btn.on{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  .basics-toggle-btn{flex:1;padding:9px;border-radius:9px;border:1.5px solid rgba(30,28,20,0.15);font-size:12px;font-weight:700;background:#fff;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif}
+  .basics-toggle-btn.active{background:var(--green-bg);border-color:var(--green);color:var(--green)}
+  .basics-list-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(30,28,20,0.06);font-size:13px;color:var(--ink)}
+  .basics-list-row:last-child{border-bottom:none}
+  .basics-del-btn{background:transparent;border:none;color:#b5562e;font-size:16px;cursor:pointer;padding:2px 6px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="app-header">
+  <div class="perch-logo">
+    <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+      <path d="M6 16L14 20L10 28L6 16Z" fill="#2d2a1e"/>
+      <path d="M20 6L28 14L22 16L20 12L18 16L12 14L20 6Z" fill="#2d2a1e"/>
+      <path d="M20 12L26 20L20 24L14 20L20 12Z" fill="#3a3525"/>
+      <circle cx="17" cy="15" r="1.5" fill="#1e1c14"/>
+      <path d="M20 24L24 32L20 30L16 32L20 24Z" fill="#2d2a1e"/>
+    </svg>
+    <span class="perch-wordmark">Settings</span>
+  </div>
+</div>
+
+<div class="scroll-area">
+  <div class="page-title">
+    <h1>Preferences</h1>
+    <p>Appearance and app settings.</p>
+  </div>
+
+  <!-- Appearance -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Appearance</span></div>
+    <div class="card-inner">
+
+      <div class="field-label">Theme</div>
+      <div class="theme-row">
+        <button class="theme-btn" id="theme-light" onclick="setTheme('light')">☀️ Light</button>
+        <button class="theme-btn" id="theme-dark"  onclick="setTheme('dark')">🌙 Dark</button>
+      </div>
+
+      <div class="field-label">Accent colour</div>
+      <div class="accent-row" id="accent-row"></div>
+
+      <div class="save-bar" id="save-bar">✓ Settings saved</div>
+    </div>
+  </div>
+
+  <!-- MY OK -->
+  <div class="card" id="myok">
+    <div class="card-header"><span class="card-title">My OK</span></div>
+    <div class="card-inner">
+      <div class="ok-intro">Perch only says you’re OK when these rules pass. Set what “clear” means to you.</div>
+      <div class="ok-master">
+        <div class="ok-row-body">
+          <div class="ok-row-label">Use my rules</div>
+          <div class="ok-row-sub">When off, Perch uses a simple today-only check.</div>
+        </div>
+        <button class="ok-toggle" id="ok-master-toggle" onclick="toggleMaster()"></button>
+      </div>
+      <div id="ok-conditions"></div>
+      <div class="ok-row" style="border-top:1px solid rgba(30,28,20,0.06);padding-top:14px">
+        <div class="ok-row-body">
+          <div class="ok-row-label">Awareness window</div>
+          <div class="ok-row-sub">How far ahead Perch mentions notable things (without blocking OK).</div>
+          <div class="ok-num"><button onclick="bumpAwareness(-1)">&minus;</button>
+            <span class="ok-num-val" id="ok-aware-val">7 days</span>
+            <button onclick="bumpAwareness(1)">+</button></div>
+        </div>
+      </div>
+      <button id="ok-adv-toggle" onclick="toggleAdvancedOK()" style="width:100%;background:transparent;border:none;border-top:1px solid rgba(30,28,20,0.06);padding:13px 0 4px;margin-top:8px;font-size:13px;font-weight:700;color:#2d6a4f;cursor:pointer;font-family:'Inter',sans-serif;text-align:left;display:flex;align-items:center;gap:6px">
+        <span id="ok-adv-caret">›</span> Advanced rules
+      </button>
+      <div id="ok-conditions-advanced" style="display:none"></div>
+      <div class="save-bar" id="ok-save-bar">&#10003; My OK saved</div>
+    </div>
+  </div>
+
+  <!-- Add My Basics -->
+  <div class="card" id="basics-card">
+    <div class="card-header" onclick="toggleBasics()" style="cursor:pointer">
+      <span class="card-title">Add My Basics</span>
+      <span id="basics-caret" style="font-size:18px;color:var(--muted)">›</span>
+    </div>
+    <div id="basics-body" style="display:none">
+
+      <!-- 1. My name -->
+      <div class="basics-section">
+        <div class="basics-sec-hdr" onclick="toggleBasicsSec('name')">
+          <span>👤 My name</span><span class="basics-sec-caret" id="caret-name">›</span>
+        </div>
+        <div class="basics-sec-body" id="sec-name" style="display:none">
+          <div class="field-label">Your name</div>
+          <input class="basics-input" id="basics-name" type="text" placeholder="e.g. Jeff">
+          <button class="basics-save-btn" onclick="saveBasicsName()">Save name</button>
+          <div class="basics-saved" id="saved-name"></div>
+        </div>
+      </div>
+
+      <!-- 2. Checking balance -->
+      <div class="basics-section">
+        <div class="basics-sec-hdr" onclick="toggleBasicsSec('balance')">
+          <span>💰 Checking balance</span><span class="basics-sec-caret" id="caret-balance">›</span>
+        </div>
+        <div class="basics-sec-body" id="sec-balance" style="display:none">
+          <div class="field-label">Account name</div>
+          <input class="basics-input" id="basics-acct-name" type="text" placeholder="Checking" value="Checking">
+          <div class="field-label">Current balance ($)</div>
+          <input class="basics-input" id="basics-balance" type="number" placeholder="e.g. 3241" min="0">
+          <button class="basics-save-btn" onclick="saveBasicsBalance()">Save balance</button>
+          <div class="basics-saved" id="saved-balance"></div>
+        </div>
+      </div>
+
+      <!-- 3. Payday -->
+      <div class="basics-section">
+        <div class="basics-sec-hdr" onclick="toggleBasicsSec('payday')">
+          <span>📅 Payday</span><span class="basics-sec-caret" id="caret-payday">›</span>
+        </div>
+        <div class="basics-sec-body" id="sec-payday" style="display:none">
+          <div class="field-label">Pay amount ($)</div>
+          <input class="basics-input" id="basics-pay-amt" type="number" placeholder="e.g. 2800" min="0">
+          <div class="field-label">Next payday date</div>
+          <input class="basics-input" id="basics-pay-date" type="date">
+          <div class="field-label">Repeats</div>
+          <select class="basics-input" id="basics-pay-repeat">
+            <option value="biweekly">Every 2 weeks</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="none">One-time / I'll update it</option>
+          </select>
+          <button class="basics-save-btn" onclick="saveBasicsPayday()">Save payday</button>
+          <div class="basics-saved" id="saved-payday"></div>
+        </div>
+      </div>
+
+      <!-- 4. Bills -->
+      <div class="basics-section">
+        <div class="basics-sec-hdr" onclick="toggleBasicsSec('bills')">
+          <span>⚡ Bills</span><span class="basics-sec-caret" id="caret-bills">›</span>
+        </div>
+        <div class="basics-sec-body" id="sec-bills" style="display:none">
+          <div id="basics-bills-list"></div>
+          <div class="field-label" style="margin-top:12px">Add a bill</div>
+          <input class="basics-input" id="basics-bill-name" type="text" placeholder="Bill name (e.g. Duke Energy)">
+          <div class="field-label" style="margin-top:8px">Expected amount ($)</div>
+          <input class="basics-input" id="basics-bill-amt" type="number" placeholder="e.g. 148" min="0" step="0.01">
+          <div class="field-label" style="margin-top:8px">Usually pulls / due around day of month</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+            <span style="font-size:13px;color:var(--muted)">Around the</span>
+            <input class="basics-input" id="basics-bill-due" type="number" placeholder="17" min="1" max="31" style="width:72px;flex:none" oninput="window._updateDueLbl()">
+            <span id="basics-bill-due-lbl" style="font-size:13px;color:var(--muted)">of each month</span>
+          </div>
+          <div class="field-label" style="margin-top:8px">Payment type</div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button class="basics-toggle-btn active" id="bill-type-auto" onclick="setBillType('auto')">Autopay</button>
+            <button class="basics-toggle-btn" id="bill-type-manual" onclick="setBillType('manual')">Manual</button>
+          </div>
+          <div class="field-label" style="margin-top:8px">Category <span style="font-weight:400;color:var(--muted2)">(optional)</span></div>
+          <input class="basics-input" id="basics-bill-cat" type="text" placeholder="e.g. Utilities, Housing, Insurance">
+          <button class="basics-save-btn" onclick="addBasicsBill()">Add bill</button>
+          <div class="basics-saved" id="saved-bills"></div>
+        </div>
+      </div>
+
+      <!-- 5. Work schedule -->
+      <div class="basics-section">
+        <div class="basics-sec-hdr" onclick="toggleBasicsSec('work')">
+          <span>🏥 Work schedule</span><span class="basics-sec-caret" id="caret-work">›</span>
+        </div>
+        <div class="basics-sec-body" id="sec-work" style="display:none">
+          <div id="basics-shifts-list"></div>
+          <div class="field-label" style="margin-top:8px">Work days</div>
+          <div class="basics-day-row" id="basics-days"></div>
+          <div style="display:flex;gap:8px;margin-top:8px">
+            <div style="flex:1"><div class="field-label">Start time</div><input class="basics-input" id="basics-shift-start" type="time" value="07:00"></div>
+            <div style="flex:1"><div class="field-label">Hours</div><input class="basics-input" id="basics-shift-hours" type="number" placeholder="12" min="1" max="24" value="12"></div>
+          </div>
+          <div class="field-label">Label</div>
+          <input class="basics-input" id="basics-shift-label" type="text" placeholder="ICU Shift" value="Work Shift">
+          <button class="basics-save-btn" onclick="addBasicsShifts()">Save work schedule</button>
+          <div class="basics-saved" id="saved-work"></div>
+        </div>
+      </div>
+
+      <!-- 6. People / family -->
+      <div class="basics-section" style="border-bottom:none">
+        <div class="basics-sec-hdr" onclick="toggleBasicsSec('people')">
+          <span>👨‍👩‍👧‍👦 People &amp; family</span><span class="basics-sec-caret" id="caret-people">›</span>
+        </div>
+        <div class="basics-sec-body" id="sec-people" style="display:none">
+          <div id="basics-people-list"></div>
+          <div class="field-label" style="margin-top:12px">Add a person</div>
+          <input class="basics-input" id="basics-person-name" type="text" placeholder="Name">
+          <input class="basics-input" id="basics-person-rel" type="text" placeholder="Relationship (e.g. spouse, son, daughter)" style="margin-top:8px">
+          <div class="field-label" style="margin-top:8px">Birthday <span style="font-weight:400;color:var(--muted2)">(optional)</span></div>
+          <input class="basics-input" id="basics-person-bday" type="date">
+          <input class="basics-input" id="basics-person-notes" type="text" placeholder="Notes (optional)" style="margin-top:8px">
+          <button class="basics-save-btn" onclick="addBasicsPerson()">Add person</button>
+          <div class="basics-saved" id="saved-people"></div>
+        </div>
+      </div>
+
+    </div><!-- /basics-body -->
+  </div>
+
+  <!-- Starter data section -->
+  <div class="card" id="seed-data-card">
+    <div class="card-header"><span class="card-title">Starter data</span></div>
+    <div class="card-inner">
+      <div class="ok-intro" style="margin-bottom:14px">Perch launched with example data so it wasn’t empty. This is what’s still using starter values.</div>
+      <div id="seed-counts-list" style="margin-bottom:16px"></div>
+      <button onclick="window.clearAllSeedData()" id="clear-seed-btn"
+        style="width:100%;background:#fbeee9;color:#b5562e;border:1px solid rgba(181,86,46,0.25);border-radius:10px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">
+        Clear all starter data
+      </button>
+      <div class="save-bar" id="seed-save-bar" style="display:none">✓ Starter data cleared. Perch is now using only what you’ve entered.</div>
+    </div>
+  </div>
+
+  <!-- Full reset section -->
+  <div class="card" id="full-reset-card">
+    <div class="card-header"><span class="card-title">Full reset</span></div>
+    <div class="card-inner">
+      <div class="ok-intro" style="margin-bottom:14px;color:#8a7d68">
+        Wipes everything Perch has stored — your data, starter data, settings, and recent-change history. Use this if the app is showing stuck or broken values. This cannot be undone.
+      </div>
+      <button onclick="window.fullResetPerch()" id="full-reset-btn"
+        style="width:100%;background:#fbeee9;color:#b5562e;border:1.5px solid rgba(181,86,46,0.4);border-radius:10px;padding:11px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif">
+        Reset Perch completely
+      </button>
+      <div class="save-bar" id="full-reset-bar" style="display:none">✓ Perch has been reset. Reloading…</div>
+    </div>
+  </div>
+
+  <!-- What Perch Has Learned -->
+  <div class="card" id="learned-card">
+    <div class="card-header" onclick="toggleLearned()" style="cursor:pointer">
+      <span class="card-title">What Perch has learned</span>
+      <span id="learned-chevron" style="color:var(--muted);font-size:18px">›</span>
+    </div>
+    <div id="learned-body" style="display:none">
+      <div class="card-inner" style="padding-bottom:4px">
+        <div style="font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:12px">
+          Perch quietly tracks which suggestions you act on. Here's what it's noticed so far.
+          Reset any signal if Perch got it wrong.
+        </div>
+        <div id="learned-list"></div>
+        <button onclick="window.resetAllLearned()"
+          style="margin-top:10px;width:100%;padding:9px;background:var(--cream2);color:var(--muted);
+          border:1px solid var(--line);border-radius:10px;font-size:12px;font-weight:700;
+          cursor:pointer;font-family:'Inter',sans-serif">
+          Reset everything Perch has learned
+        </button>
+        <div class="save-bar" id="learned-save-bar" style="display:none">✓ Reset. Perch is starting fresh.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick links -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Manage Perch</span></div>
+    <div class="card-inner">
+      <div class="section-link" onclick="location.href='perch_knows.html'">
+        <div class="section-link-icon">🌱</div>
+        <span class="section-link-label">What Perch Knows</span>
+        <span class="section-link-arrow">›</span>
+      </div>
+      <div class="section-link" onclick="location.href='perch_memory_explorer.html'">
+        <div class="section-link-icon">🧠</div>
+        <span class="section-link-label">Memory Brain</span>
+        <span class="section-link-arrow">›</span>
+      </div>
+      <div class="section-link" onclick="location.href='perch_today_live.html'">
+        <div class="section-link-icon">🏠</div>
+        <span class="section-link-label">Back to Today</span>
+        <span class="section-link-arrow">›</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Schema info -->
+  <div class="card">
+    <div class="card-header"><span class="card-title">Memory</span></div>
+    <div class="card-inner">
+      <div style="font-size:13px;color:var(--muted);line-height:1.6" id="memory-info">Loading…</div>
+    </div>
+  </div>
+
+</div>
+
+<nav class="bottom-nav">
+  <a class="nav-tab active" href="perch_today_live.html"><div class="nav-tab-icon">&#127968;</div><span>Today</span></a>
+  <a class="nav-tab" href="perch_week_live.html"><div class="nav-tab-icon">&#128197;</div><span>Week</span></a>
+  <a class="nav-tab" href="perch_month_live.html"><div class="nav-tab-icon">&#128198;</div><span>Month</span></a>
+  <a class="nav-tab" href="perch_life.html"><div class="nav-tab-icon">&#127807;</div><span>Life</span></a>
+  <a class="nav-tab" href="perch_capture.html"><div class="nav-tab-icon">&#129413;</div><span>Perch</span></a>
+</nav>
+
+<script>
+const ACCENTS = [
+  { color:'#2d6a4f', label:'Forest' },
+  { color:'#1a5276', label:'Navy'   },
+  { color:'#6b4fbb', label:'Purple' },
+  { color:'#c0392b', label:'Red'    },
+  { color:'#d97706', label:'Amber'  },
+  { color:'#0e7490', label:'Teal'   },
+  { color:'#4a5568', label:'Slate'  },
+];
+
+function getSettings() {
+  return PerchMemory.get('settings') || {};
+}
+
+function flash() {
+  const bar = document.getElementById('save-bar');
+  bar.classList.add('show');
+  setTimeout(() => bar.classList.remove('show'), 2000);
+}
+
+function setTheme(theme) {
+  const s = getSettings();
+  s.theme = theme;
+  PerchMemory.set('settings', s);
+  if (window.PerchAppearance) PerchAppearance.apply();
+  renderControls();
+  flash();
+}
+
+function setAccent(color) {
+  const s = getSettings();
+  s.accent = color;
+  PerchMemory.set('settings', s);
+  if (window.PerchAppearance) PerchAppearance.apply();
+  renderControls();
+  flash();
+}
+
+function renderControls() {
+  const s = getSettings();
+  const theme  = s.theme  || 'light';
+  const accent = s.accent || '#2d6a4f';
+
+  // Theme buttons
+  document.getElementById('theme-light').classList.toggle('active', theme === 'light');
+  document.getElementById('theme-dark').classList.toggle('active',  theme === 'dark');
+
+  // Accent swatches
+  const row = document.getElementById('accent-row');
+  row.innerHTML = ACCENTS.map(a => `
+    <div class="accent-swatch ${a.color === accent ? 'active' : ''}"
+         style="background:${a.color}"
+         title="${a.label}"
+         onclick="setAccent('${a.color}')"></div>
+  `).join('');
+}
+
+function renderMemoryInfo() {
+  const snap = PerchMemory.snapshot();
+  const checkins  = (snap.user?.checkins || []).length;
+  const snapshots = (snap.finances?.snapshots || []).length;
+  const actions   = (snap.actions || []).length;
+  const captures  = (snap.captures || []).length;
+  const schema    = snap._meta?.schema || 'unknown';
+
+  document.getElementById('memory-info').innerHTML = `
+    <div>Schema: <strong>${schema}</strong></div>
+    <div>Check-ins logged: <strong>${checkins}</strong></div>
+    <div>Financial snapshots: <strong>${snapshots}</strong></div>
+    <div>Actions recorded: <strong>${actions}</strong></div>
+    <div>Captures: <strong>${captures}</strong></div>
+  `;
+}
+
+// ── WHAT PERCH HAS LEARNED ───────────────────
+const PB_KEY='perch_behavior_prefs';
+const QA_KEY_S='perch_quick_answer_prefs';
+
+// Human-readable descriptions per signal type
+const PB_META={
+  subscription:{
+    label:'Subscription suggestions',
+    prefer:'These have been useful — you\'ve acted on them.',
+    avoid:'These haven\'t been useful lately — Perch is showing fewer.',
+    neutral:'Not enough data yet.'
+  },
+  shift_earn:{
+    label:'Extra shift / earning ideas',
+    prefer:'You tend to engage with earning opportunities.',
+    avoid:'These haven\'t landed — Perch is pulling back.',
+    neutral:'Not enough data yet.'
+  },
+  goal_transfer:{
+    label:'Savings transfer suggestions',
+    prefer:'You\'ve been acting on savings nudges.',
+    avoid:'Savings suggestions haven\'t been useful — showing fewer.',
+    neutral:'Not enough data yet.'
+  },
+  family:{
+    label:'Family-time ideas',
+    prefer:'Family suggestions seem useful to you.',
+    avoid:'Family-time ideas haven\'t been landing — Perch noticed.',
+    neutral:'Not enough data yet.'
+  },
+  brain_clear:{
+    label:'Brain / reminder nudges',
+    prefer:'You\'ve been clearing your Brain when prompted.',
+    avoid:'Brain nudges haven\'t been helpful lately.',
+    neutral:'Not enough data yet.'
+  },
+  financial_urgent:{
+    label:'Urgent financial reminders',
+    prefer:'You act on financial reminders quickly.',
+    avoid:'',
+    neutral:'Not enough data yet.'
+  },
+  sell_assets:{
+    label:'"Sell something" ideas',
+    prefer:'You\'ve engaged with selling opportunities.',
+    avoid:'These haven\'t been useful — Perch is pulling back.',
+    neutral:'Not enough data yet.'
+  },
+};
+
+const QA_LABEL_MAP={
+  free_until:'Free Until',next3:'Next 3 Days',weekend:'This Weekend',
+  work:'Work',important:'Important Dates'
+};
+
+function _pbReadSignal(type,data){
+  const t=data[type];
+  if(!t) return 'neutral';
+  const total=(t.accepted||0)+(t.dismissed||0)+(t.snoozed||0);
+  if(total<2) return 'neutral';
+  if((t.dismissed||0)/total>=0.6) return 'avoid';
+  if((t.accepted||0)/total>=0.5)  return 'prefer';
+  return 'neutral';
+}
+
+function renderLearned(){
+  const listEl=document.getElementById('learned-list');
+  if(!listEl) return;
+
+  let pbData={};
+  try{ const s=localStorage.getItem(PB_KEY); if(s) pbData=JSON.parse(s); }catch(e){}
+  let qaData={counts:{}};
+  try{ const s=localStorage.getItem(QA_KEY_S); if(s) qaData=JSON.parse(s); }catch(e){}
+
+  const rows=[];
+
+  // ── Suggestion type signals ───────────────
+  Object.entries(PB_META).forEach(([type,meta])=>{
+    const t=pbData[type];
+    if(!t) return; // never interacted
+    const total=(t.accepted||0)+(t.dismissed||0)+(t.snoozed||0);
+    if(total<2) return; // not enough signal to show anything meaningful
+    const signal=_pbReadSignal(type,pbData);
+    const signalColor=signal==='prefer'?'var(--green-ink)':signal==='avoid'?'var(--rust)':'var(--muted)';
+    const signalIcon=signal==='prefer'?'✓':signal==='avoid'?'↓':'·';
+    const desc=meta[signal]||meta.neutral;
+    if(!desc) return; // e.g. financial_urgent avoid has no special text
+
+    const countStr=[
+      t.accepted?t.accepted+' acted on':'',
+      t.dismissed?t.dismissed+' skipped':'',
+      t.snoozed?t.snoozed+' snoozed':''
+    ].filter(Boolean).join(' · ');
+
+    rows.push(`<div style="padding:10px 0;border-bottom:1px solid var(--line2)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:${signalColor};margin-bottom:2px">
+            ${signalIcon} ${meta.label}
+          </div>
+          <div style="font-size:12px;color:var(--ink);line-height:1.45">${desc}</div>
+          <div style="font-size:10px;color:var(--muted2);margin-top:3px">${countStr}${t.last?' · last '+t.last:''}</div>
+        </div>
+        <button onclick="window.resetOneLearned('${type}')"
+          style="flex-shrink:0;font-size:10px;font-weight:700;padding:4px 9px;border-radius:7px;
+          border:1px solid var(--line);background:var(--cream2);color:var(--muted);
+          cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap">
+          Reset
+        </button>
+      </div>
+    </div>`);
+  });
+
+  // ── Quick Answer usage ────────────────────
+  const qaCounts=qaData.counts||{};
+  const qaUsed=Object.entries(qaCounts)
+    .filter(([,n])=>n>=3)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,3);
+  if(qaUsed.length>0){
+    const qaDesc=qaUsed.map(([id,n])=>`${QA_LABEL_MAP[id]||id} (${n}×)`).join(', ');
+    rows.push(`<div style="padding:10px 0;border-bottom:1px solid var(--line2)">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:12px;font-weight:700;color:var(--green-ink);margin-bottom:2px">✓ Quick Answers you use most</div>
+          <div style="font-size:12px;color:var(--ink);line-height:1.45">You reach for ${qaDesc} often — Perch keeps these near the front.</div>
+        </div>
+        <button onclick="window.resetQACounts()"
+          style="flex-shrink:0;font-size:10px;font-weight:700;padding:4px 9px;border-radius:7px;
+          border:1px solid var(--line);background:var(--cream2);color:var(--muted);
+          cursor:pointer;font-family:'Inter',sans-serif;white-space:nowrap">
+          Reset
+        </button>
+      </div>
+    </div>`);
+  }
+
+  if(rows.length===0){
+    listEl.innerHTML='<div style="font-size:12.5px;color:var(--muted);padding:8px 0;font-style:italic">Perch hasn\'t learned enough yet. Use the app for a few days and signals will appear here.</div>';
+  } else {
+    listEl.innerHTML=rows.join('');
+  }
+}
+
+function toggleLearned(){
+  const body=document.getElementById('learned-body');
+  const chev=document.getElementById('learned-chevron');
+  if(!body) return;
+  const open=body.style.display==='block';
+  body.style.display=open?'none':'block';
+  if(chev) chev.style.transform=open?'':'rotate(90deg)';
+  if(!open) renderLearned(); // render on open
+}
+
+window.resetOneLearned=function(type){
+  try{
+    const s=localStorage.getItem(PB_KEY);
+    const data=s?JSON.parse(s):{};
+    delete data[type];
+    localStorage.setItem(PB_KEY,JSON.stringify(data));
+  }catch(e){}
+  renderLearned();
+  const bar=document.getElementById('learned-save-bar');
+  if(bar){bar.style.display='block';bar.textContent='\u2713 Signal reset.';setTimeout(()=>bar.style.display='none',2000);}
+};
+
+window.resetQACounts=function(){
+  try{
+    const s=localStorage.getItem(QA_KEY_S);
+    const data=s?JSON.parse(s):{order:[],hidden:[],counts:{}};
+    data.counts={};
+    localStorage.setItem(QA_KEY_S,JSON.stringify(data));
+  }catch(e){}
+  renderLearned();
+  const bar=document.getElementById('learned-save-bar');
+  if(bar){bar.style.display='block';bar.textContent='\u2713 Quick Answer counts reset.';setTimeout(()=>bar.style.display='none',2000);}
+};
+
+window.resetAllLearned=function(){
+  try{ localStorage.removeItem(PB_KEY); }catch(e){}
+  try{
+    const s=localStorage.getItem(QA_KEY_S);
+    const data=s?JSON.parse(s):{order:[],hidden:[],counts:{}};
+    data.counts={};
+    localStorage.setItem(QA_KEY_S,JSON.stringify(data));
+  }catch(e){}
+  renderLearned();
+  const bar=document.getElementById('learned-save-bar');
+  if(bar){bar.style.display='block';setTimeout(()=>bar.style.display='none',2500);}
+};
+
+window.addEventListener('load', () => {
+  if (window.PerchAppearance) PerchAppearance.apply();
+  if (window.PerchMemory?.recordCheckin) PerchMemory.recordCheckin();
+  if (window.PerchMemory?.takeMonthlySnapshot) PerchMemory.takeMonthlySnapshot();
+  renderControls();
+  renderMemoryInfo();
+  renderMyOK();
+  renderSeedDataCard();
+  initBasics();
+  // Pick up any pending promo from Brain → prefill and open the right section
+  try {
+    // Auto-open Add My Basics when arriving from "Start with my real life"
+    const openBasics = sessionStorage.getItem('perch_open_basics');
+    if (openBasics) {
+      sessionStorage.removeItem('perch_open_basics');
+      const body=document.getElementById('basics-body');
+      const caret=document.getElementById('basics-caret');
+      if(body){ body.style.display='block'; }
+      if(caret){ caret.textContent='\u2304'; }
+      // Open balance section first as the most important starting point
+      toggleBasicsSec('balance');
+      setTimeout(()=>document.getElementById('basics-card')?.scrollIntoView({behavior:'smooth',block:'start'}),100);
+    }
+    // Setup checklist deep link — opens a specific section (balance/payday/bills/work/people)
+    const openSection = sessionStorage.getItem('perch_open_basics_section');
+    if (openSection) {
+      sessionStorage.removeItem('perch_open_basics_section');
+      const body=document.getElementById('basics-body');
+      const caret=document.getElementById('basics-caret');
+      if(body){ body.style.display='block'; }
+      if(caret){ caret.textContent='\u2304'; }
+      toggleBasicsSec(openSection);
+      setTimeout(()=>document.getElementById('sec-'+openSection)?.scrollIntoView({behavior:'smooth',block:'start'}),100);
+    }
+    const promoBill = sessionStorage.getItem('perch_promo_bill');
+    if (promoBill) {
+      const p = JSON.parse(promoBill);
+      sessionStorage.removeItem('perch_promo_bill');
+      document.getElementById('basics-body').style.display='block';
+      document.getElementById('basics-caret').textContent='\u2304';
+      toggleBasicsSec('bills');
+      const nameEl=document.getElementById('basics-bill-name');
+      if(nameEl && p.name) nameEl.value=p.name;
+      setTimeout(()=>document.getElementById('sec-bills')?.scrollIntoView({behavior:'smooth',block:'start'}),100);
+    }
+    const promoShift = sessionStorage.getItem('perch_promo_shift');
+    if (promoShift) {
+      const p = JSON.parse(promoShift);
+      sessionStorage.removeItem('perch_promo_shift');
+      document.getElementById('basics-body').style.display='block';
+      document.getElementById('basics-caret').textContent='\u2304';
+      toggleBasicsSec('work');
+      const lblEl=document.getElementById('basics-shift-label');
+      if(lblEl && p.label) lblEl.value=p.label;
+      setTimeout(()=>document.getElementById('sec-work')?.scrollIntoView({behavior:'smooth',block:'start'}),100);
+    }
+    const promoPerson = sessionStorage.getItem('perch_promo_person');
+    if (promoPerson) {
+      const p = JSON.parse(promoPerson);
+      sessionStorage.removeItem('perch_promo_person');
+      document.getElementById('basics-body').style.display='block';
+      document.getElementById('basics-caret').textContent='\u2304';
+      toggleBasicsSec('people');
+      const nameEl=document.getElementById('basics-person-name');
+      if(nameEl && p.name) nameEl.value=p.name;
+      setTimeout(()=>document.getElementById('sec-people')?.scrollIntoView({behavior:'smooth',block:'start'}),100);
+    }
+  } catch(e) {}
+});
+
+function renderSeedDataCard(){
+  if (!window.PerchMemory || !PerchMemory.getSeedCounts) return;
+  const counts = PerchMemory.getSeedCounts();
+  const list = document.getElementById('seed-counts-list');
+  const btn = document.getElementById('clear-seed-btn');
+  if (!list) return;
+  const rows = [
+    ['shifts',       'Work shift',         counts.shifts],
+    ['bills',        'Bill',               counts.bills],
+    ['accounts',     'Account',            counts.accounts],
+    ['paycheck',     'Paycheck (starter)', counts.paycheck],
+    ['people',       'Person',             counts.people],
+    ['properties',   'Property',           counts.properties],
+    ['captures',     'Starter capture',    counts.captures],
+    ['maintenance',  'Maintenance item',   counts.maintenance],
+    ['horizon',      'Horizon item',       counts.horizon],
+    ['opportunities','Opportunity',        counts.opportunities],
+  ].filter(r => r[2] > 0);
+  if (!rows.length) {
+    list.innerHTML = '<div style="font-size:13px;color:#3f7a54;font-weight:600">\u2713 No starter data remaining \u2014 Perch is using only your own data.</div>';
+    if (btn) btn.style.display = 'none';
+    return;
+  }
+  list.innerHTML = rows.map(([,label,n]) =>
+    '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(60,48,32,0.06);font-size:13px">'
+    +'<span style="color:#3d352a">' + label + (n > 1 ? 's' : '') + '</span>'
+    +'<span style="font-weight:700;color:#b5562e">' + n + '</span></div>'
+  ).join('');
+  if (btn) btn.style.display = 'block';
+}
+
+window.clearAllSeedData = function(){
+  if (!confirm('Clear all starter data? Your own entries, captures, and settings stay.')) return;
+  PerchMemory.clearSeedData();
+  if (window.PerchEvents) PerchEvents.refresh();
+  renderSeedDataCard();
+  const bar = document.getElementById('seed-save-bar');
+  const remaining = PerchMemory.getSeedCounts();
+  const allGone = Object.values(remaining).every(n => n === 0);
+  if (bar) {
+    bar.textContent = allGone
+      ? '\u2713 All starter data cleared.'
+      : '\u26A0\uFE0F Some starter data may remain \u2014 see counts above.';
+    bar.style.display = 'block';
+  }
+  setTimeout(()=>{ location.reload(); }, 1600);
+};
+
+// Full reset — wipes everything Perch has stored: main data, change-tracking
+// snapshot, and any in-flight sessionStorage handoff keys (promote/basics).
+window.fullResetPerch = function(){
+  if (!confirm('Reset Perch completely? This clears all data \u2014 yours and starter data \u2014 and cannot be undone.')) return;
+  try {
+    localStorage.removeItem('perch_memory_v1');
+    localStorage.removeItem('perch_changes_snap');
+  } catch(e) {}
+  try {
+    sessionStorage.removeItem('perch_promo_bill');
+    sessionStorage.removeItem('perch_promo_shift');
+    sessionStorage.removeItem('perch_promo_reminder');
+    sessionStorage.removeItem('perch_promo_person');
+    sessionStorage.removeItem('perch_open_basics');
+    sessionStorage.removeItem('perch_open_basics_section');
+    sessionStorage.removeItem('perch_demo_cleared');
+  } catch(e) {}
+  const bar = document.getElementById('full-reset-bar');
+  if (bar) bar.style.display = 'block';
+  // Force a fresh, uncached load so any stale cached JS doesn't run against the wiped data.
+  setTimeout(()=>{ location.href = 'perch_today_live.html?reset='+Date.now(); }, 1200);
+};
+
+// ── MY OK ──────────────────────────────────
+const OK_LABELS = {
+  no_bills_today:        { label:'No bills due today',                sub:'Nothing due the day you open Perch.' },
+  no_manual_bills_soon:  { label:'No manual bills due soon',          sub:'Bills you pay by hand, within a window you set.', num:'days' },
+  no_autopay_bills_soon: { label:'Autopay bills due soon block OK',    sub:'Off by default \u2014 turn on if autopay hitting before payday should matter.', num:'days' },
+  bills_before_payday:   { label:'Bills before payday are covered',   sub:'Everything due before your next paycheck fits your safe-to-spend.' },
+  no_overdue_housing:    { label:'No overdue mortgage or rent',       sub:'Housing is current.' },
+  safe_to_spend_floor:   { label:'Safe-to-spend stays above a floor', sub:'Optional minimum cushion.', num:'amount' },
+  no_urgent_maintenance: { label:'No urgent maintenance',             sub:'Nothing marked urgent is waiting.' },
+  no_waiting_past_due:   { label:'Nothing waiting is overdue',        sub:'No waiting item is past its expected date.' },
+  no_high_priority_open: { label:'No urgent tasks open',              sub:'No high-priority action is open.' },
+  no_heavy_work_stretch: { label:'No heavy work stretch ahead',       sub:'Fewer than your shift threshold in the next 72 hours.', num:'shift_count' },
+  no_event_planning_soon:{ label:'No event needs planning yet',       sub:'Mentioned within your awareness window; only blocks OK inside 3 days.', num:'days' }
+};
+const OK_SIMPLE = ['no_manual_bills_soon','bills_before_payday','no_urgent_maintenance','no_heavy_work_stretch'];
+const OK_ADVANCED = ['no_bills_today','no_autopay_bills_soon','no_overdue_housing','no_waiting_past_due','no_event_planning_soon','safe_to_spend_floor','no_high_priority_open'];
+
+function getRules(){ return PerchMemory.get('ok_rules') || PerchMemory.DEFAULTS.ok_rules; }
+
+function renderOKRow(key, rules){
+  const c = rules.conditions[key]; if(!c) return '';
+  const meta = OK_LABELS[key];
+  let numCtl = '';
+  if (meta.num === 'days' && c.on) {
+    numCtl = `<div class="ok-num"><button onclick="bumpNum('${key}','days',-1)">&minus;</button>`
+      + `<span class="ok-num-val">${c.days} day${c.days===1?'':'s'}</span>`
+      + `<button onclick="bumpNum('${key}','days',1)">+</button></div>`;
+  } else if (meta.num === 'shift_count' && c.on) {
+    numCtl = `<div class="ok-num"><button onclick="bumpNum('${key}','shift_count',-1)">&minus;</button>`
+      + `<span class="ok-num-val">${c.shift_count}+ shifts</span>`
+      + `<button onclick="bumpNum('${key}','shift_count',1)">+</button></div>`;
+  } else if (meta.num === 'amount' && c.on) {
+    numCtl = `<div class="ok-num"><button onclick="bumpNum('${key}','amount',-50)">&minus;</button>`
+      + `<span class="ok-num-val">$${c.amount}</span>`
+      + `<button onclick="bumpNum('${key}','amount',50)">+</button></div>`;
+  }
+  return `<div class="ok-row"><div class="ok-row-body">`
+    + `<div class="ok-row-label">${meta.label}</div>`
+    + `<div class="ok-row-sub">${meta.sub}</div>${numCtl}</div>`
+    + `<button class="ok-toggle${c.on?' on':''}" onclick="toggleCond('${key}')"></button></div>`;
+}
+
+function renderMyOK(){
+  const rules = getRules();
+  document.getElementById('ok-master-toggle').className = 'ok-toggle' + (rules.enabled ? ' on' : '');
+  const awareEl = document.getElementById('ok-aware-val');
+  if (awareEl) awareEl.textContent = (rules.awareness_days || 7) + ' days';
+  const wrap = document.getElementById('ok-conditions');
+  wrap.style.opacity = rules.enabled ? '1' : '0.45';
+  wrap.style.pointerEvents = rules.enabled ? 'auto' : 'none';
+  wrap.innerHTML = OK_SIMPLE.map(key => renderOKRow(key, rules)).join('');
+
+  const adv = document.getElementById('ok-conditions-advanced');
+  if (adv) {
+    adv.style.opacity = rules.enabled ? '1' : '0.45';
+    adv.style.pointerEvents = rules.enabled ? 'auto' : 'none';
+    adv.innerHTML = OK_ADVANCED.map(key => renderOKRow(key, rules)).join('');
+  }
+}
+
+window.toggleAdvancedOK = function(){
+  const adv = document.getElementById('ok-conditions-advanced');
+  const caret = document.getElementById('ok-adv-caret');
+  const open = adv.style.display !== 'none';
+  adv.style.display = open ? 'none' : 'block';
+  if (caret) caret.textContent = open ? '\u203A' : '\u2304';
+};
+
+function saveRules(rules){
+  rules.last_edited = PerchDate.fmt(PerchDate.today());
+  PerchMemory.set('ok_rules', rules);
+  const bar = document.getElementById('ok-save-bar');
+  bar.classList.add('show');
+  setTimeout(()=>bar.classList.remove('show'), 1600);
+}
+
+window.toggleMaster = function(){
+  const r = getRules(); r.enabled = !r.enabled; saveRules(r); renderMyOK();
+};
+window.toggleCond = function(key){
+  const r = getRules(); r.conditions[key].on = !r.conditions[key].on; saveRules(r); renderMyOK();
+};
+window.bumpNum = function(key, field, delta){
+  const r = getRules();
+  const cur = r.conditions[key][field] || 0;
+  let next = cur + delta;
+  if (field==='days')        next = Math.max(1, Math.min(14, next));
+  if (field==='shift_count') next = Math.max(2, Math.min(7, next));
+  if (field==='amount')      next = Math.max(0, next);
+  r.conditions[key][field] = next; saveRules(r); renderMyOK();
+};
+window.bumpAwareness = function(delta){
+  const r = getRules();
+  let next = (r.awareness_days || 7) + delta;
+  next = Math.max(3, Math.min(21, next));
+  r.awareness_days = next; saveRules(r); renderMyOK();
+};
+
+// ════════════════════════════════════════════
+// ADD MY BASICS
+// ════════════════════════════════════════════
+
+function toggleBasics(){
+  const body=document.getElementById('basics-body');
+  const caret=document.getElementById('basics-caret');
+  if(!body) return;
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  if(caret) caret.textContent=open?'\u2304':'\u203A';
+  if(open) initBasics();
+}
+function toggleBasicsSec(id){
+  const body=document.getElementById('sec-'+id);
+  const caret=document.getElementById('caret-'+id);
+  if(!body) return;
+  const open=body.style.display==='none';
+  body.style.display=open?'block':'none';
+  if(caret) caret.textContent=open?'\u2304':'\u203A';
+  if(open) renderBasicsSec(id);
+}
+
+function flash(id, msg){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.textContent=msg;
+  setTimeout(()=>{if(el.textContent===msg) el.textContent='';},2600);
+}
+
+function renderBasicsSec(id){
+  if(id==='bills')    renderBasicsBillsList();
+  if(id==='work')     renderBasicsShiftsList();
+  if(id==='people')   renderBasicsPeopleList();
+  if(id==='name')     prefillName();
+  if(id==='balance')  prefillBalance();
+  if(id==='payday')   prefillPayday();
+}
+
+function prefillName(){
+  const u=PerchMemory.get('user')||{};
+  const el=document.getElementById('basics-name');
+  if(el && u.name && u.name!=='Jeff') el.value=u.name; // don't prefill seed name
+}
+function prefillBalance(){
+  const accts=(PerchMemory.get('finances.accounts')||[]).filter(a=>!a.seed&&a.user_owned);
+  if(accts.length){
+    const el=document.getElementById('basics-balance');
+    const ne=document.getElementById('basics-acct-name');
+    if(el) el.value=accts[0].balance||'';
+    if(ne) ne.value=accts[0].name||'Checking';
+  }
+}
+function prefillPayday(){
+  const pay=PerchMemory.get('finances.paycheck');
+  if(pay && pay.user_owned){
+    const ae=document.getElementById('basics-pay-amt');
+    const de=document.getElementById('basics-pay-date');
+    if(ae) ae.value=pay.amount||'';
+    if(de) de.value=pay.next_date||'';
+  }
+}
+
+// ── Basics: day selector init
+let _billAutopay=true;
+const DAYS_SHORT_BAS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+function initBasics(){
+  // Day buttons
+  const row=document.getElementById('basics-days');
+  if(row && !row.children.length){
+    DAYS_SHORT_BAS.forEach((d,i)=>{
+      const btn=document.createElement('button');
+      btn.className='basics-day-btn';
+      btn.textContent=d;
+      btn.dataset.dow=i;
+      btn.onclick=()=>btn.classList.toggle('on');
+      row.appendChild(btn);
+    });
+  }
+}
+
+// 1. Name
+window.saveBasicsName=function(){
+  const name=(document.getElementById('basics-name').value||'').trim();
+  if(!name){flash('saved-name','\u26A0\uFE0F Enter a name.');return;}
+  const u=PerchMemory.get('user')||{};
+  u.name=name; u.user_owned=true;
+  PerchMemory.set('user',u);
+  flash('saved-name','\u2713 Name saved.');
+};
+
+// 2. Balance
+window.saveBasicsBalance=function(){
+  const name=(document.getElementById('basics-acct-name').value||'Checking').trim();
+  const bal=parseFloat(document.getElementById('basics-balance').value);
+  if(isNaN(bal)){flash('saved-balance','\u26A0\uFE0F Enter a valid balance.');return;}
+  const accounts=PerchMemory.get('finances.accounts')||[];
+  // Replace or add user-owned checking account
+  const idx=accounts.findIndex(a=>a.user_owned&&/check/i.test(a.name));
+  const acct={id:'user_checking_'+Date.now(),name,balance:bal,user_owned:true,seed:false,user_created:true};
+  if(idx>-1){accounts[idx]={...accounts[idx],...acct,id:accounts[idx].id};}
+  else accounts.push(acct);
+  PerchMemory.set('finances.accounts',accounts);
+  if(window.PerchEvents) PerchEvents.refresh();
+  flash('saved-balance','\u2713 Balance saved \u2014 $'+bal.toLocaleString());
+};
+
+// 3. Payday
+window.saveBasicsPayday=function(){
+  const amt=parseFloat(document.getElementById('basics-pay-amt').value);
+  const date=(document.getElementById('basics-pay-date').value||'').trim();
+  const repeat=document.getElementById('basics-pay-repeat').value;
+  if(isNaN(amt)||amt<=0){flash('saved-payday','\u26A0\uFE0F Enter a pay amount.');return;}
+  if(!date){flash('saved-payday','\u26A0\uFE0F Enter next payday date.');return;}
+  const pay={amount:amt,next_date:date,repeat,user_owned:true,seed:false,user_created:true};
+  PerchMemory.set('finances.paycheck',pay);
+  if(window.PerchEvents) PerchEvents.refresh();
+  flash('saved-payday','\u2713 Payday saved.');
+};
+
+// 4. Bills
+window.setBillType=function(type){
+  _billAutopay=(type==='auto');
+  document.getElementById('bill-type-auto').classList.toggle('active',_billAutopay);
+  document.getElementById('bill-type-manual').classList.toggle('active',!_billAutopay);
+};
+window.addBasicsBill=function(){
+  const name=(document.getElementById('basics-bill-name').value||'').trim();
+  // Use parseFloat so 148.50 is preserved; guard against empty/NaN
+  const amt=parseFloat((document.getElementById('basics-bill-amt').value||'').replace(/[^0-9.]/g,''));
+  const due=parseInt(document.getElementById('basics-bill-due').value);
+  const category=(document.getElementById('basics-bill-cat').value||'').trim();
+  if(!name){flash('saved-bills','\u26A0\uFE0F Enter a bill name.');return;}
+  if(isNaN(amt)||amt<=0){flash('saved-bills','\u26A0\uFE0F Enter a valid amount (e.g. 148 or 67.50).');return;}
+  if(isNaN(due)||due<1||due>31){flash('saved-bills','\u26A0\uFE0F Enter a due day between 1 and 31.');return;}
+  const bills=PerchMemory.get('bills')||[];
+  bills.push({
+    id:'bill_'+Date.now(),
+    name,
+    // amount mirrors expected_amount so financeSnapshot/Money Flow work unchanged
+    amount: amt,
+    expected_amount: amt,
+    due_day: due,
+    autopay: _billAutopay,
+    payment_type: _billAutopay ? 'autopay' : 'manual',
+    category: category || null,
+    status: 'active',
+    // future-ready: source + empty history for bill intelligence later
+    source: 'manual',
+    history: [],
+    // ownership
+    user_created: true,
+    user_owned: true,
+    seed: false,
+    priority_tags: ['financial_freedom']
+  });
+  PerchMemory.set('bills',bills);
+  if(window.PerchEvents) PerchEvents.refresh();
+  document.getElementById('basics-bill-name').value='';
+  document.getElementById('basics-bill-amt').value='';
+  document.getElementById('basics-bill-due').value='';
+  document.getElementById('basics-bill-cat').value='';
+  // Reset ordinal label
+  const lbl=document.getElementById('basics-bill-due-lbl');
+  if(lbl) lbl.textContent='of each month';
+  renderBasicsBillsList();
+  flash('saved-bills','\u2713 '+name+' added.');
+};
+window.deleteBasicsBill=function(id){
+  if(!confirm('Delete this bill?')) return;
+  const bills=(PerchMemory.get('bills')||[]).filter(b=>b.id!==id);
+  PerchMemory.set('bills',bills);
+  if(window.PerchEvents) PerchEvents.refresh();
+  renderBasicsBillsList();
+};
+function _ordinal(n){const s=['th','st','nd','rd'];const v=n%100;return n+(s[(v-20)%10]||s[v]||s[0]);}
+
+let _editBillId=null;
+let _editBillAutopay=true;
+window.startEditBill=function(id){
+  _editBillId=id;
+  const bills=PerchMemory.get('bills')||[];
+  const b=bills.find(x=>x.id===id); if(!b) return;
+  const amt=b.expected_amount!=null?b.expected_amount:b.amount;
+  const isAuto=b.autopay||b.payment_type==='autopay';
+  _editBillAutopay=isAuto;
+  const panel=document.getElementById('bill-edit-panel');
+  if(!panel) return;
+  panel.innerHTML=
+    '<div style="border:1px solid rgba(45,106,79,0.25);border-radius:12px;padding:14px;margin-top:8px;background:#f4fbf6">'
+    +'<div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:10px">Editing: '+b.name+'</div>'
+    +'<div class="field-label">Name</div><input class="basics-input" id="eb-name" value="'+b.name.replace(/"/g,'&quot;')+'">'
+    +'<div class="field-label" style="margin-top:8px">Expected amount ($)</div><input class="basics-input" id="eb-amt" type="number" step="0.01" value="'+amt+'">'
+    +'<div class="field-label" style="margin-top:8px">Due / pulls around day</div>'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-top:6px">'
+    +'<input class="basics-input" id="eb-due" type="number" min="1" max="31" value="'+(b.due_day||'')+'" style="width:72px;flex:none" oninput="window._updateEditDueLbl()">'
+    +'<span id="eb-due-lbl" style="font-size:13px;color:var(--muted)">'+(b.due_day?_ordinal(b.due_day)+' of each month':'of each month')+'</span>'
+    +'</div>'
+    +'<div class="field-label" style="margin-top:8px">Payment type</div>'
+    +'<div style="display:flex;gap:8px;margin-top:4px">'
+    +'<button class="basics-toggle-btn'+(isAuto?' active':'')+'" id="eb-type-auto" onclick="window._setEditBillType(true)">Autopay</button>'
+    +'<button class="basics-toggle-btn'+(!isAuto?' active':'')+'" id="eb-type-manual" onclick="window._setEditBillType(false)">Manual</button>'
+    +'</div>'
+    +'<div class="field-label" style="margin-top:8px">Category (optional)</div>'
+    +'<input class="basics-input" id="eb-cat" value="'+(b.category||'').replace(/"/g,'&quot;')+'">'
+    +'<div style="display:flex;gap:8px;margin-top:12px">'
+    +'<button class="basics-save-btn" style="flex:1" onclick="window.saveEditBill()">Save changes</button>'
+    +'<button onclick="window.cancelEditBill()" style="flex:1;padding:11px;border:1px solid rgba(30,28,20,0.15);border-radius:10px;background:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif">Cancel</button>'
+    +'</div></div>';
+  panel.style.display='block';
+};
+window._setEditBillType=function(auto){
+  _editBillAutopay=auto;
+  const ea=document.getElementById('eb-type-auto');
+  const em=document.getElementById('eb-type-manual');
+  if(ea) ea.classList.toggle('active',auto);
+  if(em) em.classList.toggle('active',!auto);
+};
+window._updateEditDueLbl=function(){
+  const v=parseInt(document.getElementById('eb-due').value)||null;
+  const el=document.getElementById('eb-due-lbl');
+  if(el) el.textContent=v&&v>=1&&v<=31?_ordinal(v)+' of each month':'of each month';
+};
+window.saveEditBill=function(){
+  if(!_editBillId) return;
+  const name=(document.getElementById('eb-name').value||'').trim();
+  const amt=parseFloat(document.getElementById('eb-amt').value);
+  const due=parseInt(document.getElementById('eb-due').value);
+  const cat=(document.getElementById('eb-cat').value||'').trim();
+  if(!name){alert('Enter a bill name.');return;}
+  if(isNaN(amt)||amt<=0){alert('Enter a valid amount.');return;}
+  if(isNaN(due)||due<1||due>31){alert('Enter a due day 1\u201331.');return;}
+  const bills=PerchMemory.get('bills')||[];
+  const b=bills.find(x=>x.id===_editBillId); if(!b) return;
+  b.name=name; b.amount=amt; b.expected_amount=amt;
+  b.due_day=due; b.autopay=_editBillAutopay;
+  b.payment_type=_editBillAutopay?'autopay':'manual';
+  b.category=cat||null; b.user_owned=true; b.seed=false;
+  PerchMemory.set('bills',bills);
+  if(window.PerchEvents) PerchEvents.refresh();
+  _editBillId=null;
+  const panel=document.getElementById('bill-edit-panel');
+  if(panel){panel.style.display='none';panel.innerHTML='';}
+  renderBasicsBillsList();
+  flash('saved-bills','\u2713 '+name+' updated.');
+};
+window.cancelEditBill=function(){
+  _editBillId=null;
+  const panel=document.getElementById('bill-edit-panel');
+  if(panel){panel.style.display='none';panel.innerHTML='';}
+};
+
+function renderBasicsBillsList(){
+  const el=document.getElementById('basics-bills-list'); if(!el) return;
+  const bills=(PerchMemory.get('bills')||[]).filter(b=>!b.seed);
+  if(!bills.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:4px 0">No bills saved yet.</div>';return;}
+  el.innerHTML=bills.map(b=>{
+    const amt=b.expected_amount!=null?b.expected_amount:(b.amount||0);
+    const day=b.due_day;
+    const isAuto=b.autopay||b.payment_type==='autopay';
+    const timing=isAuto?'usually pulls around the '+_ordinal(day):'usually due around the '+_ordinal(day);
+    const typeLabel=isAuto?'autopay':'manual';
+    return '<div class="basics-list-row">'
+      +'<div style="min-width:0;flex:1">'
+      +'<div style="font-weight:700;color:var(--ink)">'+b.name+'</div>'
+      +'<div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4">'
+      +'Expected $'+amt.toLocaleString(undefined,{minimumFractionDigits:amt%1?2:0})+' \u00b7 '+timing+' \u00b7 '+typeLabel
+      +'</div></div>'
+      +'<div style="display:flex;gap:4px;flex-shrink:0">'
+      +'<button class="basics-del-btn" style="color:var(--green)" onclick="window.startEditBill(\''+b.id+'\')">\u270e</button>'
+      +'<button class="basics-del-btn" onclick="window.deleteBasicsBill(\''+b.id+'\')">\u2715</button>'
+      +'</div></div>';
+  }).join('');
+  if(!document.getElementById('bill-edit-panel')){
+    const panel=document.createElement('div');
+    panel.id='bill-edit-panel'; panel.style.display='none';
+    el.parentNode.appendChild(panel);
+  }
+}
+
+window._updateDueLbl=function(){
+  const v=parseInt(document.getElementById('basics-bill-due').value)||null;
+  const lbl=document.getElementById('basics-bill-due-lbl');
+  if(!lbl) return;
+  lbl.textContent=v&&v>=1&&v<=31?_ordinal(v)+' of each month':'of each month';
+};
+
+// 5. Work schedule
+window.addBasicsShifts=function(){
+  const days=Array.from(document.querySelectorAll('#basics-days .basics-day-btn.on')).map(b=>parseInt(b.dataset.dow));
+  const time=(document.getElementById('basics-shift-start').value||'07:00');
+  const hours=parseInt(document.getElementById('basics-shift-hours').value)||12;
+  const label=(document.getElementById('basics-shift-label').value||'Work Shift').trim();
+  if(!days.length){flash('saved-work','\u26A0\uFE0F Select at least one work day.');return;}
+  const sched=PerchMemory.get('work.schedule')||[];
+  const kept=sched.filter(s=>!s.user_created||!days.includes(s.day_of_week));
+  days.forEach(dow=>{
+    kept.push({id:'shift_'+dow+'_'+Date.now(),name:label,day_of_week:dow,
+      time,hours,recurrence:'weekly',user_created:true,user_owned:true,seed:false,
+      priority_tags:['career_growth','financial_freedom']});
+  });
+  PerchMemory.set('work.schedule',kept);
+  if(window.PerchEvents) PerchEvents.refresh();
+  document.querySelectorAll('#basics-days .basics-day-btn').forEach(b=>b.classList.remove('on'));
+  renderBasicsShiftsList();
+  flash('saved-work','\u2713 Shifts saved for '+days.map(d=>DAYS_SHORT_BAS[d]).join(', ')+'.');
+};
+window.deleteBasicsShift=function(id){
+  if(!confirm('Remove this shift?')) return;
+  const sched=(PerchMemory.get('work.schedule')||[]).filter(s=>s.id!==id);
+  PerchMemory.set('work.schedule',sched);
+  if(window.PerchEvents) PerchEvents.refresh();
+  renderBasicsShiftsList();
+};
+window.editBasicsShift=function(id){
+  const sched=PerchMemory.get('work.schedule')||[];
+  const s=sched.find(x=>x.id===id); if(!s) return;
+  const newTime=prompt('Start time (e.g. 07:00):',s.time||'07:00');
+  if(newTime===null) return;
+  const newHours=prompt('Hours:',s.hours||12);
+  if(newHours===null) return;
+  const newLabel=prompt('Label:',s.name||'Work Shift');
+  if(newLabel===null) return;
+  s.time=newTime.trim()||s.time; s.hours=parseInt(newHours)||s.hours;
+  s.name=newLabel.trim()||s.name; s.user_owned=true; s.seed=false;
+  PerchMemory.set('work.schedule',sched);
+  if(window.PerchEvents) PerchEvents.refresh();
+  renderBasicsShiftsList();
+  flash('saved-work','\u2713 Shift updated.');
+};
+function renderBasicsShiftsList(){
+  const el=document.getElementById('basics-shifts-list'); if(!el) return;
+  const shifts=(PerchMemory.get('work.schedule')||[]).filter(s=>!s.seed);
+  if(!shifts.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:4px 0">No shifts saved yet.</div>';return;}
+  const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  el.innerHTML=shifts.map(s=>
+    '<div class="basics-list-row">'
+    +'<div style="flex:1"><div style="font-weight:600">'+DN[s.day_of_week]+' \u00b7 '+s.name+'</div>'
+    +'<div style="font-size:11px;color:var(--muted)">'+s.time+' \u00b7 '+s.hours+'h</div></div>'
+    +'<div style="display:flex;gap:4px;flex-shrink:0">'
+    +'<button class="basics-del-btn" style="color:var(--green)" onclick="window.editBasicsShift(\''+s.id+'\')">\u270e</button>'
+    +'<button class="basics-del-btn" onclick="window.deleteBasicsShift(\''+s.id+'\')">\u2715</button>'
+    +'</div></div>'
+  ).join('');
+}
+
+// 6. People — birthday (YYYY-MM-DD), edit/delete
+window.addBasicsPerson=function(){
+  const name=(document.getElementById('basics-person-name').value||'').trim();
+  const rel=(document.getElementById('basics-person-rel').value||'').trim();
+  const bday=(document.getElementById('basics-person-bday').value||'').trim();
+  const notes=(document.getElementById('basics-person-notes').value||'').trim();
+  if(!name){flash('saved-people','\u26A0\uFE0F Enter a name.');return;}
+  const people=PerchMemory.get('people')||[];
+  const yr=bday?parseInt(bday.split('-')[0]):null;
+  people.push({id:'person_'+Date.now(),name,relationship:rel||null,
+    birthday:bday||null,birth_year:yr,notes:notes||null,
+    user_created:true,user_owned:true,seed:false,priority_tags:['family_experiences']});
+  PerchMemory.set('people',people);
+  document.getElementById('basics-person-name').value='';
+  document.getElementById('basics-person-rel').value='';
+  document.getElementById('basics-person-bday').value='';
+  document.getElementById('basics-person-notes').value='';
+  renderBasicsPeopleList();
+  flash('saved-people','\u2713 '+name+' added.');
+};
+window.deleteBasicsPerson=function(id){
+  if(!confirm('Remove this person?')) return;
+  const people=(PerchMemory.get('people')||[]).filter(p=>p.id!==id);
+  PerchMemory.set('people',people);
+  renderBasicsPeopleList();
+};
+window.editBasicsPerson=function(id){
+  const people=PerchMemory.get('people')||[];
+  const pe=people.find(x=>x.id===id); if(!pe) return;
+  const newName=prompt('Name:',pe.name||'');
+  if(newName===null) return;
+  const newRel=prompt('Relationship:',pe.relationship||'');
+  if(newRel===null) return;
+  const newBday=prompt('Birthday (YYYY-MM-DD, or leave blank):',pe.birthday||'');
+  if(newBday===null) return;
+  const newNotes=prompt('Notes (optional):',pe.notes||'');
+  if(newNotes===null) return;
+  pe.name=newName.trim()||pe.name;
+  pe.relationship=newRel.trim()||null;
+  const bday=newBday.trim();
+  pe.birthday=bday||null;
+  pe.birth_year=bday?parseInt(bday.split('-')[0]):pe.birth_year||null;
+  pe.notes=newNotes.trim()||null;
+  pe.user_owned=true; pe.seed=false;
+  PerchMemory.set('people',people);
+  renderBasicsPeopleList();
+  flash('saved-people','\u2713 '+pe.name+' updated.');
+};
+function _fmtBday(iso){
+  if(!iso) return null;
+  try{const d=new Date(iso+'T00:00:00');
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});}
+  catch(e){return iso;}
+}
+function renderBasicsPeopleList(){
+  const el=document.getElementById('basics-people-list'); if(!el) return;
+  const people=(PerchMemory.get('people')||[]).filter(p=>!p.seed);
+  if(!people.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:4px 0">No people added yet.</div>';return;}
+  el.innerHTML=people.map(pe=>
+    '<div class="basics-list-row">'
+    +'<div style="flex:1;min-width:0"><div style="font-weight:700;color:var(--ink)">'+pe.name+(pe.relationship?' <span style="font-weight:400;color:var(--muted)">\u00b7 '+pe.relationship+'</span>':'')+'</div>'
+    +(pe.birthday?'<div style="font-size:11px;color:var(--muted)">Birthday '+_fmtBday(pe.birthday)+'</div>':'')
+    +(pe.notes&&!pe.birthday?'<div style="font-size:11px;color:var(--muted)">'+pe.notes+'</div>':'')
+    +'</div>'
+    +'<div style="display:flex;gap:4px;flex-shrink:0">'
+    +'<button class="basics-del-btn" style="color:var(--green)" onclick="window.editBasicsPerson(\''+pe.id+'\')">\u270e</button>'
+    +'<button class="basics-del-btn" onclick="window.deleteBasicsPerson(\''+pe.id+'\')">\u2715</button>'
+    +'</div></div>'
+  ).join('');
+}
+
+</script>
+</body>
+</html>

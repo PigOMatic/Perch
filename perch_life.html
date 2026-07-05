@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,viewport-fit=cover">
+<title>Perch — What Matters</title>
+<script src="perch_core.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,400&family=Inter:wght@400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --cream:#f0ebe0;--cream2:#ede7d9;--card:#fff;
+  --ink:#1e1c14;--ink2:#2d2a1e;--muted:#7a7060;--muted2:#a09880;
+  --green:#2d6a4f;--green-bg:#eef7f2;--green-ink:#2d6a4f;
+  --gold:#c08a2e;--amber:#d97706;--amber-bg:#fef9ec;
+  --red:#c0392b;--rust:#b5562e;--rust-bg:#fbeee9;
+  --purple:#6b4fbb;--purple-bg:#f0ecf9;
+  --teal:#0e7490;--teal-bg:#ecfeff;
+  --line:rgba(30,28,20,0.10);--line2:rgba(30,28,20,0.06);
+  --shadow:0 2px 16px rgba(30,28,20,0.10),0 1px 4px rgba(30,28,20,0.06);
+  --radius:18px;
+}
+html,body{background:var(--cream);font-family:'Inter',-apple-system,sans-serif;color:var(--ink);min-height:100vh}
+.header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 4px}
+.wordmark{font-family:'Playfair Display',serif;font-size:24px;font-weight:800;color:var(--ink2)}
+.page-title{font-family:'Playfair Display',serif;font-size:28px;font-weight:800;color:var(--ink2);padding:6px 18px 2px;line-height:1.2}
+.page-sub{font-size:13px;color:var(--muted);padding:2px 18px 14px;line-height:1.5}
+.scroll{padding:0 16px 110px}
+.section-label{font-size:11px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--gold);margin:18px 0 8px 2px}
+
+/* Life item card */
+.life-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;overflow:hidden;border-left:4px solid var(--green)}
+.life-card-header{padding:16px 16px 12px;display:flex;align-items:flex-start;gap:12px}
+.life-icon{font-size:28px;flex-shrink:0;line-height:1}
+.life-title-block{flex:1;min-width:0}
+.life-name{font-size:17px;font-weight:800;color:var(--ink);font-family:'Playfair Display',serif;line-height:1.2}
+.life-category{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-top:3px}
+.life-badges{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.03em}
+.badge-priority{background:var(--amber-bg);color:var(--amber)}
+.badge-priority.life-goal{background:#fff3cd;color:#8a6010;border:1px solid rgba(200,160,46,.3)}
+.badge-coaching{background:var(--cream2);color:var(--muted)}
+.badge-coaching.aggressive{background:var(--rust-bg);color:var(--rust)}
+.badge-coaching.active{background:var(--purple-bg);color:var(--purple)}
+
+/* Progress */
+.life-progress{padding:0 16px 12px}
+.progress-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.progress-current{font-size:18px;font-weight:800;color:var(--ink);font-family:'Playfair Display',serif}
+.progress-target{font-size:12px;color:var(--muted)}
+.progress-bar-wrap{background:var(--cream2);border-radius:6px;height:8px;overflow:hidden}
+.progress-bar-fill{height:100%;border-radius:6px;transition:width .5s}
+.progress-projected{font-size:11px;color:var(--muted);margin-top:5px}
+
+/* Suggestions */
+.life-suggests{padding:12px 16px;border-top:1px solid var(--line2);background:rgba(240,235,224,.4)}
+.suggests-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+.suggest-row{display:flex;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--line2);font-size:12.5px;color:var(--ink2);line-height:1.4}
+.suggest-row:last-child{border-bottom:none}
+.suggest-icon{flex-shrink:0;margin-top:1px}
+.suggest-impact{font-size:11px;font-weight:700;color:var(--green);margin-left:auto;white-space:nowrap;padding-left:8px}
+
+/* Edit button */
+.life-edit-btn{font-size:11px;font-weight:700;color:var(--muted);background:none;border:none;padding:0;cursor:pointer;font-family:'Inter',sans-serif;margin-top:10px}
+
+/* No coaching note */
+.no-suggests{font-size:12px;color:var(--muted);font-style:italic;padding:4px 0}
+
+/* Priority strip */
+.priority-strip{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:14px;padding:14px 16px}
+.priority-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line2)}
+.priority-row:last-child{border-bottom:none}
+.priority-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.priority-name{font-size:13px;font-weight:700;color:var(--ink);flex:1}
+.priority-desc{font-size:11px;color:var(--muted);flex:2}
+
+/* Add button */
+.add-btn{width:100%;background:var(--card);border:2px dashed var(--line);border-radius:var(--radius);padding:16px;text-align:center;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;margin-bottom:14px}
+.add-btn:active{background:var(--cream2)}
+
+/* Modal overlay */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(30,28,20,0.55);z-index:200;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal-sheet{background:var(--card);border-radius:22px 22px 0 0;padding:22px 20px 36px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:800;color:var(--ink);margin-bottom:18px}
+.field-group{margin-bottom:14px}
+.field-label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+.field-input{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-size:14px;font-family:'Inter',sans-serif;color:var(--ink);background:var(--cream);outline:none}
+.field-input:focus{border-color:var(--green)}
+.field-row{display:flex;gap:8px}
+.field-row .field-group{flex:1}
+.seg-btns{display:flex;gap:6px;flex-wrap:wrap}
+.seg-btn{padding:7px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--cream);font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;color:var(--muted)}
+.seg-btn.sel{border-color:var(--green);background:var(--green-bg);color:var(--green-ink)}
+.modal-actions{display:flex;gap:8px;margin-top:18px}
+.btn-primary{flex:1;background:var(--green);color:#fff;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-secondary{background:var(--cream2);color:var(--muted);border:none;border-radius:12px;padding:13px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+.btn-danger{background:var(--rust-bg);color:var(--rust);border:none;border-radius:12px;padding:13px 18px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif}
+
+/* Nav */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(240,235,224,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;padding:8px 0 env(safe-area-inset-bottom,16px);z-index:100}
+  .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer;font-size:10px;font-weight:600;color:var(--muted2);text-decoration:none;border:none;background:none;font-family:inherit}
+  .nav-tab.active{color:var(--green)}
+  .nav-tab-icon{font-size:21px;line-height:1;transition:transform .18s ease}
+  .nav-tab.active .nav-tab-icon{transform:translateY(-2px)}
+.nav-tab-icon{font-size:20px;line-height:1}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="wordmark">Perch</div>
+  <button class="life-edit-btn" onclick="openAddModal()">+ Add goal</button>
+</div>
+<div class="page-title">What Matters to Me</div>
+<div class="page-sub">Your goals. Your pace. No shame — just progress.</div>
+
+<div class="scroll">
+  <div class="section-label">Goals &amp; Horizons</div>
+  <div id="life-items"></div>
+  <button class="add-btn" onclick="openAddModal()">+ Add a goal or life horizon</button>
+
+  <div class="section-label">My Priorities</div>
+  <div class="priority-strip" id="priority-strip"></div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal-sheet">
+    <div class="modal-title" id="modal-title">Add Goal</div>
+    <input type="hidden" id="edit-id">
+
+    <div class="field-group">
+      <div class="field-label">Name</div>
+      <input class="field-input" id="f-name" type="text" placeholder="e.g. Yellowstone trip">
+    </div>
+    <div class="field-row">
+      <div class="field-group">
+        <div class="field-label">Icon (emoji)</div>
+        <input class="field-input" id="f-icon" type="text" placeholder="🏔️" maxlength="2" style="font-size:20px;text-align:center">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Category</div>
+        <select class="field-input" id="f-category" style="appearance:auto">
+          <option value="Travel">Travel</option>
+          <option value="Financial">Financial</option>
+          <option value="Family">Family</option>
+          <option value="Health">Health</option>
+          <option value="Career">Career</option>
+          <option value="Home">Home</option>
+          <option value="Custom">Custom</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Priority</div>
+      <div class="seg-btns" id="seg-priority">
+        <button class="seg-btn" data-val="Low">Low</button>
+        <button class="seg-btn" data-val="Medium">Medium</button>
+        <button class="seg-btn sel" data-val="High">High</button>
+        <button class="seg-btn" data-val="Life Goal">Life Goal ⭐</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Coaching Level</div>
+      <div class="seg-btns" id="seg-coaching">
+        <button class="seg-btn" data-val="Quiet">Quiet</button>
+        <button class="seg-btn sel" data-val="Balanced">Balanced</button>
+        <button class="seg-btn" data-val="Active">Active</button>
+        <button class="seg-btn" data-val="Aggressive">Aggressive</button>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field-group">
+        <div class="field-label">Savings target ($)</div>
+        <input class="field-input" id="f-target" type="number" placeholder="4500" min="0">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Already saved ($)</div>
+        <input class="field-input" id="f-saved" type="number" placeholder="0" min="0">
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Target date (optional)</div>
+      <input class="field-input" id="f-date" type="month" placeholder="2027-06">
+    </div>
+
+    <div class="field-group">
+      <div class="field-label">Notes (optional)</div>
+      <input class="field-input" id="f-notes" type="text" placeholder="Why this matters to me…">
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveGoal()">Save</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn-danger" id="delete-btn" onclick="deleteGoal()" style="display:none">Delete</button>
+    </div>
+  </div>
+</div>
+
+<nav class="bottom-nav">
+  <a class="nav-tab" href="perch_today_live.html"><div class="nav-tab-icon">&#127968;</div><span>Today</span></a>
+  <a class="nav-tab" href="perch_week_live.html"><div class="nav-tab-icon">&#128197;</div><span>Week</span></a>
+  <a class="nav-tab" href="perch_month_live.html"><div class="nav-tab-icon">&#128198;</div><span>Month</span></a>
+  <a class="nav-tab active" href="perch_life.html"><div class="nav-tab-icon">&#127807;</div><span>Life</span></a>
+  <a class="nav-tab" href="perch_capture.html"><div class="nav-tab-icon">&#129413;</div><span>Perch</span></a>
+</nav>
+
+<script>
+// ── CONSTANTS ────────────────────────────────
+const PRIORITY_ORDER=['Low','Medium','High','Life Goal'];
+const COACHING_ORDER=['Quiet','Balanced','Active','Aggressive'];
+const CATEGORY_COLORS={
+  Travel:'#0e7490',Financial:'#2d6a4f',Family:'#d97706',
+  Health:'#c0392b',Career:'#6b4fbb',Home:'#8b5e3c',Custom:'#7a7060'
+};
+
+// ── SUGGESTIONS ENGINE ───────────────────────
+// Rule-based only. No AI. Never shames.
+// "You told me X matters. Here's how to get there."
+function buildSuggestions(goal, fin){
+  const level=goal.coaching_level||'Balanced';
+  const suggestions=[];
+  const target=goal.target_amount||0;
+  const saved=goal.saved_amount||0;
+  const remaining=Math.max(0,target-saved);
+
+  if(level==='Quiet') return [];
+
+  const goalName=goal.name||'your goal';
+  const subSignal=_lpbSignal('subscription');
+  const shiftSignal=_lpbSignal('shift_earn');
+  const transferSignal=_lpbSignal('goal_transfer');
+
+  // Universal: payday transfer — skip if goal_transfer repeatedly avoided
+  if(target>0&&remaining>0&&transferSignal!=='avoid'){
+    const perPayday=Math.ceil(remaining/24);
+    if(perPayday>=10)
+      suggestions.push({icon:'\uD83D\uDCB8',
+        text:'Move $'+perPayday+' on payday toward '+goalName,
+        impact:'on track in ~1 yr'});
+  }
+
+  // Balanced+: subscription — skip entirely if user avoids these
+  if(['Balanced','Active','Aggressive'].includes(level)&&subSignal!=='avoid'){
+    const subs=(PerchMemory.get('bills')||[]).filter(b=>b.category==='subscription'||/netflix|hulu|spotify|paramount|disney|max|apple/i.test(b.name||''));
+    subs.slice(0,2).forEach(s=>{
+      const annual=Math.round((s.amount||0)*12);
+      if(annual>0) suggestions.push({icon:'\uD83D\uDCF5',
+        text:'Drop '+s.name+' \u2014 frees $'+annual+'/yr toward '+goalName,
+        impact:'+$'+annual+'/yr'});
+    });
+  }
+
+  // Active+: extra shift — elevate to front if user prefers earning
+  if(['Active','Aggressive'].includes(level)){
+    const schedule=PerchMemory.get('work.schedule')||[];
+    if(schedule.length>0){
+      const shiftRate=Math.round((PerchMemory.get('finances.paycheck')?.amount||3000)/schedule.length/4);
+      if(shiftRate>0){
+        const shiftSug={icon:'\uD83C\uDFE5',
+          text:'One extra shift every 2 months moves '+goalName+' faster',
+          impact:'+$'+(shiftRate*6)+'/yr'};
+        if(shiftSignal==='prefer') suggestions.unshift(shiftSug);
+        else suggestions.push(shiftSug);
+      }
+    }
+  }
+
+  // Aggressive: sell + checking move + automate
+  if(level==='Aggressive'){
+    if(remaining>500)
+      suggestions.push({icon:'\uD83D\uDCE6',
+        text:'Sell something unused \u2014 a one-time boost directly toward '+goalName,
+        impact:'one-time'});
+    if(fin.balance>1000&&remaining>0&&transferSignal!=='avoid'){
+      const safe=Math.min(Math.round(fin.balance*0.15),Math.round(remaining/4));
+      if(safe>0)
+        suggestions.push({icon:'\uD83C\uDFE6',
+          text:'Move $'+safe+' from checking now \u2014 your balance has room',
+          impact:'immediate progress'});
+    }
+    if(transferSignal!=='avoid')
+      suggestions.push({icon:'\uD83D\uDD04',
+        text:'Automate a transfer every payday \u2014 removes the decision from your plate',
+        impact:'removes friction'});
+  }
+
+  return suggestions.slice(0,4);
+}
+
+// ── PROJECTED DATE ───────────────────────────
+function projectDate(goal, fin){
+  const target=goal.target_amount||0;
+  const saved=goal.saved_amount||0;
+  if(!target||saved>=target) return null;
+  const remaining=target-saved;
+  // Estimate savings rate from payday amount — rough heuristic
+  const paydayAmt=fin.paydayAmount||0;
+  const saveRate=goal.coaching_level==='Aggressive'?paydayAmt*0.12:
+    goal.coaching_level==='Active'?paydayAmt*0.08:
+    goal.coaching_level==='Balanced'?paydayAmt*0.05:
+    paydayAmt*0.02;
+  if(saveRate<=0) return goal.target_date||null;
+  const daysNeeded=Math.ceil((remaining/saveRate)*14); // biweekly
+  const projected=new Date(); projected.setDate(projected.getDate()+daysNeeded);
+  return projected.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+}
+
+// ── RENDER ───────────────────────────────────
+function render(){
+  const horizon=(PerchMemory.get('future_horizon')||[]).filter(h=>!h.seed||h.user_created);
+  // Also include user-created horizon items that have life_goal flag
+  const allGoals=(PerchMemory.get('future_horizon')||[]).filter(h=>h.user_created||h.is_life_goal);
+  const priorities=PerchMemory.get('priorities')||[];
+  const fin=PerchMemory.financeSnapshot();
+
+  // Render life items
+  const itemsEl=document.getElementById('life-items');
+  if(!allGoals.length){
+    itemsEl.innerHTML='<div style="text-align:center;padding:24px 16px;color:var(--muted);font-size:13px;font-style:italic">No goals added yet.<br>Tap the button below to add your first one.</div>';
+  } else {
+    // Sort by priority descending
+    const sorted=[...allGoals].sort((a,b)=>
+      PRIORITY_ORDER.indexOf(b.life_priority||'Medium')-PRIORITY_ORDER.indexOf(a.life_priority||'Medium'));
+    itemsEl.innerHTML=sorted.map(g=>renderGoalCard(g,fin,priorities)).join('');
+  }
+
+  // Priority strip
+  document.getElementById('priority-strip').innerHTML=
+    priorities.filter(p=>p.active!==false).map(p=>`
+      <div class="priority-row">
+        <div class="priority-dot" style="background:${p.color}"></div>
+        <div class="priority-name" style="color:${p.color}">${p.name}</div>
+        <div class="priority-desc">${p.description||''}</div>
+      </div>`).join('');
+}
+
+function renderGoalCard(g, fin, priorities){
+  const target=g.target_amount||0;
+  const saved=g.saved_amount||0;
+  const pct=target>0?Math.min(100,Math.round(saved/target*100)):null;
+  const catColor=CATEGORY_COLORS[g.category||'Custom']||'#7a7060';
+  const allSuggestions=buildSuggestions(g,fin);
+  const sugPrefs=_sugLoad();
+  const suggestions=allSuggestions.filter((_,si)=>{
+    const sKey='sug_'+g.id+'_'+si;
+    return !sugPrefs.done?.[sKey]&&!sugPrefs.suppressed?.[sKey];
+  });
+  const projected=target>saved?projectDate(g,fin):null;
+  const coaching=g.coaching_level||'Balanced';
+  const priority=g.life_priority||'Medium';
+  const borderColor=priority==='Life Goal'?'#c8a43a':
+    priority==='High'?'#c0392b':
+    priority==='Medium'?'#6b4fbb':'#a09880';
+
+  const coachingBadgeCls=coaching.toLowerCase()==='aggressive'?'aggressive':coaching.toLowerCase()==='active'?'active':'';
+  const priorityBadgeCls=priority==='Life Goal'?'life-goal':'';
+
+  let progressHtml='';
+  if(target>0){
+    const fillColor=pct>=100?'#2d6a4f':pct>=60?'#d97706':'#6b4fbb';
+    progressHtml=`<div class="life-progress">
+      <div class="progress-label">
+        <span class="progress-current">$${saved.toLocaleString()}</span>
+        <span class="progress-target">of $${target.toLocaleString()} goal · ${pct??0}%</span>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" style="width:${pct||0}%;background:${fillColor}"></div>
+      </div>
+      ${projected?`<div class="progress-projected">📅 Projected: ${projected}</div>`:''}
+    </div>`;
+  }
+
+  let suggestHtml='';
+  if(suggestions.length){
+    // Suggestion action storage key: goalId + suggestion index
+    suggestHtml=`<div class="life-suggests">
+      <div class="suggests-title">Perch suggests</div>
+      ${suggestions.map((s,si)=>{
+        const sKey='sug_'+g.id+'_'+si;
+        // Determine action type
+        const isSub=/cancel/i.test(s.text);
+        const isShift=/shift/i.test(s.text);
+        const isTransfer=/transfer|move \$|payday/i.test(s.text);
+        const isSell=/sell/i.test(s.text);
+        // Find cancel link if subscription suggestion
+        const subMatch=s.text.match(/Cancel\s+(\S+)/i);
+        const subUrl=subMatch?subLink(subMatch[1]):'';
+        const actionBtns=isSub
+          ?`${subUrl?`<a href="${subUrl}" target="_blank" rel="noopener" onclick="event.stopPropagation()" style="font-size:10px;font-weight:700;color:var(--amber);text-decoration:none;padding:4px 8px;border-radius:6px;border:1px solid var(--amber);white-space:nowrap">Open account \u2197</a>`:''}
+            <button onclick="window.sugAction('${sKey}','done','${g.id}')" style="font-size:10px;font-weight:700;color:var(--green-ink);background:var(--green-bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer;font-family:'Inter',sans-serif">\u2713 Done</button>
+            <button onclick="window.sugAction('${sKey}','suppress','${g.id}')" style="font-size:10px;font-weight:700;color:var(--muted);background:var(--cream2);border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer;font-family:'Inter',sans-serif">Not for me</button>`
+          :isTransfer||isShift||isSell
+          ?`<button onclick="window.sugAction('${sKey}','brain','${g.id}')" style="font-size:10px;font-weight:700;color:var(--green-ink);background:var(--green-bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer;font-family:'Inter',sans-serif">\uD83D\uDD14 Add reminder</button>
+            <button onclick="window.sugAction('${sKey}','suppress','${g.id}')" style="font-size:10px;font-weight:700;color:var(--muted);background:var(--cream2);border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer;font-family:'Inter',sans-serif">Not for me</button>`
+          :`<button onclick="window.sugAction('${sKey}','done','${g.id}')" style="font-size:10px;font-weight:700;color:var(--green-ink);background:var(--green-bg);border:1px solid var(--line);border-radius:6px;padding:4px 8px;cursor:pointer;font-family:'Inter',sans-serif">\u2713 Done</button>`;
+        return `<div class="suggest-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+          <div style="display:flex;align-items:flex-start;gap:8px;width:100%">
+            <span class="suggest-icon">${s.icon}</span>
+            <span style="flex:1">${s.text}</span>
+            ${s.impact?`<span class="suggest-impact">${s.impact}</span>`:''}
+          </div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;padding-left:24px">${actionBtns}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  } else if(coaching==='Quiet'){
+    suggestHtml=`<div class="life-suggests"><div class="no-suggests">Quiet coaching — only reminding you when it really matters.</div></div>`;
+  }
+
+  // Tag-matched priorities
+  const matchedPriorities=(g.priority_tags||[]).map(tid=>priorities.find(pr=>pr.id===tid)).filter(Boolean);
+
+  // ── Log contribution footer ────────────────
+  const logHtml=`<div id="log-area-${g.id}" style="padding:10px 16px 14px;border-top:1px solid var(--line2);display:flex;align-items:center;gap:8px">
+    <button onclick="window.openLogAmount('${g.id}')"
+      style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--green);background:var(--green-bg);
+      color:var(--green-ink);font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">
+      + Log $
+    </button>
+    <span style="font-size:11px;color:var(--muted)">Record a contribution</span>
+  </div>`;
+
+  return `<div class="life-card" style="border-left-color:${borderColor}">
+    <div class="life-card-header">
+      <div class="life-icon">${g.icon||'\uD83C\uDFAF'}</div>
+      <div class="life-title-block">
+        <div class="life-name">${g.name}</div>
+        <div class="life-category" style="color:${catColor}">${g.category||'Goal'}</div>
+        <div class="life-badges">
+          <span class="badge badge-priority ${priorityBadgeCls}">${priority}</span>
+          <span class="badge badge-coaching ${coachingBadgeCls}">${coaching} coaching</span>
+        </div>
+        ${matchedPriorities.map(pr=>`<div style="font-size:10px;color:${pr.color};margin-top:5px;font-weight:700">\u21B3 Supports ${pr.name}</div>`).join('')}
+      </div>
+      <button class="life-edit-btn" onclick="openEditModal('${g.id}')" style="margin-top:0;padding:6px 10px;background:var(--cream2);border-radius:8px;color:var(--muted)">Edit</button>
+    </div>
+    ${progressHtml}
+    ${suggestHtml}
+    ${g.notes?`<div style="padding:8px 16px 8px;font-size:12px;color:var(--muted);font-style:italic">${g.notes}</div>`:''}
+    ${logHtml}
+  </div>`;
+}
+
+// ── MODAL ────────────────────────────────────
+function openAddModal(){
+  document.getElementById('edit-id').value='';
+  document.getElementById('modal-title').textContent='Add Goal';
+  document.getElementById('f-name').value='';
+  document.getElementById('f-icon').value='🎯';
+  document.getElementById('f-category').value='Travel';
+  document.getElementById('f-target').value='';
+  document.getElementById('f-saved').value='';
+  document.getElementById('f-date').value='';
+  document.getElementById('f-notes').value='';
+  document.getElementById('delete-btn').style.display='none';
+  setSeg('seg-priority','High');
+  setSeg('seg-coaching','Balanced');
+  document.getElementById('modal').classList.add('open');
+}
+
+function openEditModal(id){
+  const goals=PerchMemory.get('future_horizon')||[];
+  const g=goals.find(x=>x.id===id);
+  if(!g) return;
+  document.getElementById('edit-id').value=id;
+  document.getElementById('modal-title').textContent='Edit Goal';
+  document.getElementById('f-name').value=g.name||'';
+  document.getElementById('f-icon').value=g.icon||'🎯';
+  document.getElementById('f-category').value=g.category||'Travel';
+  document.getElementById('f-target').value=g.target_amount||'';
+  document.getElementById('f-saved').value=g.saved_amount||'';
+  document.getElementById('f-date').value=g.target_date||'';
+  document.getElementById('f-notes').value=g.notes||'';
+  document.getElementById('delete-btn').style.display='block';
+  setSeg('seg-priority',g.life_priority||'High');
+  setSeg('seg-coaching',g.coaching_level||'Balanced');
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+
+function setSeg(groupId, val){
+  document.querySelectorAll('#'+groupId+' .seg-btn').forEach(btn=>{
+    btn.classList.toggle('sel',btn.dataset.val===val);
+  });
+}
+
+// Seg button clicks
+document.querySelectorAll('#seg-priority .seg-btn, #seg-coaching .seg-btn').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    this.closest('.seg-btns').querySelectorAll('.seg-btn').forEach(b=>b.classList.remove('sel'));
+    this.classList.add('sel');
+  });
+});
+
+function getSegVal(groupId){
+  const sel=document.querySelector('#'+groupId+' .seg-btn.sel');
+  return sel?sel.dataset.val:'';
+}
+
+function saveGoal(){
+  const name=document.getElementById('f-name').value.trim();
+  if(!name){ alert('Give it a name first.'); return; }
+  const editId=document.getElementById('edit-id').value;
+  const goals=PerchMemory.get('future_horizon')||[];
+  const id=editId||('life_'+Date.now());
+  const now=PerchDate.fmt(PerchDate.today());
+
+  const item={
+    id, name,
+    icon:document.getElementById('f-icon').value.trim()||'🎯',
+    category:document.getElementById('f-category').value,
+    life_priority:getSegVal('seg-priority'),
+    coaching_level:getSegVal('seg-coaching'),
+    target_amount:parseFloat(document.getElementById('f-target').value)||0,
+    saved_amount:parseFloat(document.getElementById('f-saved').value)||0,
+    target_date:document.getElementById('f-date').value||'',
+    notes:document.getElementById('f-notes').value.trim(),
+    priority_tags:[], // could link later
+    is_life_goal:true,
+    user_created:true, seed:false,
+    created_date:editId?(goals.find(g=>g.id===editId)?.created_date||now):now,
+    updated_date:now,
+    status:'on_track'
+  };
+
+  if(editId){
+    const idx=goals.findIndex(g=>g.id===editId);
+    if(idx>=0) goals[idx]=item; else goals.push(item);
+  } else {
+    goals.push(item);
+  }
+  PerchMemory.set('future_horizon',goals);
+  closeModal();
+  render();
+}
+
+function deleteGoal(){
+  const id=document.getElementById('edit-id').value;
+  if(!id) return;
+  if(!confirm('Remove this goal?')) return;
+  const goals=(PerchMemory.get('future_horizon')||[]).filter(g=>g.id!==id);
+  PerchMemory.set('future_horizon',goals);
+  closeModal();
+  render();
+}
+
+// Update saved amount directly from card (quick update)
+window.updateSaved=function(id,delta){
+  const goals=PerchMemory.get('future_horizon')||[];
+  const g=goals.find(x=>x.id===id);
+  if(g){ g.saved_amount=Math.max(0,(g.saved_amount||0)+delta); PerchMemory.set('future_horizon',goals); render(); }
+};
+
+// ── QUICK LOG CONTRIBUTION ───────────────────
+window.openLogAmount=function(id){
+  const el=document.getElementById('log-area-'+id);
+  if(!el) return;
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:7px;width:100%">
+      <span style="font-size:13px;color:var(--muted);font-weight:600">$</span>
+      <input id="log-input-${id}" type="number" min="1" max="999999" placeholder="Amount"
+        style="flex:1;padding:7px 10px;border:1.5px solid var(--green);border-radius:8px;
+        font-size:14px;font-family:'Inter',sans-serif;color:var(--ink);background:#fff;outline:none;max-width:130px"
+        onkeydown="if(event.key==='Enter')window.confirmLog('${id}')"
+        autofocus>
+      <button onclick="window.confirmLog('${id}')"
+        style="padding:7px 14px;border-radius:8px;border:none;background:var(--green);
+        color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">
+        Save
+      </button>
+      <button onclick="window.cancelLog('${id}')"
+        style="padding:7px 10px;border-radius:8px;border:1px solid var(--line);background:var(--cream2);
+        color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">
+        ✕
+      </button>
+    </div>`;
+  // Focus after render
+  setTimeout(()=>{ const inp=document.getElementById('log-input-'+id); if(inp) inp.focus(); },50);
+};
+
+window.confirmLog=function(id){
+  const inp=document.getElementById('log-input-'+id);
+  const raw=inp?parseFloat(inp.value):0;
+  if(!raw||raw<=0||isNaN(raw)){
+    if(inp){ inp.style.borderColor='var(--rust)'; inp.focus(); }
+    return;
+  }
+  const amount=Math.round(raw*100)/100; // two decimal places max
+
+  const goals=PerchMemory.get('future_horizon')||[];
+  const g=goals.find(x=>x.id===id);
+  if(!g) return;
+
+  const target=g.target_amount||0;
+  const oldSaved=g.saved_amount||0;
+  const oldPct=target>0?Math.round(oldSaved/target*100):null;
+
+  g.saved_amount=Math.round((oldSaved+amount)*100)/100;
+  g.updated_date=new Date().toISOString().slice(0,10);
+  PerchMemory.set('future_horizon',goals);
+
+  // Flag for Today's Bigger Picture to pick up on next load
+  try{
+    localStorage.setItem('perch_goal_updated', JSON.stringify({
+      goalId: g.id,
+      goalName: g.name,
+      amount: amount,
+      oldPct: oldPct,
+      newPct: newPct,
+      reached: reached,
+      ts: new Date().toISOString()
+    }));
+  }catch(e){}
+
+  const newSaved=g.saved_amount;
+  const newPct=target>0?Math.min(100,Math.round(newSaved/target*100)):null;
+  const reached=target>0&&newSaved>=target;
+
+  // Celebration message
+  let msg='';
+  if(reached){
+    msg=`\uD83C\uDF89 Goal reached! ${g.name} is fully funded.`;
+  } else if(oldPct!=null&&newPct!=null&&newPct>oldPct){
+    msg=`Nice. ${g.name} moved from ${oldPct}% to ${newPct}%.`;
+  } else if(newPct!=null){
+    msg=`Added $${amount.toLocaleString()}. ${g.name} is now ${newPct}% funded.`;
+  } else {
+    msg=`Added $${amount.toLocaleString()} to ${g.name}.`;
+  }
+
+  const el=document.getElementById('log-area-'+id);
+  if(el){
+    el.innerHTML=`<div style="display:flex;align-items:center;gap:8px;padding:2px 0">
+      <span style="font-size:16px">${reached?'\uD83C\uDF89':'\u2705'}</span>
+      <span style="font-size:13px;font-weight:600;color:var(--green-ink)">${msg}</span>
+    </div>`;
+    // Re-render full card after celebration fades
+    setTimeout(()=>render(), 2200);
+  }
+};
+
+window.cancelLog=function(id){
+  // Restore the original log button
+  const el=document.getElementById('log-area-'+id);
+  if(!el) return;
+  el.innerHTML=`
+    <button onclick="window.openLogAmount('${id}')"
+      style="padding:6px 14px;border-radius:8px;border:1.5px solid var(--green);background:var(--green-bg);
+      color:var(--green-ink);font-size:12px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif">
+      + Log $
+    </button>
+    <span style="font-size:11px;color:var(--muted)">Record a contribution</span>`;
+};
+
+
+
+// ── SUGGESTION ACTIONS ───────────────────────
+const SUG_KEY='perch_sug_prefs';
+function _sugLoad(){try{const s=localStorage.getItem(SUG_KEY);return s?JSON.parse(s):{done:{},suppressed:{}};}catch(e){return{done:{},suppressed:{}};}}
+function _sugSave(p){try{localStorage.setItem(SUG_KEY,JSON.stringify(p));}catch(e){}}
+
+function subLink(name){
+  const SUB_LINKS={netflix:'https://www.netflix.com/cancelplan',hulu:'https://secure.hulu.com/account/cancel',
+    paramount:'https://www.paramountplus.com/account/cancel/',spotify:'https://www.spotify.com/account/subscription/cancel/',
+    disney:'https://www.disneyplus.com/account/subscription',apple:'https://support.apple.com/en-us/HT202039'};
+  const lower=(name||'').toLowerCase();
+  for(const[k,v] of Object.entries(SUB_LINKS)) if(lower.includes(k)) return v;
+  return '';
+}
+
+// ── BEHAVIOR SIGNAL (read-only mirror of Today's engine) ─────
+const _LPB_KEY='perch_behavior_prefs';
+function _lpbSignal(type){
+  try{
+    const p=JSON.parse(localStorage.getItem(_LPB_KEY)||'{}');
+    const t=p[type];if(!t)return 'neutral';
+    const total=(t.accepted||0)+(t.dismissed||0)+(t.snoozed||0);
+    if(total<2)return 'neutral';
+    if((t.dismissed||0)/total>=0.6)return 'avoid';
+    if((t.accepted||0)/total>=0.5) return 'prefer';
+    return 'neutral';
+  }catch(e){return 'neutral';}
+}
+function _lpbRecord(type,outcome){
+  try{
+    const p=JSON.parse(localStorage.getItem(_LPB_KEY)||'{}');
+    if(!p[type])p[type]={accepted:0,dismissed:0,snoozed:0,completed:0,last:null};
+    const t=p[type];
+    t[outcome]=(t[outcome]||0)+1;
+    t.last=new Date().toISOString().slice(0,10);
+    localStorage.setItem(_LPB_KEY,JSON.stringify(p));
+  }catch(e){}
+}
+
+window.sugAction=function(key,val,goalId){
+  // Detect suggestion type from key pattern for behavior learning
+  const sugType=/shift/i.test(key)?'shift_earn':/sub|cancel|drop/i.test(key)?'subscription':/transfer|payday|move/i.test(key)?'goal_transfer':/sell/i.test(key)?'sell_assets':'other';
+  const outcome=val==='done'||val==='brain'?'accepted':val==='suppress'?'dismissed':val==='snooze'?'snoozed':'other';
+  if(sugType!=='other'&&outcome!=='other') _lpbRecord(sugType,outcome);
+  const p=_sugLoad();
+  if(val==='done'){p.done=p.done||{};p.done[key]=new Date().toISOString().slice(0,10);}
+  else if(val==='suppress'){p.suppressed=p.suppressed||{};p.suppressed[key]=true;}
+  else if(val==='brain'){
+    // Add a payday reminder to Brain via perch_memory_v1 captures
+    try{
+      const caps=PerchMemory.get('captures')||[];
+      caps.push({id:'sug_'+Date.now(),label:'Move money toward goal',clean_label:'Move money toward goal',
+        original_text:'Move money toward goal',perch_action:'reminder',status:'active',
+        created_date:PerchDate.fmt(PerchDate.today()),user_created:true,seed:false});
+      PerchMemory.set('captures',caps);
+    }catch(e){}
+    p.done=p.done||{};p.done[key]=new Date().toISOString().slice(0,10);
+  }
+  _sugSave(p);
+  render(); // re-render life page
+};
+
+window.addEventListener('load',function(){
+  if(window.PerchAppearance) PerchAppearance.apply();
+  if(PerchEvents) PerchEvents.refresh();
+  render();
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Perch — Memory Explorer</title>
+<script src="perch_core.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;800&family=Inter:wght@400;500;600;700&display=swap');
+
+* { box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent; }
+:root {
+  --cream:#f0ebe0; --cream2:#ede7d9; --card:#ffffff;
+  --ink:#1e1c14; --ink2:#2d2a1e;
+  --green:#2d6a4f; --green-bg:#eef7f2; --green-check:#3a8c62;
+  --orange:#e07b39; --orange-bg:#fef3eb;
+  --purple:#6b4fbb; --purple-bg:#f0ecf9;
+  --red:#c0392b; --red-bg:#fef2f2;
+  --muted:#7a7060; --muted2:#a09880;
+  --border:rgba(30,28,20,0.10);
+  --shadow:0 2px 16px rgba(30,28,20,0.10),0 1px 4px rgba(30,28,20,0.06);
+  --radius:18px; --radius-sm:10px;
+}
+html,body { background:var(--cream); font-family:'Inter',-apple-system,system-ui,sans-serif; color:var(--ink); min-height:100vh; overflow-x:hidden; }
+
+/* ── STATUS + HEADER ── */.app-header { display:flex; align-items:center; justify-content:space-between; padding:6px 20px 10px; background:var(--cream); }
+.perch-logo { display:flex; align-items:center; gap:8px; }
+.perch-wordmark { font-family:'Playfair Display',Georgia,serif; font-size:26px; font-weight:800; color:var(--ink2); letter-spacing:-.02em; }
+.save-indicator { font-size:11px; font-weight:700; color:var(--green); opacity:0; transition:opacity 0.3s; }
+.save-indicator.show { opacity:1; }
+
+/* ── SCROLL ── */
+.scroll-area { padding:0 16px 100px; }
+
+/* ── PAGE TITLE ── */
+.page-title { padding:4px 2px 16px; }
+.page-title h1 { font-family:'Playfair Display',Georgia,serif; font-size:28px; font-weight:800; color:var(--ink2); margin-bottom:4px; }
+.page-title p { font-size:13px; color:var(--muted); }
+
+/* ── SECTION TABS ── */
+.section-tabs { display:flex; gap:6px; overflow-x:auto; padding-bottom:10px; margin-bottom:4px; scrollbar-width:none; }
+.section-tabs::-webkit-scrollbar { display:none; }
+.section-tab { flex-shrink:0; background:var(--card); border:1px solid var(--border); border-radius:99px; padding:7px 14px; font-size:12px; font-weight:700; color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+.section-tab.active { background:var(--green); border-color:var(--green); color:white; }
+.section-tab:active { opacity:0.8; }
+
+/* ── SECTION PANELS ── */
+.section-panel { display:none; }
+.section-panel.active { display:block; }
+
+/* ── CARD ── */
+.card { background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); margin-bottom:12px; overflow:hidden; }
+.card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px 10px; border-bottom:1px solid rgba(30,28,20,0.06); }
+.card-title { font-size:14px; font-weight:700; color:var(--ink); }
+.card-inner { padding:12px 16px; }
+
+/* ── FORM ELEMENTS ── */
+.field-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted2); margin-bottom:4px; margin-top:10px; }
+.field-label:first-child { margin-top:0; }
+.f-input { width:100%; border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); background:#fafaf7; outline:none; transition:border-color 0.15s; }
+.f-input:focus { border-color:var(--green-check); background:#fff; }
+.f-select { width:100%; border:1.5px solid var(--border); border-radius:var(--radius-sm); padding:9px 12px; font-family:'Inter',sans-serif; font-size:14px; color:var(--ink); background:#fafaf7; outline:none; appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a7060' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 12px center; padding-right:32px; cursor:pointer; }
+.f-select:focus { border-color:var(--green-check); }
+.f-checkbox-row { display:flex; align-items:center; gap:10px; padding:6px 0; }
+.f-checkbox-row input[type=checkbox] { width:17px; height:17px; accent-color:var(--green); cursor:pointer; }
+.f-checkbox-row label { font-size:13px; font-weight:600; color:var(--ink); cursor:pointer; }
+.row-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+/* ── ITEM ROWS ── */
+.item-row { display:flex; align-items:flex-start; gap:10px; padding:11px 0; border-bottom:1px solid rgba(30,28,20,0.06); }
+.item-row:last-child { border-bottom:none; }
+.item-icon { font-size:18px; width:28px; text-align:center; flex-shrink:0; margin-top:2px; }
+.item-body { flex:1; min-width:0; }
+.item-name { font-size:14px; font-weight:700; color:var(--ink); margin-bottom:2px; }
+.item-sub { font-size:12px; color:var(--muted); line-height:1.35; }
+.item-actions { display:flex; gap:6px; margin-top:6px; flex-wrap:wrap; }
+
+/* ── PRIORITY ITEM ── */
+.priority-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid rgba(30,28,20,0.06); }
+.priority-item:last-child { border-bottom:none; }
+.priority-rank-badge { width:26px; height:26px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; color:white; flex-shrink:0; }
+.priority-body { flex:1; min-width:0; }
+.priority-name-text { font-size:14px; font-weight:700; color:var(--ink); }
+.priority-desc-text { font-size:11px; color:var(--muted); }
+.move-btns { display:flex; flex-direction:column; gap:3px; flex-shrink:0; }
+.move-btn { width:26px; height:26px; border:1.5px solid var(--border); background:var(--card); border-radius:7px; font-size:11px; cursor:pointer; display:flex; align-items:center; justify-content:center; color:var(--muted); transition:all 0.12s; }
+.move-btn:hover { background:var(--green); color:white; border-color:var(--green); }
+.move-btn:disabled { opacity:0.2; cursor:default; }
+.toggle-pill { font-size:10px; font-weight:700; padding:3px 9px; border-radius:99px; border:none; cursor:pointer; transition:all 0.15s; }
+.toggle-pill.on  { background:var(--green-bg); color:var(--green-check); }
+.toggle-pill.off { background:var(--cream2); color:var(--muted2); }
+
+/* ── BUTTONS ── */
+.btn { border:none; border-radius:var(--radius-sm); padding:8px 14px; font-size:12px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; transition:all 0.15s; }
+.btn:active { opacity:0.8; transform:scale(0.97); }
+.btn-green  { background:var(--green); color:white; }
+.btn-outline { background:transparent; border:1.5px solid var(--border); color:var(--muted); }
+.btn-red    { background:var(--red-bg); color:var(--red); border:1px solid rgba(192,57,43,0.2); }
+.btn-sm { padding:5px 10px; font-size:11px; }
+.btn-add { width:100%; background:var(--green-bg); border:1.5px dashed rgba(58,140,98,0.35); border-radius:var(--radius-sm); padding:11px; font-size:13px; font-weight:700; color:var(--green); cursor:pointer; margin-top:8px; transition:all 0.15s; }
+.btn-add:active { background:var(--green); color:white; }
+
+/* ── TAGS ── */
+.ptag { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; margin:2px 3px 2px 0; }
+
+/* ── INLINE EDIT PANEL ── */
+.edit-panel { background:var(--cream2); border-radius:var(--radius-sm); padding:12px; margin-top:8px; border:1px solid var(--border); display:none; }
+.edit-panel.open { display:block; }
+.edit-actions { display:flex; gap:7px; margin-top:10px; }
+.btn-save { flex:1; background:var(--green); color:white; border:none; border-radius:var(--radius-sm); padding:10px; font-size:13px; font-weight:700; cursor:pointer; }
+
+/* ── FEEDBACK BUTTONS ── */
+.feedback-row { display:flex; gap:6px; margin-top:7px; }
+.fb-btn { font-size:11px; font-weight:700; padding:4px 10px; border-radius:99px; border:1px solid var(--border); background:var(--cream2); cursor:pointer; transition:all 0.15s; }
+.fb-btn:active { transform:scale(0.95); }
+.fb-btn.more  { border-color:rgba(58,140,98,0.4); color:var(--green-check); background:var(--green-bg); }
+.fb-btn.less  { border-color:rgba(192,57,43,0.3); color:var(--red); background:var(--red-bg); }
+.fb-btn.irrelevant { border-color:rgba(160,152,128,0.4); color:var(--muted2); }
+.fb-stored { font-size:10px; color:var(--muted2); margin-top:4px; font-style:italic; }
+
+/* ── WEIGHT BAR ── */
+.weight-bar-bg { height:4px; background:rgba(30,28,20,0.08); border-radius:99px; margin-top:5px; overflow:hidden; }
+.weight-bar-fill { height:4px; border-radius:99px; transition:width 0.5s ease; }
+
+/* ── PRIORITY CHECKBOXES ── */
+.p-checks { display:flex; flex-direction:column; gap:6px; }
+.p-check-row { display:flex; align-items:center; gap:8px; }
+.p-check-row input { width:16px; height:16px; accent-color:var(--green); cursor:pointer; }
+.p-check-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.p-check-label { font-size:13px; font-weight:600; color:var(--ink); cursor:pointer; }
+
+/* ── BOTTOM NAV ── */
+  .bottom-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(240,235,224,0.97);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;padding:8px 0 env(safe-area-inset-bottom,16px);z-index:100}
+  .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;cursor:pointer;font-size:10px;font-weight:600;color:var(--muted2);text-decoration:none;border:none;background:none;font-family:inherit}
+  .nav-tab.active{color:var(--green)}
+  .nav-tab-icon{font-size:21px;line-height:1;transition:transform .18s ease}
+  .nav-tab.active .nav-tab-icon{transform:translateY(-2px)}
+.nav-tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; font-size:10px; font-weight:600; color:var(--muted2); cursor:pointer; padding:4px 0; }
+.nav-tab.active { color:var(--green); }
+.nav-tab-icon { font-size:22px; line-height:1; }
+
+/* ── EMPTY ── */
+.empty-state { text-align:center; padding:24px 0; color:var(--muted2); font-size:13px; }
+</style>
+</head>
+<body>
+
+<div style="display:flex;justify-content:flex-end;padding:8px 20px 0;background:var(--cream)">
+  <span class="save-indicator" id="save-indicator">✓ Saved</span>
+</div>
+
+<div class="app-header">
+  <div class="perch-logo">
+    <svg width="28" height="28" viewBox="0 0 40 40" fill="none">
+      <path d="M6 16L14 20L10 28L6 16Z" fill="#2d2a1e"/>
+      <path d="M20 6L28 14L22 16L20 12L18 16L12 14L20 6Z" fill="#2d2a1e"/>
+      <path d="M20 12L26 20L20 24L14 20L20 12Z" fill="#3a3525"/>
+      <circle cx="17" cy="15" r="1.5" fill="#1e1c14"/>
+      <path d="M20 24L24 32L20 30L16 32L20 24Z" fill="#2d2a1e"/>
+    </svg>
+    <span class="perch-wordmark">Memory</span>
+  </div>
+</div>
+
+<div class="scroll-area">
+  <div class="page-title">
+    <h1>Memory Explorer</h1>
+    <p>Everything Perch knows. Edit anything — changes take effect immediately.</p>
+    <a href="perch_knows.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;margin-right:8px;font-size:13px;font-weight:700;color:#2d6a4f;text-decoration:none;background:#eef7f2;border:1px solid rgba(58,140,98,0.2);border-radius:9px;padding:7px 13px">🌱 What Perch Knows &rsaquo;</a>
+    <a href="perch_settings.html#myok" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;font-weight:700;color:#2d6a4f;text-decoration:none;background:#eef7f2;border:1px solid rgba(58,140,98,0.2);border-radius:9px;padding:7px 13px">⚙️ My OK &mdash; what “clear” means to you &rsaquo;</a>
+  </div>
+
+  <!-- Section tabs -->
+  <div class="section-tabs" id="section-tabs"></div>
+
+  <!-- Section panels rendered by JS -->
+  <div id="section-panels"></div>
+</div>
+
+<nav class="bottom-nav">
+  <a class="nav-tab" href="perch_today_live.html"><div class="nav-tab-icon">&#127968;</div><span>Today</span></a>
+  <a class="nav-tab" href="perch_week_live.html"><div class="nav-tab-icon">&#128197;</div><span>Week</span></a>
+  <a class="nav-tab" href="perch_month_live.html"><div class="nav-tab-icon">&#128198;</div><span>Month</span></a>
+  <a class="nav-tab" href="perch_life.html"><div class="nav-tab-icon">&#127807;</div><span>Life</span></a>
+  <a class="nav-tab active" href="perch_capture.html"><div class="nav-tab-icon">&#129413;</div><span>Perch</span></a>
+</nav>
+
+<script>
+// ════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════
+function flashSave() {
+  const el = document.getElementById('save-indicator');
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 1800);
+}
+
+function persist(path, value) {
+  PerchMemory.set(path, value);
+  if (window.PerchEvents?.refresh) PerchEvents.refresh();
+  flashSave();
+}
+
+function uid() { return 'id_' + Date.now() + '_' + Math.floor(Math.random()*1000); }
+
+function priorityTagHtml(tags) {
+  const priorities = PerchMemory.get('priorities') || [];
+  return (tags||[]).map(pid => {
+    const p = priorities.find(x => x.id === pid);
+    return p ? `<span class="ptag" style="background:${p.bg};color:${p.color}">${p.name}</span>` : '';
+  }).join('');
+}
+
+function priorityChecks(selectedTags, prefix) {
+  const priorities = PerchMemory.get('priorities') || [];
+  return `<div class="p-checks">${priorities.map(p => `
+    <div class="p-check-row">
+      <input type="checkbox" id="${prefix}_${p.id}" value="${p.id}" ${(selectedTags||[]).includes(p.id)?'checked':''}>
+      <div class="p-check-dot" style="background:${p.color}"></div>
+      <label class="p-check-label" for="${prefix}_${p.id}">${p.name}</label>
+    </div>`).join('')}</div>`;
+}
+
+function readCheckedTags(prefix) {
+  const priorities = PerchMemory.get('priorities') || [];
+  return priorities.map(p => p.id).filter(id => {
+    const el = document.getElementById(`${prefix}_${id}`);
+    return el && el.checked;
+  });
+}
+
+function togglePanel(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.classList.toggle('open');
+}
+
+// ── Feedback ────────────────────────────────
+function storeFeedback(targetId, targetName, signal) {
+  const feedback = PerchMemory.get('recommendation_feedback') || [];
+  // Replace existing feedback for this item
+  const idx = feedback.findIndex(f => f.id === targetId);
+  const entry = { id: targetId, name: targetName, signal, updated: PerchDate.fmt(PerchDate.today()) };
+  if (idx > -1) feedback[idx] = entry; else feedback.push(entry);
+  PerchMemory.set('recommendation_feedback', feedback);
+  flashSave();
+  // Re-render the feedback display inline
+  const stored = document.getElementById('fb_stored_' + targetId);
+  const label = signal === 'more' ? '👍 Marked more important'
+              : signal === 'less' ? '👎 Marked less important'
+              : '🚫 Marked not relevant';
+  if (stored) stored.textContent = label;
+}
+
+function getFeedback(id) {
+  const feedback = PerchMemory.get('recommendation_feedback') || [];
+  return feedback.find(f => f.id === id);
+}
+
+function feedbackHtml(id, name) {
+  const existing = getFeedback(id);
+  const stored = existing ? `<div class="fb-stored" id="fb_stored_${id}">${existing.signal==='more'?'👍 More important':existing.signal==='less'?'👎 Less important':'🚫 Not relevant'}</div>`
+                          : `<div class="fb-stored" id="fb_stored_${id}"></div>`;
+  return `<div class="feedback-row">
+    <button class="fb-btn more" onclick="storeFeedback('${id}','${name.replace(/'/g,"\\'")}','more')">👍 More</button>
+    <button class="fb-btn less" onclick="storeFeedback('${id}','${name.replace(/'/g,"\\'")}','less')">👎 Less</button>
+    <button class="fb-btn irrelevant" onclick="storeFeedback('${id}','${name.replace(/'/g,"\\'")}','irrelevant')">🚫 Skip</button>
+  </div>${stored}`;
+}
+
+// ════════════════════════════════════════════
+// SECTION DEFINITIONS
+// ════════════════════════════════════════════
+const SECTIONS = [
+  { id:'priorities', label:'🎯 Priorities', render: renderPriorities },
+  { id:'people',     label:'👥 People',     render: renderPeople     },
+  { id:'bills',      label:'📡 Bills',      render: renderBills      },
+  { id:'properties', label:'🏠 Properties', render: renderProperties },
+  { id:'goals',      label:'🎯 Goals',      render: renderGoals      },
+  { id:'opportunities', label:'⚡ Opps',   render: renderOpportunities },
+  { id:'horizon',    label:'🏔️ Horizon',   render: renderHorizon    },
+  { id:'captures',   label:'💬 Captures',  render: renderCaptures   },
+  { id:'questions',  label:'❓ Questions', render: renderQuestions  },
+  { id:'feedback',   label:'📊 Feedback',  render: renderFeedback   },
+];
+
+function buildShell() {
+  const tabs = document.getElementById('section-tabs');
+  const panels = document.getElementById('section-panels');
+  SECTIONS.forEach((s, i) => {
+    const tab = document.createElement('div');
+    tab.className = 'section-tab' + (i===0?' active':'');
+    tab.textContent = s.label;
+    tab.onclick = () => activateSection(s.id);
+    tab.id = 'tab_' + s.id;
+    tabs.appendChild(tab);
+
+    const panel = document.createElement('div');
+    panel.className = 'section-panel' + (i===0?' active':'');
+    panel.id = 'panel_' + s.id;
+    panels.appendChild(panel);
+  });
+}
+
+function activateSection(id) {
+  document.querySelectorAll('.section-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.section-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab_' + id).classList.add('active');
+  const panel = document.getElementById('panel_' + id);
+  panel.classList.add('active');
+  // Lazy render on first activation
+  if (!panel.dataset.rendered) {
+    const sec = SECTIONS.find(s => s.id === id);
+    if (sec) sec.render(panel);
+    panel.dataset.rendered = '1';
+  }
+}
+
+function rerender(id) {
+  const panel = document.getElementById('panel_' + id);
+  if (panel) { panel.dataset.rendered = ''; const sec = SECTIONS.find(s=>s.id===id); if(sec) sec.render(panel); }
+}
+
+// ════════════════════════════════════════════
+// SECTION: PRIORITIES
+// ════════════════════════════════════════════
+function renderPriorities(el) {
+  const priorities = (PerchMemory.get('priorities') || []).slice().sort((a,b)=>a.rank-b.rank);
+  const n = priorities.length || 5;
+
+  el.innerHTML = `<div class="card">
+    <div class="card-header"><span class="card-title">Priority order</span><span style="font-size:12px;color:var(--muted)">Drag or use ▲▼</span></div>
+    <div class="card-inner" id="priority-list">
+      ${priorities.map((p,i) => {
+        const w = p.active!==false ? parseFloat((1-((p.rank-1)/n)*0.6).toFixed(2)) : 0;
+        return `<div class="priority-item" id="pri_${p.id}">
+          <div class="move-btns">
+            <button class="move-btn" onclick="movePriority('${p.id}',-1)" ${i===0?'disabled':''}>▲</button>
+            <button class="move-btn" onclick="movePriority('${p.id}',1)"  ${i===priorities.length-1?'disabled':''}>▼</button>
+          </div>
+          <div class="priority-rank-badge" style="background:${p.active!==false?p.color:'var(--muted2)'}">${p.rank}</div>
+          <div class="priority-body">
+            <div class="priority-name-text">${p.name}</div>
+            <div class="priority-desc-text">${p.description||''}</div>
+            <div class="weight-bar-bg"><div class="weight-bar-fill" style="width:${w*100}%;background:${p.color}"></div></div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px">
+            <span style="font-size:11px;font-weight:700;color:${p.active!==false?p.color:'var(--muted2)'}">w=${w}</span>
+            <button class="toggle-pill ${p.active!==false?'on':'off'}" onclick="togglePriority('${p.id}')">${p.active!==false?'● on':'○ off'}</button>
+            <button class="btn btn-sm btn-outline" onclick="editPriority('${p.id}')">Edit</button>
+          </div>
+        </div>
+        <div class="edit-panel" id="epri_${p.id}">
+          <div class="field-label">Name</div>
+          <input class="f-input" id="epri_name_${p.id}" value="${p.name}">
+          <div class="field-label">Description</div>
+          <input class="f-input" id="epri_desc_${p.id}" value="${p.description||''}">
+          <div class="edit-actions">
+            <button class="btn-save" onclick="savePriority('${p.id}')">Save</button>
+            <button class="btn btn-outline" onclick="togglePanel('epri_${p.id}')">Cancel</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="card-inner" style="border-top:1px solid rgba(30,28,20,0.06)">
+      <button class="btn-add" onclick="addPriority()">+ Add priority</button>
+    </div>
+  </div>`;
+}
+
+function movePriority(id, dir) {
+  const priorities = (PerchMemory.get('priorities')||[]).slice().sort((a,b)=>a.rank-b.rank);
+  const idx = priorities.findIndex(p=>p.id===id);
+  const swapIdx = idx+dir;
+  if (swapIdx<0||swapIdx>=priorities.length) return;
+  [priorities[idx].rank, priorities[swapIdx].rank] = [priorities[swapIdx].rank, priorities[idx].rank];
+  priorities.sort((a,b)=>a.rank-b.rank).forEach((p,i)=>p.rank=i+1);
+  persist('priorities', priorities);
+  rerender('priorities');
+}
+
+function togglePriority(id) {
+  const priorities = PerchMemory.get('priorities')||[];
+  const p = priorities.find(x=>x.id===id);
+  if (p) { p.active = p.active===false ? true : false; persist('priorities', priorities); rerender('priorities'); }
+}
+
+function editPriority(id) { togglePanel('epri_'+id); }
+
+function savePriority(id) {
+  const priorities = PerchMemory.get('priorities')||[];
+  const p = priorities.find(x=>x.id===id);
+  if (!p) return;
+  p.name = document.getElementById('epri_name_'+id)?.value.trim()||p.name;
+  p.description = document.getElementById('epri_desc_'+id)?.value.trim()||p.description;
+  persist('priorities', priorities);
+  rerender('priorities');
+}
+
+function addPriority() {
+  const priorities = PerchMemory.get('priorities')||[];
+  const newP = { id:'pri_'+uid(), name:'New Priority', description:'', rank:priorities.length+1, active:true, color:'#7a7060', bg:'#f5f2eb' };
+  priorities.push(newP);
+  persist('priorities', priorities);
+  rerender('priorities');
+}
+
+// ════════════════════════════════════════════
+// SECTION: PEOPLE
+// ════════════════════════════════════════════
+function renderPeople(el) {
+  const people = PerchMemory.get('people')||[];
+
+  // Get Yellowstone date from future_horizon for age-at-trip calculation
+  const yellowstone = (PerchMemory.get('future_horizon')||[]).find(f=>f.id==='yellowstone');
+  const tripYear    = yellowstone?.date_start ? parseInt(yellowstone.date_start.slice(0,4)) : null;
+  const thisYear    = new Date().getFullYear();
+
+  function ageStr(person) {
+    if (!person.birth_year) return '';
+    const age = thisYear - person.birth_year;
+    let s = `Age ${age}`;
+    if (tripYear) s += ` | Age ${tripYear - person.birth_year} at Yellowstone`;
+    return s;
+  }
+
+  function sigNotes(person) {
+    const notes = person.significance_notes || [];
+    if (!notes.length) return '';
+    return notes.map(n =>
+      `<div style="font-size:11px;color:var(--purple);background:var(--purple-bg);border-radius:6px;padding:4px 8px;margin-top:4px">✦ ${n}</div>`
+    ).join('');
+  }
+
+  el.innerHTML = `<div class="card">
+    <div class="card-header">
+      <span class="card-title">People</span>
+      <span style="font-size:12px;color:var(--muted)">${people.length} people</span>
+    </div>
+    <div class="card-inner">
+      ${people.map(p => `
+        <div class="item-row" id="prow_${p.id}">
+          <div class="item-icon">👤</div>
+          <div class="item-body">
+            <div class="item-name">${p.name} <span style="font-size:11px;color:var(--muted);font-weight:500">${p.relationship||''}</span></div>
+            ${p.birth_year ? `<div style="font-size:12px;color:var(--green-check);font-weight:600;margin-top:2px">${ageStr(p)}</div>` : ''}
+            <div class="item-sub" style="margin-top:3px">${p.notes||''}</div>
+            ${sigNotes(p)}
+            <div style="margin-top:4px">${priorityTagHtml(p.priority_tags)}</div>
+            <div class="item-actions">
+              <button class="btn btn-sm btn-outline" onclick="openPersonEdit('${p.id}')">Edit</button>
+              <button class="btn btn-sm btn-red" onclick="deletePerson('${p.id}')">Delete</button>
+            </div>
+
+            <!-- Inline edit panel -->
+            <div class="edit-panel" id="epeople_${p.id}">
+              <div class="row-2">
+                <div>
+                  <div class="field-label">Name</div>
+                  <input class="f-input" id="ep_name_${p.id}" type="text">
+                </div>
+                <div>
+                  <div class="field-label">Relationship</div>
+                  <input class="f-input" id="ep_rel_${p.id}" type="text">
+                </div>
+              </div>
+              <div class="row-2">
+                <div>
+                  <div class="field-label">Birth year</div>
+                  <input class="f-input" id="ep_by_${p.id}" type="number" min="1900" max="2030" placeholder="e.g. 2013">
+                </div>
+                <div>
+                  <div class="field-label">Birthday (optional)</div>
+                  <input class="f-input" id="ep_bday_${p.id}" type="date">
+                </div>
+              </div>
+              <div class="field-label">Notes</div>
+              <input class="f-input" id="ep_notes_${p.id}" type="text">
+              <div class="field-label">Significance notes</div>
+              <div style="font-size:11px;color:var(--muted);margin-bottom:5px">One per line. Perch uses these for future observations.</div>
+              <textarea class="f-input" id="ep_sig_${p.id}" rows="3" style="resize:vertical;font-family:'Inter',sans-serif;font-size:13px" placeholder="William will never be this age again during Yellowstone."></textarea>
+              <div class="field-label">Priority tags</div>
+              ${priorityChecks(p.priority_tags, 'epp_'+p.id)}
+              <div class="edit-actions">
+                <button class="btn-save" onclick="savePerson('${p.id}')">Save</button>
+                <button class="btn btn-outline" onclick="togglePanel('epeople_${p.id}')">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>`).join('')}
+      <button class="btn-add" onclick="addPerson()">+ Add person</button>
+    </div>
+  </div>`;
+
+  // Populate inputs AFTER innerHTML is set — avoids browser value="" caching
+  people.forEach(p => {
+    const byEl   = document.getElementById('ep_by_'+p.id);
+    const bdayEl = document.getElementById('ep_bday_'+p.id);
+    const nameEl = document.getElementById('ep_name_'+p.id);
+    const relEl  = document.getElementById('ep_rel_'+p.id);
+    const notEl  = document.getElementById('ep_notes_'+p.id);
+    const sigEl  = document.getElementById('ep_sig_'+p.id);
+    if (nameEl) nameEl.value = p.name || '';
+    if (relEl)  relEl.value  = p.relationship || '';
+    if (byEl)   byEl.value   = p.birth_year || '';
+    if (bdayEl) bdayEl.value = p.birthday || '';
+    if (notEl)  notEl.value  = p.notes || '';
+    if (sigEl)  sigEl.value  = (p.significance_notes || []).join('\n');
+  });
+}
+
+function openPersonEdit(id) {
+  // Close all other open panels first
+  document.querySelectorAll('#panel_people .edit-panel.open').forEach(el => {
+    if (el.id !== 'epeople_'+id) el.classList.remove('open');
+  });
+  togglePanel('epeople_'+id);
+}
+
+function savePerson(id) {
+  const people = PerchMemory.get('people')||[];
+  const p = people.find(x=>x.id===id);
+  if (!p) return;
+
+  const nameEl = document.getElementById('ep_name_'+id);
+  const relEl  = document.getElementById('ep_rel_'+id);
+  const byEl   = document.getElementById('ep_by_'+id);
+  const bdayEl = document.getElementById('ep_bday_'+id);
+  const notEl  = document.getElementById('ep_notes_'+id);
+  const sigEl  = document.getElementById('ep_sig_'+id);
+
+  if (nameEl) p.name         = nameEl.value.trim() || p.name;
+  if (relEl)  p.relationship = relEl.value.trim();
+  if (byEl)   {
+    const yr = parseInt(byEl.value);
+    p.birth_year = isNaN(yr) ? (p.birth_year || null) : yr;
+  }
+  if (bdayEl) p.birthday     = bdayEl.value || null;
+  if (notEl)  p.notes        = notEl.value.trim();
+  if (sigEl)  {
+    p.significance_notes = sigEl.value.split('\n')
+      .map(s => s.trim()).filter(Boolean);
+  }
+  p.priority_tags = readCheckedTags('epp_'+id);
+
+  persist('people', people);
+  rerender('people');
+}
+
+function deletePerson(id) {
+  if (!confirm('Remove this person from Perch memory?')) return;
+  PerchMemory.forget('people', id);
+  if (window.PerchEvents?.refresh) PerchEvents.refresh();
+  flashSave();
+  rerender('people');
+}
+
+function addPerson() {
+  const people = PerchMemory.get('people')||[];
+  people.push({
+    id: 'per_'+uid(),
+    name: 'New Person',
+    relationship: '',
+    birth_year: null,
+    birthday: null,
+    notes: '',
+    significance_notes: [],
+    priority_tags: []
+  });
+  persist('people', people);
+  rerender('people');
+}
+
+
+// ════════════════════════════════════════════
+// SECTION: BILLS
+// ════════════════════════════════════════════
+function renderBills(el) {
+  const bills = PerchMemory.get('bills')||[];
+  const statusColor = { due_today:'var(--red)', upcoming:'var(--orange)', set:'var(--green-check)', completed:'var(--muted2)' };
+
+  el.innerHTML = `<div class="card">
+    <div class="card-header"><span class="card-title">Bills</span><span style="font-size:12px;color:var(--muted)">${bills.length} bills</span></div>
+    <div class="card-inner">
+      ${bills.map(b => `
+        <div class="item-row">
+          <div class="item-icon">💳</div>
+          <div class="item-body">
+            <div class="item-name">${b.name} <span style="font-size:11px;color:var(--muted)">${b.provider||''}</span></div>
+            <div class="item-sub">$${b.amount} | Day ${b.due_day} | ${b.autopay?'Autopay':'Manual'} | <span style="color:${statusColor[b.status]||'var(--muted)'};">${b.status||'upcoming'}</span></div>
+            ${b.payment_url?`<div style="font-size:11px;color:var(--green);margin-top:2px"><a href="${b.payment_url}" target="_blank" style="color:var(--green)">Pay ↗</a></div>`:''}
+            <div class="item-actions">
+              <button class="btn btn-sm btn-outline" onclick="togglePanel('ebill_${b.id}')">Edit</button>
+              <button class="btn btn-sm btn-red" onclick="deleteBill('${b.id}')">Delete</button>
+            </div>
+            <div class="edit-panel" id="ebill_${b.id}">
+              <div class="row-2">
+                <div><div class="field-label">Name</div><input class="f-input" id="eb_name_${b.id}" value="${b.name}"></div>
+                <div><div class="field-label">Provider</div><input class="f-input" id="eb_prov_${b.id}" value="${b.provider||''}"></div>
+              </div>
+              <div class="row-2">
+                <div><div class="field-label">Amount ($)</div><input class="f-input" id="eb_amt_${b.id}" type="number" value="${b.amount}"></div>
+                <div><div class="field-label">Due day of month</div><input class="f-input" id="eb_day_${b.id}" type="number" min="1" max="31" value="${b.due_day}"></div>
+              </div>
+              <div class="row-2">
+                <div><div class="field-label">Status</div>
+                  <select class="f-select" id="eb_status_${b.id}">
+                    ${['upcoming','due_today','set','completed'].map(s=>`<option value="${s}" ${b.status===s?'selected':''}>${s}</option>`).join('')}
+                  </select>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;padding-top:22px">
+                  <input type="checkbox" id="eb_auto_${b.id}" ${b.autopay?'checked':''} style="width:17px;height:17px;accent-color:var(--green)">
+                  <label for="eb_auto_${b.id}" style="font-size:13px;font-weight:600">Autopay</label>
+                </div>
+              </div>
+              <div class="field-label">Payment URL</div>
+              <input class="f-input" id="eb_url_${b.id}" value="${b.payment_url||''}" placeholder="https://…">
+              <div class="edit-actions">
+                <button class="btn-save" onclick="saveBill('${b.id}')">Save</button>
+                <button class="btn btn-outline" onclick="togglePanel('ebill_${b.id}')">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>`).join('')}
+      <button class="btn-add" onclick="addBill()">+ Add bill</button>
+    </div>
+  </div>`;
+}
+
+function saveBill(id) {
+  const bills = PerchMemory.get('bills')||[];
+  const b = bills.find(x=>x.id===id);
+  if (!b) return;
+  b.name    = document.getElementById('eb_name_'+id)?.value.trim()||b.name;
+  b.provider= document.getElementById('eb_prov_'+id)?.value.trim()||'';
+  b.amount  = parseFloat(document.getElementById('eb_amt_'+id)?.value)||b.amount;
+  b.due_day = parseInt(document.getElementById('eb_day_'+id)?.value)||b.due_day;
+  b.status  = document.getElementById('eb_status_'+id)?.value||b.status;
+  b.autopay = document.getElementById('eb_auto_'+id)?.checked;
+  b.payment_url = document.getElementById('eb_url_'+id)?.value.trim()||null;
+  persist('bills', bills);
+  rerender('bills');
+}
+
+function deleteBill(id) {
+  if (!confirm('Delete this bill?')) return;
+  PerchMemory.forget('bills', id);
+  if (window.PerchEvents?.refresh) PerchEvents.refresh();
+  flashSave();
+  rerender('bills');
+}
+
+function addBill() {
+  const bills = PerchMemory.get('bills')||[];
+  bills.push({ id:'bill_'+uid(), name:'New Bill', provider:'', amount:0, due_day:1, autopay:false, status:'upcoming', payment_url:null, priority_tags:['financial_freedom'] });
+  persist('bills', bills);
+  rerender('bills');
+}
+
+// ════════════════════════════════════════════
+// SECTION: PROPERTIES
+// ════════════════════════════════════════════
+function renderProperties(el) {
+  const props = PerchMemory.get('properties')||[];
+  el.innerHTML = `<div class="card">
+    <div class="card-header"><span class="card-title">Properties</span><span style="font-size:12px;color:var(--muted)">${props.length} propert${props.length===1?'y':'ies'}</span></div>
+    <div class="card-inner">
+      ${props.map(p => {
+        const cashFlow = p.cash_flow_monthly ? `$${p.cash_flow_monthly}/mo cash flow` : '';
+        const equity = p.estimated_equity ? ` | $${p.estimated_equity.toLocaleString()} equity` : '';
+        return `<div class="item-row">
+          <div class="item-icon">${p.type==='rental'?'🏘️':'🏡'}</div>
+          <div class="item-body">
+            <div class="item-name">${p.name}</div>
+            <div class="item-sub">${p.type}${cashFlow?' | '+cashFlow:''}${equity}</div>
+            <div class="item-sub">${p.notes||''}</div>
+            <div class="item-actions">
+              <button class="btn btn-sm btn-outline" onclick="togglePanel('eprop_${p.id}')">Edit</button>
+              <button class="btn btn-sm btn-red" onclick="deleteProp('${p.id}')">Delete</button>
+            </div>
+            <div class="edit-panel" id="eprop_${p.id}">
+              <div class="field-label">Name</div>
+              <input class="f-input" id="epr_name_${p.id}" value="${p.name}">
+              <div class="row-2">
+                <div><div class="field-label">Type</div>
+                  <select class="f-select" id="epr_type_${p.id}">
+                    ${['primary_residence','rental','vacation','future'].map(t=>`<option value="${t}" ${p.type===t?'selected':''}>${t}</option>`).join('')}
+                  </select>
+                </div>
+                <div><div class="field-label">Rent/mo ($)</div><input class="f-input" id="epr_rent_${p.id}" type="number" value="${p.rent_monthly||''}"></div>
+              </div>
+              <div class="row-2">
+                <div><div class="field-label">Mortgage/mo ($)</div><input class="f-input" id="epr_mort_${p.id}" type="number" value="${p.mortgage_monthly||''}"></div>
+                <div><div class="field-label">Est. equity ($)</div><input class="f-input" id="epr_eq_${p.id}" type="number" value="${p.estimated_equity||''}"></div>
+              </div>
+              <div class="field-label">Notes</div>
+              <input class="f-input" id="epr_notes_${p.id}" value="${(p.notes||'').replace(/"/g,'&quot;')}">
+              <div class="edit-actions">
+                <button class="btn-save" onclick="saveProp('${p.id}')">Save</button>
+                <button class="btn btn-outline" onclick="togglePanel('eprop_${p.id}')">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+      <button class="btn-add" onclick="addProp()">+ Add property</button>
+    </div>
+  </div>`;
+}
+
+function saveProp(id) {
+  const props = PerchMemory.get('properties')||[];
+  const p = props.find(x=>x.id===id);
+  if (!p) return;
+  p.name = document.getElementById('epr_name_'+id)?.value.trim()||p.name;
+  p.type = document.getElementById('epr_type_'+id)?.value||p.type;
+  const rent = parseFloat(document.getElementById('epr_rent_'+id)?.value); if(!isNaN(rent)) p.rent_monthly=rent;
+  const mort = parseFloat(document.getElementById('epr_mort_'+id)?.value); if(!isNaN(mort)) p.mortgage_monthly=mort;
+  const eq   = parseFloat(document.getElementById('epr_eq_'+id)?.value);   if(!isNaN(eq))   p.estimated_equity=eq;
+  if (p.rent_monthly&&p.mortgage_monthly) p.cash_flow_monthly=p.rent_monthly-p.mortgage_monthly-(p.maintenance_avg_monthly||0);
+  p.notes = document.getElementById('epr_notes_'+id)?.value.trim()||'';
+  persist('properties', props);
+  rerender('properties');
+}
+
+function deleteProp(id) {
+  if (!confirm('Remove property?')) return;
+  PerchMemory.forget('properties', id);
+  flashSave();
+  rerender('properties');
+}
+
+function addProp() {
+  const props = PerchMemory.get('properties')||[];
+  props.push({ id:'prop_'+uid(), name:'New Property', type:'rental', notes:'', priority_tags:['financial_freedom','homestead_expansion'] });
+  persist('properties', props);
+  rerender('properties');
+}
+
+// ════════════════════════════════════════════
+// SECTION: GOALS
+// ════════════════════════════════════════════
+function renderGoals(el) {
+  const finGoals  = PerchMemory.get('finances.goals')||[];
+  const hmGoals   = PerchMemory.get('homestead.goals')||[];
+  const genGoals  = PerchMemory.get('goals')||[];
+
+  function goalCard(title, goals, saveKey) {
+    return `<div class="card" style="margin-bottom:12px">
+      <div class="card-header"><span class="card-title">${title}</span></div>
+      <div class="card-inner">
+        ${goals.map(g => `
+          <div class="item-row">
+            <div class="item-icon">🎯</div>
+            <div class="item-body">
+              <div class="item-name">${g.name}</div>
+              ${g.current!=null&&g.target!=null ? `<div class="item-sub">${g.unit==='percent'?`${g.current}% → ${g.target}%`:`$${g.current} of $${g.target}`}</div>` : ''}
+              ${g.created_date ? `<div style="font-size:11px;color:var(--muted2);margin-top:2px">Added ${g.created_date}</div>` : ''}
+              <div style="margin-top:4px">${priorityTagHtml(g.priority_tags)}</div>
+              <div class="item-actions">
+                <button class="btn btn-sm btn-outline" onclick="togglePanel('egoal_${g.id}')">Edit</button>
+                <button class="btn btn-sm btn-red" onclick="deleteGoal('${g.id}','${saveKey}')">Delete</button>
+              </div>
+              <div class="edit-panel" id="egoal_${g.id}">
+                <div class="field-label">Name</div>
+                <input class="f-input" id="eg_name_${g.id}" value="${g.name}">
+                ${g.target!=null?`
+                  <div class="row-2">
+                    <div><div class="field-label">Current</div><input class="f-input" id="eg_cur_${g.id}" type="number" value="${g.current||0}"></div>
+                    <div><div class="field-label">Target</div><input class="f-input" id="eg_tgt_${g.id}" type="number" value="${g.target||0}"></div>
+                  </div>`:``}
+                <div class="row-2">
+                  <div>
+                    <div class="field-label">Date added</div>
+                    <input class="f-input" id="eg_cd_${g.id}" type="date" value="${g.created_date||''}">
+                  </div>
+                </div>
+                <div class="field-label">Priority tags</div>
+                ${priorityChecks(g.priority_tags, 'egp_'+g.id)}
+                <div class="edit-actions">
+                  <button class="btn-save" onclick="saveGoal('${g.id}','${saveKey}')">Save</button>
+                  <button class="btn btn-outline" onclick="togglePanel('egoal_${g.id}')">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>`).join('')}
+        <button class="btn-add" onclick="addGoal('${saveKey}')">+ Add goal</button>
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML =
+    goalCard('💳 Financial Goals', finGoals, 'finances.goals') +
+    goalCard('🌿 Homestead Goals', hmGoals,  'homestead.goals') +
+    goalCard('🌟 Life Goals',      genGoals, 'goals');
+}
+
+function saveGoal(id, saveKey) {
+  const goals = PerchMemory.get(saveKey)||[];
+  const g = goals.find(x=>x.id===id);
+  if (!g) return;
+  g.name = document.getElementById('eg_name_'+id)?.value.trim()||g.name;
+  const cur = document.getElementById('eg_cur_'+id); if(cur) g.current=parseFloat(cur.value)||g.current;
+  const tgt = document.getElementById('eg_tgt_'+id); if(tgt) g.target=parseFloat(tgt.value)||g.target;
+  const cd  = document.getElementById('eg_cd_'+id);  if(cd && cd.value) g.created_date = cd.value;
+  g.priority_tags = readCheckedTags('egp_'+id);
+  persist(saveKey, goals);
+  rerender('goals');
+}
+
+function deleteGoal(id, saveKey) {
+  const goals = PerchMemory.get(saveKey)||[];
+  const updated = goals.filter(g=>g.id!==id);
+  persist(saveKey, updated);
+  rerender('goals');
+}
+
+function addGoal(saveKey) {
+  const goals = PerchMemory.get(saveKey)||[];
+  goals.push({
+    id: 'goal_'+uid(),
+    name: 'New Goal',
+    priority_tags: ['financial_freedom'],
+    created_date: PerchDate.fmt(PerchDate.today())
+  });
+  persist(saveKey, goals);
+  rerender('goals');
+}
+
+// ════════════════════════════════════════════
+// SECTION: OPPORTUNITIES
+// ════════════════════════════════════════════
+function renderOpportunities(el) {
+  const opps = PerchMemory.get('opportunities')||[];
+  el.innerHTML = `<div class="card">
+    <div class="card-header"><span class="card-title">Opportunities</span></div>
+    <div class="card-inner">
+      ${opps.map(o => `
+        <div class="item-row">
+          <div class="item-icon">${o.icon||'⚡'}</div>
+          <div class="item-body">
+            <div class="item-name">${o.name}</div>
+            <div class="item-sub">${o.detail||''}</div>
+            <div class="item-sub" style="font-style:italic;color:var(--green);margin-top:2px">${o.context||''}</div>
+            <div style="margin-top:4px">${priorityTagHtml(o.priority_tags)}</div>
+            ${feedbackHtml(o.id, o.name)}
+            <div class="item-actions">
+              <button class="btn btn-sm btn-outline" onclick="togglePanel('eopp_${o.id}')">Edit</button>
+              <button class="btn btn-sm btn-red" onclick="deleteOpp('${o.id}')">Delete</button>
+            </div>
+            <div class="edit-panel" id="eopp_${o.id}">
+              <div class="field-label">Name</div>
+              <input class="f-input" id="eo_name_${o.id}" value="${o.name}">
+              <div class="row-2">
+                <div><div class="field-label">Icon (emoji)</div><input class="f-input" id="eo_icon_${o.id}" value="${o.icon||''}"></div>
+                <div><div class="field-label">Date (YYYY-MM-DD)</div><input class="f-input" id="eo_date_${o.id}" value="${o.date||''}"></div>
+              </div>
+              <div class="field-label">Detail</div>
+              <input class="f-input" id="eo_detail_${o.id}" value="${(o.detail||'').replace(/"/g,'&quot;')}">
+              <div class="field-label">Why it matters</div>
+              <input class="f-input" id="eo_ctx_${o.id}" value="${(o.context||'').replace(/"/g,'&quot;')}">
+              <div class="field-label">Priority tags</div>
+              ${priorityChecks(o.priority_tags, 'eop_'+o.id)}
+              <div class="edit-actions">
+                <button class="btn-save" onclick="saveOpp('${o.id}')">Save</button>
+                <button class="btn btn-outline" onclick="togglePanel('eopp_${o.id}')">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>`).join('')}
+      <button class="btn-add" onclick="addOpp()">+ Add opportunity</button>
+    </div>
+  </div>`;
+}
+
+function saveOpp(id) {
+  const opps = PerchMemory.get('opportunities')||[];
+  const o = opps.find(x=>x.id===id);
+  if (!o) return;
+  o.name    = document.getElementById('eo_name_'+id)?.value.trim()||o.name;
+  o.icon    = document.getElementById('eo_icon_'+id)?.value.trim()||o.icon;
+  o.date    = document.getElementById('eo_date_'+id)?.value.trim()||null;
+  o.detail  = document.getElementById('eo_detail_'+id)?.value.trim()||'';
+  o.context = document.getElementById('eo_ctx_'+id)?.value.trim()||'';
+  o.priority_tags = readCheckedTags('eop_'+id);
+  persist('opportunities', opps);
+  rerender('opportunities');
+}
+
+function deleteOpp(id) {
+  if (!confirm('Remove opportunity?')) return;
+  PerchMemory.forget('opportunities', id);
+  if (window.PerchEvents?.refresh) PerchEvents.refresh();
+  flashSave();
+  rerender('opportunities');
+}
+
+function addOpp() {
+  const opps = PerchMemory.get('opportunities')||[];
+  opps.push({ id:'opp_'+uid(), name:'New Opportunity', icon:'⚡', detail:'', context:'', priority_tags:['family_experiences'] });
+  persist('opportunities', opps);
+  rerender('opportunities');
+}
+
+// ════════════════════════════════════════════
+// SECTION: FUTURE HORIZON
+// ════════════════════════════════════════════
+function renderHorizon(el) {
+  const fh = PerchMemory.get('future_horizon')||[];
+  const statusColors = { on_track:'var(--green-check)', important:'var(--orange)', waiting_on:'var(--purple)', tentative:'var(--muted2)' };
+
+  el.innerHTML = `<div class="card">
+    <div class="card-header"><span class="card-title">Future Horizon</span></div>
+    <div class="card-inner">
+      ${fh.map(f => {
+        const du = f.date_start ? PerchDate.daysUntil(PerchDate.fromStr(f.date_start)) : null;
+        return `<div class="item-row">
+          <div class="item-icon">${f.icon||'🏔️'}</div>
+          <div class="item-body">
+            <div class="item-name">${f.name}</div>
+            <div class="item-sub">${f.date_start||''}${f.date_end?' → '+f.date_end:''} ${du!=null?'| '+du+'d away':''}</div>
+            ${f.created_date ? `<div style="font-size:11px;color:var(--muted2);margin-top:2px">Added ${f.created_date}</div>` : ''}
+            <div style="margin-top:3px"><span class="ptag" style="background:rgba(30,28,20,0.06);color:${statusColors[f.status]||'var(--muted)'};">${f.status||''}</span></div>
+            <div style="margin-top:4px">${priorityTagHtml(f.priority_tags)}</div>
+            ${feedbackHtml(f.id, f.name)}
+            <div class="item-actions">
+              <button class="btn btn-sm btn-outline" onclick="togglePanel('efh_${f.id}')">Edit</button>
+              <button class="btn btn-sm btn-red" onclick="deleteHorizon('${f.id}')">Delete</button>
+            </div>
+            <div class="edit-panel" id="efh_${f.id}">
+              <div class="row-2">
+                <div><div class="field-label">Name</div><input class="f-input" id="efh_name_${f.id}" value="${f.name}"></div>
+                <div><div class="field-label">Icon</div><input class="f-input" id="efh_icon_${f.id}" value="${f.icon||''}"></div>
+              </div>
+              <div class="row-2">
+                <div><div class="field-label">Start date</div><input class="f-input" id="efh_start_${f.id}" type="date" value="${f.date_start||''}"></div>
+                <div><div class="field-label">End date</div><input class="f-input" id="efh_end_${f.id}" type="date" value="${f.date_end||''}"></div>
+              </div>
+              <div class="field-label">Status</div>
+              <select class="f-select" id="efh_status_${f.id}">
+                ${['on_track','important','waiting_on','tentative','upcoming'].map(s=>`<option value="${s}" ${f.status===s?'selected':''}>${s}</option>`).join('')}
+              </select>
+              <div class="field-label">Priority tags</div>
+              ${priorityChecks(f.priority_tags, 'efhp_'+f.id)}
+              <div class="row-2" style="margin-top:8px">
+                <div>
+                  <div class="field-label">Date added to memory</div>
+                  <input class="f-input" id="efh_cd_${f.id}" type="date" value="${f.created_date||''}">
+                </div>
+              </div>
+              <div class="edit-actions">
+                <button class="btn-save" onclick="saveHorizon('${f.id}')">Save</button>
+                <button class="btn btn-outline" onclick="togglePanel('efh_${f.id}')">Cancel</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+      <button class="btn-add" onclick="addHorizon()">+ Add future event</button>
+    </div>
+  </div>`;
+}
+
+function saveHorizon(id) {
+  const fh = PerchMemory.get('future_horizon')||[];
+  const f = fh.find(x=>x.id===id);
+  if (!f) return;
+  f.name       = document.getElementById('efh_name_'+id)?.value.trim()||f.name;
+  f.icon       = document.getElementById('efh_icon_'+id)?.value.trim()||f.icon;
+  f.date_start = document.getElementById('efh_start_'+id)?.value||null;
+  f.date_end   = document.getElementById('efh_end_'+id)?.value||null;
+  f.status     = document.getElementById('efh_status_'+id)?.value||f.status;
+  f.priority_tags = readCheckedTags('efhp_'+id);
+  const cd = document.getElementById('efh_cd_'+id);
+  if (cd && cd.value) f.created_date = cd.value;
+  persist('future_horizon', fh);
+  rerender('horizon');
+}
+
+function deleteHorizon(id) {
+  if (!confirm('Remove from Future Horizon?')) return;
+  PerchMemory.forget('future_horizon', id);
+  if (window.PerchEvents?.refresh) PerchEvents.refresh();
+  flashSave();
+  rerender('horizon');
+}
+
+function addHorizon() {
+  const fh = PerchMemory.get('future_horizon')||[];
+  fh.push({
+    id: 'fh_'+uid(),
+    name: 'New Event',
+    icon: '🏔️',
+    date_start: null,
+    status: 'upcoming',
+    priority_tags: ['family_experiences'],
+    created_date: PerchDate.fmt(PerchDate.today())
+  });
+  persist('future_horizon', fh);
+  rerender('horizon');
+}
+
+
+// ════════════════════════════════════════════
+// SECTION: CAPTURES
+// ════════════════════════════════════════════
+const CAP_TYPES = ['reminder','waiting_on','recurring','opportunity','event','goal'];
+const CAP_LABELS = {reminder:'Reminder',waiting_on:'Waiting On',recurring:'Recurring',opportunity:'Opportunity',event:'Event',goal:'Goal'};
+const CAP_ICONS  = {reminder:'🔔',waiting_on:'⏳',recurring:'🔁',opportunity:'⚡',event:'📅',goal:'🎯'};
+
+function renderCaptures(el) {
+  const allCaps     = (PerchMemory.get('captures')||[]).slice().reverse();
+  const filter      = window._capFilter || 'open';
+  const search      = (window._capSearch||'').toLowerCase().trim();
+  const DONE        = new Set(['completed','resolved','dismissed']);
+  const ARC         = 'archived';
+
+  const matches = allCaps.filter(c => {
+    const done = DONE.has(c.status), arc = c.status===ARC;
+    let pass;
+    if (filter==='all')       pass = !arc;
+    else if (filter==='open') pass = !done && !arc;
+    else if (filter==='done') pass = done;
+    else if (filter==='archived') pass = arc;
+    else pass = c.perch_action===filter && !arc;
+    if (!pass) return false;
+    if (!search) return true;
+    const hay = ((c.clean_label||'')+(c.label||'')+(c.original_text||'')+(c.text||'')).toLowerCase();
+    return hay.includes(search);
+  });
+
+  const openCount = allCaps.filter(c=>!DONE.has(c.status)&&c.status!==ARC).length;
+  const doneCount = allCaps.filter(c=>DONE.has(c.status)).length;
+  const arcCount  = allCaps.filter(c=>c.status===ARC).length;
+  const doneUnarchivedCount = allCaps.filter(c=>DONE.has(c.status)&&c.status!==ARC).length;
+
+  const FL={open:`Open (${openCount})`,done:`Done (${doneCount})`,
+    reminder:'Reminders',waiting_on:'Waiting',recurring:'Recurring',
+    all:`All (${allCaps.length-arcCount})`,archived:`Archived (${arcCount})`};
+  const filterBtns=['open','done','reminder','waiting_on','recurring','all','archived'].map(f=>{
+    const active=f===filter;
+    if(f==='archived'&&arcCount===0&&filter!=='archived') return '';
+    return `<button onclick="window._capFilter='${f}';rerender('captures')"
+      style="flex-shrink:0;padding:5px 12px;border-radius:99px;font-family:Inter,sans-serif;
+      border:1px solid ${active?'var(--green)':'var(--border)'};
+      background:${active?'var(--green)':'var(--card)'};
+      color:${active?'#fff':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer">
+      ${FL[f]||f}</button>`;
+  }).join('');
+
+  const rows=matches.map(c=>{
+    const done=DONE.has(c.status), arc=c.status===ARC;
+    const waiting=!done&&!arc&&c.perch_action==='waiting_on';
+    const icon=done?'\u2705':arc?'\uD83D\uDDC3\uFE0F':waiting?'\u23F3':(CAP_ICONS[c.perch_action]||'\uD83D\uDCAC');
+    const label=c.clean_label||c.label||c.text||'Unnamed';
+    const orig=(c.original_text&&c.original_text!==label)?c.original_text:null;
+
+    let dateBadge='';
+    if(c.expected&&!done&&!arc){
+      const d=new Date(c.expected+'T00:00:00'),td=new Date();td.setHours(0,0,0,0);
+      const diff=Math.round((d-td)/86400000),ov=diff<0;
+      const lbl=diff===0?'Today':diff===1?'Tomorrow':diff===-1?'Yesterday':diff<0?Math.abs(diff)+'d overdue':diff+'d';
+      dateBadge=`<span class="ptag" style="background:${ov?'var(--red-bg)':'#f0ecf9'};color:${ov?'var(--red)':'var(--purple)'}">\uD83D\uDCC5 ${lbl}</span>`;
+    }
+    const typeBadge=`<span class="ptag" style="background:var(--cream2);color:var(--muted2)">${CAP_LABELS[c.perch_action]||'capture'}</span>`;
+    const doneBadge=done?`<span class="ptag" style="background:var(--green-bg);color:var(--green-check)">\u2713 ${c.status==='dismissed'?'Dismissed':'Done'}</span>`:'';
+    const arcBadge=arc?`<span class="ptag" style="background:var(--cream2);color:var(--muted2)">\uD83D\uDDC3\uFE0F Archived</span>`:'';
+
+    const mainBtn=arc
+      ?`<button class="btn btn-sm btn-outline" onclick="brainRestore('${c.id}')">\u21A9 Restore</button>`
+      :done
+      ?`<button class="btn btn-sm btn-outline" onclick="brainReopen('${c.id}')">\u21A9 Reopen</button>`
+      :waiting
+      ?`<button class="btn btn-sm" style="background:var(--green-bg);color:var(--green-check);border:1px solid rgba(58,140,98,0.3)" onclick="brainArrived('${c.id}')">\u2713 Arrived</button>`
+      :`<button class="btn btn-sm" style="background:var(--green-bg);color:var(--green-check);border:1px solid rgba(58,140,98,0.3)" onclick="brainComplete('${c.id}')">\u2713 Done</button>`;
+
+    const archiveBtn=(!done&&!arc)
+      ?`<button class="btn btn-sm btn-outline" onclick="brainArchive('${c.id}')" style="color:var(--muted2)" title="Archive — hides from active list, restorable">\uD83D\uDDC3 Archive</button>`:'';
+
+    return `<div class="item-row" style="${done||arc?'opacity:0.55':''}">
+      <div class="item-icon">${icon}</div>
+      <div class="item-body">
+        <div class="item-name" style="${done?'text-decoration:line-through':''}">${label}</div>
+        ${orig?`<div style="font-size:11px;color:var(--muted2);margin-top:2px;font-style:italic">"${orig}"</div>`:''}
+        <div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:2px">${typeBadge}${dateBadge}${doneBadge}${arcBadge}</div>
+        <div class="item-actions">
+          ${mainBtn}
+          ${!arc?`<button class="btn btn-sm btn-outline" onclick="togglePanel('ecap_${c.id}')">Edit</button>`:''}
+          ${!done&&!arc?`<button class="btn btn-sm btn-outline" onclick="togglePanel('prom_${c.id}')" style="color:#9a6a0a;border-color:rgba(192,138,46,0.3)">\u2B06 Promote</button>`:''}
+          ${archiveBtn}
+          <button class="btn btn-sm btn-red" onclick="deleteCapture('${c.id}')">Delete</button>
+        </div>
+
+        <div class="edit-panel" id="ecap_${c.id}">
+          <div class="field-label">Label</div>
+          <input class="f-input" id="ec_label_${c.id}" value="${(c.clean_label||c.label||'').replace(/"/g,'&quot;')}">
+          <div class="row-2">
+            <div><div class="field-label">Type</div>
+              <select class="f-select" id="ec_type_${c.id}">
+                ${CAP_TYPES.map(t=>`<option value="${t}" ${c.perch_action===t?'selected':''}>${CAP_LABELS[t]}</option>`).join('')}
+              </select>
+            </div>
+            <div><div class="field-label">Expected date</div>
+              <input class="f-input" id="ec_date_${c.id}" type="date" value="${c.expected||''}">
+            </div>
+          </div>
+          <div class="field-label">Priority tags</div>
+          ${priorityChecks(c.priority_tags,'ecp_'+c.id)}
+          <div class="edit-actions">
+            <button class="btn-save" onclick="saveCapture('${c.id}')">Save</button>
+            <button class="btn btn-outline" onclick="togglePanel('ecap_${c.id}')">Cancel</button>
+          </div>
+        </div>
+
+        <div class="edit-panel" id="prom_${c.id}" style="background:#fffbf2;border-color:rgba(192,138,46,0.25)">
+          <div style="font-size:12px;font-weight:700;color:#9a6a0a;margin-bottom:10px">Promote this item</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Opens Settings with the form prefilled. This capture stays until you delete it.</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <button class="btn btn-sm" style="background:var(--orange-bg);color:var(--orange);border:1px solid rgba(224,123,57,0.3);text-align:left;padding:9px 12px"
+              onclick="promoteToReminder('${c.id}')">🔔 <strong>Save as reminder</strong> &rarr; opens Capture tab</button>
+            <button class="btn btn-sm" style="background:var(--red-bg);color:var(--red);border:1px solid rgba(192,57,43,0.2);text-align:left;padding:9px 12px"
+              onclick="promoteToBill('${c.id}')">⚡ <strong>Add as bill</strong> &rarr; fills bill form in Settings</button>
+            <button class="btn btn-sm" style="background:var(--green-bg);color:var(--green-check);border:1px solid rgba(58,140,98,0.3);text-align:left;padding:9px 12px"
+              onclick="promoteToSchedule('${c.id}')">📅 <strong>Add to work schedule</strong> &rarr; fills shift form</button>
+            <button class="btn btn-sm" style="background:var(--purple-bg);color:var(--purple);border:1px solid rgba(107,79,187,0.25);text-align:left;padding:9px 12px"
+              onclick="promoteToPerson('${c.id}')">👤 <strong>Add as person</strong> &rarr; fills people form</button>
+            <button class="btn btn-sm btn-outline" onclick="togglePanel('prom_${c.id}')">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('')||'<div class="empty-state">No captures in this view.</div>';
+
+  el.innerHTML=`<div class="card">
+    <div class="card-header">
+      <span class="card-title">Captures</span>
+      <span style="font-size:12px;color:var(--muted)">${openCount} open &middot; ${doneCount} done${arcCount?` &middot; ${arcCount} archived`:''}</span>
+    </div>
+    <div style="padding:8px 16px 6px;border-bottom:1px solid var(--border)">
+      <input id="cap-search" type="text" placeholder="Search captures…" value="${(window._capSearch||'').replace(/"/g,'&quot;')}"
+        oninput="window._capSearch=this.value;rerender('captures')"
+        style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none">
+    </div>
+    <div style="padding:8px 16px 6px;display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-bottom:1px solid var(--border)">
+      ${filterBtns}
+      ${doneUnarchivedCount>0?`<button onclick="archiveAllDone()" style="flex-shrink:0;padding:5px 12px;border-radius:99px;border:1px solid rgba(60,48,32,0.15);background:var(--cream2);color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;margin-left:auto">Archive all done (${doneUnarchivedCount})</button>`:''}
+    </div>
+    <div class="card-inner">${rows}</div>
+  </div>`;
+}
+
+function brainComplete(id) { PerchComplete.markComplete(id); flashSave(); rerender('captures'); }
+function brainArrived(id)  { PerchComplete.markComplete(id); flashSave(); rerender('captures'); }
+function brainReopen(id)   { PerchComplete.unmark(id);       flashSave(); rerender('captures'); }
+
+function archiveAllDone() {
+  const caps = PerchMemory.get('captures')||[];
+  const DONE = new Set(['completed','resolved','dismissed']);
+  const today = PerchDate.fmt(PerchDate.today());
+  let changed = 0;
+  caps.forEach(c => {
+    if (DONE.has(c.status) && c.status !== 'archived') {
+      c.status = 'archived'; c.archived_date = today; changed++;
+    }
+  });
+  if (!changed) return;
+  persist('captures', caps);
+  if (window.PerchEvents?.refresh) PerchEvents.refresh();
+  flashSave();
+  rerender('captures');
+}
+
+function brainArchive(id) {
+  const caps = PerchMemory.get('captures')||[];
+  const c = caps.find(x=>x.id===id); if(!c) return;
+  c.status = 'archived';
+  c.archived_date = PerchDate.fmt(PerchDate.today());
+  persist('captures', caps);
+  if(window.PerchEvents?.refresh) PerchEvents.refresh();
+  flashSave(); rerender('captures');
+}
+function brainRestore(id) {
+  const caps = PerchMemory.get('captures')||[];
+  const c = caps.find(x=>x.id===id); if(!c) return;
+  c.status = 'active';
+  delete c.archived_date;
+  persist('captures', caps);
+  if(window.PerchEvents?.refresh) PerchEvents.refresh();
+  flashSave();
+  window._capFilter = 'open';
+  rerender('captures');
+}
+
+function saveCapture(id) {
+  const captures = PerchMemory.get('captures')||[];
+  const c = captures.find(x=>x.id===id); if (!c) return;
+  const newLabel = document.getElementById('ec_label_'+id)?.value.trim()||c.label;
+  c.label = newLabel; c.clean_label = newLabel;
+  c.perch_action = document.getElementById('ec_type_'+id)?.value||c.perch_action;
+  c.expected     = document.getElementById('ec_date_'+id)?.value||null;
+  c.priority_tags= readCheckedTags('ecp_'+id);
+  persist('captures', captures);
+  if (window.PerchEvents?.refresh) PerchEvents.refresh();
+  rerender('captures');
+}
+
+function deleteCapture(id) {
+  if (!confirm('Delete this capture?')) return;
+  PerchMemory.forget('captures', id);
+  if (window.PerchEvents?.refresh) PerchEvents.refresh();
+  flashSave(); rerender('captures');
+}
+
+// Promote to bill: stash prefill in sessionStorage, open Settings to the bills section
+function promoteToBill(id) {
+  const c = (PerchMemory.get('captures')||[]).find(x=>x.id===id); if (!c) return;
+  try { sessionStorage.setItem('perch_promo_bill', JSON.stringify({
+    name: c.clean_label||c.label||'', from_capture: id })); } catch(e) {}
+  location.href = 'perch_settings.html#sec-bills';
+}
+// Promote to work schedule
+function promoteToSchedule(id) {
+  const c = (PerchMemory.get('captures')||[]).find(x=>x.id===id); if (!c) return;
+  try { sessionStorage.setItem('perch_promo_shift', JSON.stringify({
+    label: c.clean_label||c.label||'Work Shift', from_capture: id })); } catch(e) {}
+  location.href = 'perch_settings.html#sec-work';
+}
+// Promote to reminder: open Capture tab with text prefilled
+function promoteToReminder(id) {
+  const c = (PerchMemory.get('captures')||[]).find(x=>x.id===id); if (!c) return;
+  try { sessionStorage.setItem('perch_promo_reminder', JSON.stringify({
+    text: c.original_text||c.label||'', label: c.clean_label||c.label||'',
+    expected: c.expected||'', from_capture: id })); } catch(e) {}
+  location.href = 'perch_capture.html';
+}
+// Promote to person: open Settings people section with name prefilled
+function promoteToPerson(id) {
+  const c = (PerchMemory.get('captures')||[]).find(x=>x.id===id); if (!c) return;
+  // Try to extract a name from the label (first word or two, title-cased)
+  const nameGuess = (c.clean_label||c.label||'').split(/\s+/).slice(0,2).join(' ');
+  try { sessionStorage.setItem('perch_promo_person', JSON.stringify({
+    name: nameGuess, from_capture: id })); } catch(e) {}
+  location.href = 'perch_settings.html#sec-people';
+}
+
+
+// ════════════════════════════════════════════
+// SECTION: QUESTIONS
+// ════════════════════════════════════════════
+function renderQuestions(el) {
+  const SKIP = new Set(['archived','deleted']);
+  const filter = window._qFilter || 'active';
+  const search = (window._qSearch||'').toLowerCase().trim();
+  const all = (PerchMemory.get('questions')||[]).slice().reverse();
+  const active   = all.filter(q => !SKIP.has(q.status||''));
+  const archived = all.filter(q => q.status === 'archived');
+
+  const shown = (filter === 'archived' ? archived : active).filter(q => {
+    if (!search) return true;
+    const hay = ((q.question||'')+(q.answer||'')).toLowerCase();
+    return hay.includes(search);
+  });
+
+  const filterBtns = ['active','archived'].map(f => {
+    const active_f = f === filter;
+    const lbl = f==='active'?`Recent (${active.length})`:`Archived (${archived.length})`;
+    return `<button onclick="window._qFilter='${f}';rerender('questions')"
+      style="flex-shrink:0;padding:5px 12px;border-radius:99px;font-family:Inter,sans-serif;
+      border:1px solid ${active_f?'var(--green)':'var(--border)'};
+      background:${active_f?'var(--green)':'var(--card)'};
+      color:${active_f?'#fff':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer">
+      ${lbl}</button>`;
+  }).join('');
+
+  const rows = shown.map(q => {
+    const arc = q.status === 'archived';
+    return `<div class="item-row" style="${arc?'opacity:0.55':''}">
+      <div class="item-icon">❓</div>
+      <div class="item-body">
+        <div class="item-name">${q.question}</div>
+        <div class="item-sub" style="margin-top:4px;color:var(--ink2);font-style:normal">${q.answer||''}</div>
+        <div style="margin-top:4px;font-size:10px;color:var(--muted2)">${q.created_date||''}</div>
+        <div class="item-actions">
+          ${arc
+            ? `<button class="btn btn-sm btn-outline" onclick="restoreQuestion('${q.id}')">\u21A9 Restore</button>`
+            : `<button class="btn btn-sm btn-outline" onclick="archiveQuestion('${q.id}')">\uD83D\uDDC3 Archive</button>`
+          }
+          <button class="btn btn-sm btn-red" onclick="deleteQuestion('${q.id}')">Delete</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || '<div class="empty-state">No questions saved yet. Ask Perch something from Today.</div>';
+
+  el.innerHTML = `<div class="card">
+    <div class="card-header">
+      <span class="card-title">Questions I Asked</span>
+      <span style="font-size:12px;color:var(--muted)">${active.length} saved</span>
+    </div>
+    <div style="padding:8px 16px 6px;border-bottom:1px solid var(--border)">
+      <input id="q-search" type="text" placeholder="Search questions and answers…" value="${(window._qSearch||'').replace(/"/g,'&quot;')}"
+        oninput="window._qSearch=this.value;rerender('questions')"
+        style="width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;font-family:Inter,sans-serif;color:var(--ink);background:var(--cream2);outline:none">
+    </div>
+    <div style="padding:8px 16px 6px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--border)">${filterBtns}</div>
+    <div class="card-inner">${rows}</div>
+  </div>`;
+}
+
+function archiveQuestion(id) {
+  const qs = PerchMemory.get('questions')||[];
+  const q = qs.find(x=>x.id===id); if(!q) return;
+  q.status = 'archived';
+  q.archived_date = PerchDate.fmt(PerchDate.today());
+  PerchMemory.set('questions', qs);
+  flashSave(); rerender('questions');
+}
+function restoreQuestion(id) {
+  const qs = PerchMemory.get('questions')||[];
+  const q = qs.find(x=>x.id===id); if(!q) return;
+  q.status = 'active'; delete q.archived_date;
+  PerchMemory.set('questions', qs);
+  window._qFilter = 'active';
+  flashSave(); rerender('questions');
+}
+function deleteQuestion(id) {
+  if (!confirm('Delete this question?')) return;
+  PerchMemory.set('questions', (PerchMemory.get('questions')||[]).filter(x=>x.id!==id));
+  flashSave(); rerender('questions');
+}
+
+// ════════════════════════════════════════════
+// SECTION: FEEDBACK
+// ════════════════════════════════════════════
+function renderFeedback(el) {
+  const feedback = PerchMemory.get('recommendation_feedback')||[];
+  const signalIcon = { more:'👍', less:'👎', irrelevant:'🚫' };
+  const signalLabel = { more:'More important', less:'Less important', irrelevant:'Not relevant' };
+  const signalBg   = { more:'var(--green-bg)', less:'var(--red-bg)', irrelevant:'var(--cream2)' };
+  const signalColor= { more:'var(--green-check)', less:'var(--red)', irrelevant:'var(--muted2)' };
+
+  el.innerHTML = `<div class="card">
+    <div class="card-header">
+      <span class="card-title">Recommendation Feedback</span>
+      <span style="font-size:12px;color:var(--muted)">${feedback.length} signals</span>
+    </div>
+    <div class="card-inner">
+      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5">
+        These signals are stored in memory. They will influence recommendation ranking once the engine reads them. No AI yet — just signals.
+      </div>
+      ${feedback.length ? feedback.map(f => `
+        <div class="item-row">
+          <div class="item-icon" style="font-size:20px">${signalIcon[f.signal]||'?'}</div>
+          <div class="item-body">
+            <div class="item-name">${f.name}</div>
+            <div class="item-sub">
+              <span class="ptag" style="background:${signalBg[f.signal]};color:${signalColor[f.signal]}">${signalLabel[f.signal]||f.signal}</span>
+              <span style="margin-left:6px;font-size:11px;color:var(--muted2)">${f.updated||''}</span>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-red" onclick="deleteFeedback('${f.id}')">✕</button>
+        </div>`).join('')
+      : '<div class="empty-state">No feedback yet. Use 👍 👎 🚫 buttons on opportunities, horizon items, and captures.</div>'}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><span class="card-title">Raw feedback JSON</span></div>
+    <div style="padding:12px 16px;background:#1e1c14;border-radius:0 0 16px 16px;overflow-x:auto">
+      <pre style="font-family:'SF Mono','Fira Code',monospace;font-size:11px;color:#a8e6bc;line-height:1.6;white-space:pre">${JSON.stringify(feedback,null,2)}</pre>
+    </div>
+  </div>`;
+}
+
+function deleteFeedback(id) {
+  const feedback = PerchMemory.get('recommendation_feedback')||[];
+  const updated = feedback.filter(f=>f.id!==id);
+  persist('recommendation_feedback', updated);
+  rerender('feedback');
+}
+
+// ════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════
+// Safety net: catch any render error and show on screen instead of blank
+window.onerror = function(msg, src, line, col, err) {
+  const body = document.body;
+  if (body) {
+    const div = document.createElement('div');
+    div.style.cssText = 'padding:24px;background:#fef2f2;color:#c0392b;font-family:monospace;font-size:13px;margin:20px;border-radius:8px;border:1px solid #fecdd3';
+    div.innerHTML = '<strong>Perch Brain failed to load.</strong><br>' + msg + '<br>Line: ' + line + '<br>Check console for details.';
+    body.prepend(div);
+  }
+  return false;
+};
+
+window.addEventListener('load', () => {
+  if (window.PerchAppearance) PerchAppearance.apply();
+  if (window.PerchMemory?.recordCheckin) PerchMemory.recordCheckin();
+  if (window.PerchMemory?.takeMonthlySnapshot) PerchMemory.takeMonthlySnapshot();
+
+  // Ensure feedback collection exists in memory
+  if (!PerchMemory.get('recommendation_feedback')) {
+    PerchMemory.set('recommendation_feedback', []);
+  }
+
+  buildShell();
+  // Render first section immediately
+  renderPriorities(document.getElementById('panel_priorities'));
+  document.getElementById('panel_priorities').dataset.rendered = '1';
+});
+</script>
+</body>
+</html>
