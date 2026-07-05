@@ -1,0 +1,17 @@
+{
+  "name": "today-vision-target",
+  "status": "direction-fixture",
+  "description": "Protects the product direction that Today is a calm daily brief, not a dashboard polish of the legacy page.",
+  "given": {
+    "currentPreviewAssessment": "step-forward-not-final-vision"
+  },
+  "expect": {
+    "notDashboard": true,
+    "notLegacyPolish": true,
+    "requiresDominantDailyAnswer": true,
+    "requiresHumanBriefingTone": true,
+    "requiresQuietTrustDisclosure": true,
+    "debugToolsAreNotProductSurface": true,
+    "nextPrototype": "src/ui/todayBriefView.js"
+  }
+}
