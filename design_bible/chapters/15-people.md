@@ -16,19 +16,27 @@ People are not merely contacts. They are relationships that connect the entire P
 
 ---
 
-## 1. Primary Question
+## 1. Vision
+
+The People page transforms scattered relationship data into a coherent view of the user's social world. It should show what matters now about the people who matter — upcoming birthdays and anniversaries, recent touchpoints, shared goals and projects, and open obligations — without becoming a contact manager, CRM, or social feed.
+
+The vision is to make relationships visible and actionable without creating overhead.
+
+---
+
+## 2. Primary Question
 
 **Who matters, what matters about them, and what should I know right now?**
 
 ---
 
-## 2. Design Intent
+## 3. Design Intent
 
 The People page helps users understand their relationships, commitments, history, and future interactions without becoming an address book, CRM, or social feed.
 
 ---
 
-## 3. Read Mode
+## 4. Read Mode
 
 Shows what matters now:
 
@@ -41,7 +49,7 @@ Shows what matters now:
 
 ---
 
-## 4. Explore Mode
+## 5. Explore Mode
 
 Allows exploration by:
 
@@ -55,7 +63,7 @@ Allows exploration by:
 
 ---
 
-## 5. Core Information
+## 6. Core Information
 
 Each person may contain:
 
@@ -73,7 +81,7 @@ Each person may contain:
 
 ---
 
-## 6. Connected Engines
+## 7. Connected Engines
 
 - Truth Engine
 - Priority Engine
@@ -82,7 +90,7 @@ Each person may contain:
 
 ---
 
-## 7. Connected Domains
+## 8. Connected Domains
 
 - Today
 - Calendar & Obligations
@@ -95,7 +103,7 @@ Each person may contain:
 
 ---
 
-## 8. AI Responsibilities
+## 9. AI Responsibilities
 
 The AI should:
 
@@ -107,7 +115,7 @@ The AI should:
 
 ---
 
-## 9. Does Not Belong
+## 10. Does Not Belong
 
 - Social media feed
 - Chat application
@@ -117,7 +125,7 @@ The AI should:
 
 ---
 
-## 10. Future Expansion
+## 11. Future Expansion
 
 - Household management
 - Shared planning
@@ -127,7 +135,20 @@ The AI should:
 
 ---
 
-## 11. Success Criteria
+## 12. Acceptance Tests
+
+The People page is ready when:
+
+- [ ] A user can see important relationships at a glance.
+- [ ] Upcoming relationship dates are surfaced from stored data.
+- [ ] Connections to goals, projects, and open obligations are visible.
+- [ ] No invented relationship facts appear.
+- [ ] A person can be added, linked, and updated without creating duplicate records.
+- [ ] Relationship facts show source and confidence when they influence recommendations or reminders.
+
+---
+
+## 13. Success Criteria
 
 A user can immediately understand:
 
