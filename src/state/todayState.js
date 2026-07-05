@@ -120,6 +120,7 @@
       mode: 'read',
       headline: input.headline || 'Here is what matters today.',
       generatedAt: input.generatedAt || new Date().toISOString(),
+      sourceIndicator: input.sourceIndicator || null,
       sections,
       trustNotice,
       legacyFallback: 'perch_today_live.html'

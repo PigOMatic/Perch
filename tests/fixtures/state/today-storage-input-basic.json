@@ -44,6 +44,8 @@
     "nextPayday": "2026-07-12",
     "billIds": ["bill_power"],
     "captureCount": 1,
+    "sourceIndicator": "browser-storage",
+    "sourceLabel": "Using browser storage",
     "storageMode": "read-only",
     "wroteData": false,
     "migratedData": false

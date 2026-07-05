@@ -24,6 +24,21 @@
     return (state.sections || []).find((section) => section.id === id) || null;
   }
 
+  function renderSourceIndicator(indicator) {
+    if (!indicator) return null;
+
+    const source = indicator.source || 'unknown';
+    const card = el('aside', { className: `today-source-indicator ${source}`.trim() });
+    card.appendChild(el('p', { className: 'eyebrow', text: 'Data source' }));
+    card.appendChild(el('p', { text: indicator.label || 'Source unknown.' }));
+
+    if (indicator.mode) {
+      card.appendChild(el('p', { className: 'today-source-meta', text: `Mode: ${indicator.mode}` }));
+    }
+
+    return card;
+  }
+
   function renderTrustNotice(notice) {
     if (!notice) return null;
 
@@ -38,8 +53,13 @@
     hero.appendChild(el('p', { className: 'eyebrow', text: 'Today' }));
     hero.appendChild(el('h2', { text: state.headline || 'Here is what matters today.' }));
 
+    const metaRow = el('div', { className: 'today-meta-row' });
+    const sourceIndicator = renderSourceIndicator(state.sourceIndicator);
     const trustNotice = renderTrustNotice(state.trustNotice);
-    if (trustNotice) hero.appendChild(trustNotice);
+
+    if (sourceIndicator) metaRow.appendChild(sourceIndicator);
+    if (trustNotice) metaRow.appendChild(trustNotice);
+    if (metaRow.children.length) hero.appendChild(metaRow);
 
     return hero;
   }
@@ -125,12 +145,14 @@
 
     return {
       rendered: true,
-      sectionCount: state.sections.length
+      sectionCount: state.sections.length,
+      sourceIndicatorRendered: Boolean(state.sourceIndicator)
     };
   }
 
   const PerchTodayView = Object.freeze({
-    renderTodayView
+    renderTodayView,
+    renderSourceIndicator
   });
 
   global.PerchTodayView = PerchTodayView;

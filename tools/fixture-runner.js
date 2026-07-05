@@ -138,6 +138,8 @@ function checkTodayState(f, rel) {
   same(r.legacyFallback, f.expect.legacyFallback, `${rel} legacyFallback`);
   sameArray(r.sections.map((section) => section.id), f.expect.sectionIds, `${rel} sectionIds`);
   same(Boolean(r.trustNotice), f.expect.trustNoticeRequired, `${rel} trustNoticeRequired`);
+  same(Boolean(r.sourceIndicator), f.expect.sourceIndicatorRequired, `${rel} sourceIndicatorRequired`);
+  same(r.sourceIndicator && r.sourceIndicator.source, f.expect.sourceIndicator, `${rel} sourceIndicator`);
 }
 
 function checkTodayView(f, rel) {
@@ -146,6 +148,7 @@ function checkTodayView(f, rel) {
   same(f.expect.requiresHero, true, `${rel} requiresHero`);
   same(f.expect.requiresAttentionCard, true, `${rel} requiresAttentionCard`);
   same(f.expect.requiresTrustNoteSupport, true, `${rel} requiresTrustNoteSupport`);
+  same(f.expect.requiresSourceIndicatorSupport, true, `${rel} requiresSourceIndicatorSupport`);
   same(f.expect.requiresLegacyFallback, true, `${rel} requiresLegacyFallback`);
   same(f.expect.legacyIsVisualTarget, false, `${rel} legacyIsVisualTarget`);
 }
@@ -157,6 +160,8 @@ function checkTodayStorageInput(f, rel) {
   same(r.money.nextPayday, f.expect.nextPayday, `${rel} nextPayday`);
   sameArray(r.money.bills.map((bill) => bill.id), f.expect.billIds, `${rel} billIds`);
   same(r.captures.length, f.expect.captureCount, `${rel} captureCount`);
+  same(r.sourceIndicator.source, f.expect.sourceIndicator, `${rel} sourceIndicator`);
+  same(r.sourceIndicator.label, f.expect.sourceLabel, `${rel} sourceLabel`);
   same(r.storageRead.mode, f.expect.storageMode, `${rel} storageMode`);
   same(r.storageRead.wroteData, f.expect.wroteData, `${rel} wroteData`);
   same(r.storageRead.migratedData, f.expect.migratedData, `${rel} migratedData`);
