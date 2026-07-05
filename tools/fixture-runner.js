@@ -12,6 +12,7 @@ const PerchRoutes = require('../src/ui/routes.js');
 const PerchTodayState = require('../src/state/todayState.js');
 const PerchTodayStorageInput = require('../src/state/todayStorageInput.js');
 const PerchStorageDebugDrawer = require('../src/dev/storageDebugDrawer.js');
+const PerchTodayBriefView = require('../src/ui/todayBriefView.js');
 
 globalThis.PerchMoney = PerchMoney;
 globalThis.PerchCapture = PerchCapture;
@@ -165,6 +166,18 @@ function checkTodayVisionTarget(f, rel) {
   same(f.expect.nextPrototype, 'src/ui/todayBriefView.js', `${rel} nextPrototype`);
 }
 
+function checkTodayBriefView(f, rel) {
+  if (!rel.endsWith('tests/fixtures/ui/today-brief-view.json')) return;
+  same(f.expect.renderer, 'PerchTodayBriefView.renderTodayBriefView', `${rel} renderer`);
+  same(f.expect.mode, 'brief', `${rel} mode`);
+  same(f.expect.dominantDailyAnswer, true, `${rel} dominantDailyAnswer`);
+  same(f.expect.notDashboardGrid, true, `${rel} notDashboardGrid`);
+  same(f.expect.usesSameTodayState, true, `${rel} usesSameTodayState`);
+  same(f.expect.hasEvidenceSection, true, `${rel} hasEvidenceSection`);
+  same(f.expect.hasQuietSourceDisclosure, true, `${rel} hasQuietSourceDisclosure`);
+  same(typeof PerchTodayBriefView.renderTodayBriefView, 'function', `${rel} renderTodayBriefView`);
+}
+
 function checkTodayStorageInput(f, rel) {
   if (!rel.endsWith('tests/fixtures/state/today-storage-input-basic.json')) return;
   const r = PerchTodayStorageInput.buildTodayInputFromStorageSnapshot(f.given.snapshot, f.given.fallbackInput);
@@ -210,6 +223,7 @@ const results = files(fixtureRoot).map((file) => {
     checkTodayState(fixture, rel);
     checkTodayView(fixture, rel);
     checkTodayVisionTarget(fixture, rel);
+    checkTodayBriefView(fixture, rel);
     checkTodayStorageInput(fixture, rel);
     checkStorageDebugDrawer(fixture, rel);
     return { rel, ok: true };
