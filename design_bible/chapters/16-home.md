@@ -1,50 +1,106 @@
 # Chapter 16 — Home
 
-## Purpose
-Home is a first-class domain within Perch and follows the principles defined by the Design Bible.
+> **Chapter:** Home
+> **Chapter ID:** PERCH-16
+> **Version:** 1.0
+> **Status:** Concept — this defines the future user-facing Home domain; Chapter 14 remains the audited implementation record for current Home & Property data.
+> **Confidence:** 78% — the need for a dedicated Home surface is clear; its exact model depends on location hierarchy work.
+> **Owner:** Jeff
+> **Implementation:** Planning — no dedicated Home page is verified as implemented.
+> **Depends On:** Home & Property *(Prototype)*, Projects *(Concept)*, Calendar & Obligations *(Prototype)*, Money *(Concept/Partial)*, Truth Engine *(Prototype)*
+> **Last Updated:** July 5, 2026
 
-## Primary Question
+Home is the user-facing domain for the user's physical world: residence, land, rooms, buildings, equipment, animals, maintenance, utilities, and place-based obligations.
+
+---
+
+## 1. Primary Question
+
 **What is happening in my physical world?**
 
-## Design Intent
-This chapter defines the user experience, responsibilities, and architectural boundaries for the Home domain.
+---
 
-## Read Mode
-Shows the most relevant information immediately with minimal cognitive load.
+## 2. Design Intent
 
-## Explore Mode
-Allows users to browse, filter, and understand deeper information without cluttering the default view.
+Home turns scattered physical-life responsibilities into a clear operating view. It should not become a generic notes app or contractor database. It should answer what needs care, where it is, why it matters, and what is connected to it.
 
-## Core Information
-- Canonical data for this domain
-- Relationships to other domains
-- History where appropriate
-- Status and confidence
-- Evidence and source tracking where applicable
+---
 
-## Core Actions
-- View
-- Create
-- Edit
-- Archive
-- Link to related domains
+## 3. Relationship to Chapter 14
 
-## Connected Engines
-- Truth Engine
-- Priority Engine
-- Recommendation Engine
+Chapter 14 — Home & Property documents the current repository reality: shallow but real `properties[]` and `homestead{}` data.
 
-## Connected Domains
-Describe how this domain integrates with the rest of the Atlas.
+This chapter defines the eventual Home page/domain experience that grows out of that model.
 
-## AI Responsibilities
-AI assists, explains, recommends, and surfaces relevant information without inventing facts.
+---
 
-## Does NOT Belong
-Features that do not support clarity or violate the scope of this domain.
+## 4. Read Mode
 
-## Future Expansion
-Reserved for post-v1.0 capabilities.
+Shows:
 
-## Success Criteria
-The user can answer the primary question confidently after visiting this page.
+- Urgent maintenance
+- Upcoming physical-world obligations
+- Property alerts
+- Animal/livestock care items
+- Utility or equipment reminders
+- Open projects tied to a place
+
+---
+
+## 5. Explore Mode
+
+Allows browsing by:
+
+- Property
+- Building
+- Room
+- Land area
+- System/equipment
+- Animal/group
+- Project
+- Maintenance history
+
+---
+
+## 6. Core Information
+
+- Location hierarchy
+- Maintenance items
+- Equipment and systems
+- Utility relationships
+- Property financial links
+- Animal/homestead records
+- Documents and photos
+- History and notes
+
+---
+
+## 7. AI Responsibilities
+
+The AI should:
+
+- Surface overdue or risky home items.
+- Connect home work to money, calendar, and projects.
+- Explain why something matters now.
+- Never invent property facts, locations, costs, or due dates.
+
+---
+
+## 8. Does Not Belong
+
+- Smart-home automation as a first requirement
+- Unverified contractor recommendations
+- Insurance or legal claims without source documents
+- Decorative property fantasy detached from stored truth
+
+---
+
+## 9. Success Criteria
+
+The user can answer:
+
+- What needs care?
+- Where is it?
+- What does it cost or affect?
+- What is overdue?
+- What should be planned next?

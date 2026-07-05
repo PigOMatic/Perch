@@ -1,50 +1,99 @@
 # Chapter 18 — Search
 
-## Purpose
-Search is a first-class domain within Perch and follows the principles defined by the Design Bible.
+> **Chapter:** Search
+> **Chapter ID:** PERCH-18
+> **Version:** 1.0
+> **Status:** Concept — this defines the future dedicated Search domain; current repository search is literal/substring and documented in Chapter 12.
+> **Confidence:** 80% — universal retrieval is necessary; semantic/vector implementation details remain future work.
+> **Owner:** Jeff
+> **Implementation:** Planning — no dedicated Search page is verified as implemented.
+> **Depends On:** Knowledge *(Concept)*, Brain *(Prototype)*, People *(Concept)*, Projects *(Concept)*, Truth Engine *(Prototype)*
+> **Last Updated:** July 5, 2026
 
-## Primary Question
+Search is the universal retrieval surface for Perch. It helps the user find anything Perch knows, captured, planned, tracked, or explained.
+
+---
+
+## 1. Primary Question
+
 **How do I instantly find anything across Perch?**
 
-## Design Intent
-This chapter defines the user experience, responsibilities, and architectural boundaries for the Search domain.
+---
 
-## Read Mode
-Shows the most relevant information immediately with minimal cognitive load.
+## 2. Design Intent
 
-## Explore Mode
-Allows users to browse, filter, and understand deeper information without cluttering the default view.
+Search should feel like asking Perch where something lives. It must search broadly but answer carefully, preserving source, confidence, and domain boundaries.
 
-## Core Information
-- Canonical data for this domain
-- Relationships to other domains
-- History where appropriate
-- Status and confidence
-- Evidence and source tracking where applicable
+---
 
-## Core Actions
-- View
-- Create
-- Edit
-- Archive
-- Link to related domains
+## 3. Relationship to Chapter 12
 
-## Connected Engines
-- Truth Engine
-- Priority Engine
-- Recommendation Engine
+Chapter 12 documents the current Knowledge & Search reality: keyword and substring search only.
 
-## Connected Domains
-Describe how this domain integrates with the rest of the Atlas.
+This chapter defines the future dedicated Search page and universal retrieval model.
 
-## AI Responsibilities
-AI assists, explains, recommends, and surfaces relevant information without inventing facts.
+---
 
-## Does NOT Belong
-Features that do not support clarity or violate the scope of this domain.
+## 4. Default State
 
-## Future Expansion
-Reserved for post-v1.0 capabilities.
+Search should show:
 
-## Success Criteria
-The user can answer the primary question confidently after visiting this page.
+- Recent searches
+- Recently touched items
+- Suggested useful searches
+- Search scope controls
+
+---
+
+## 5. Result Filters
+
+Search results should be filterable by:
+
+- Domain
+- Date
+- Person
+- Source
+- Confidence
+- Status
+- File or document type
+
+---
+
+## 6. Core Information
+
+Every result should show:
+
+- Title or summary
+- Domain
+- Source
+- Confidence or status
+- Last updated
+- Why it matched
+- Link or action to open the source record
+
+---
+
+## 7. AI Responsibilities
+
+The AI should:
+
+- Interpret natural-language searches.
+- Explain why results match.
+- Distinguish facts from inferred matches.
+- Avoid fabricating missing results.
+- Say when Perch does not know.
+
+---
+
+## 8. Does Not Belong
+
+- Results without provenance
+- Hidden ranking rules
+- Web search pretending to be Perch knowledge
+- AI answers without links to underlying records
+
+---
+
+## 9. Success Criteria
+
+The user can find anything important without remembering which page owns it.
