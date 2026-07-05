@@ -22,6 +22,10 @@
     );
     const todayState = global.PerchTodayState.buildTodayState(input);
     global.PerchTodayView.renderTodayView(pageHost, todayState);
+
+    if (global.PerchStorageDebugDrawer) {
+      global.PerchStorageDebugDrawer.renderStorageDebugDrawer(pageHost, input);
+    }
   }
 
   global.PerchAppShellReadonlyBoot = Object.freeze({ boot });

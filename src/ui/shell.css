@@ -226,8 +226,38 @@ h3 {
   margin: 0;
 }
 
+.storage-debug-drawer {
+  padding: 22px 28px;
+  border: 1px dashed var(--perch-line);
+  border-radius: 24px;
+  background: rgba(255, 250, 242, 0.58);
+}
+
+.storage-debug-drawer summary {
+  cursor: pointer;
+  color: var(--perch-accent);
+  font-weight: 750;
+}
+
+.storage-debug-drawer dl {
+  display: grid;
+  grid-template-columns: minmax(120px, 220px) 1fr;
+  gap: 8px 16px;
+  margin: 18px 0 0;
+}
+
+.storage-debug-drawer dt {
+  color: var(--perch-muted);
+  font-weight: 700;
+}
+
+.storage-debug-drawer dd {
+  margin: 0;
+}
+
 @media (max-width: 780px) {
-  .today-grid {
+  .today-grid,
+  .storage-debug-drawer dl {
     grid-template-columns: 1fr;
   }
 
