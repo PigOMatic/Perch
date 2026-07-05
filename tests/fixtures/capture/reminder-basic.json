@@ -1,0 +1,18 @@
+{
+  "name": "capture-reminder-basic",
+  "status": "initial-fixture",
+  "designBibleChapters": ["06-brain", "03-calendar-obligations"],
+  "description": "Protects basic reminder parsing from a natural-language capture.",
+  "given": {
+    "today": "2026-07-05",
+    "rawText": "remind me to call the dentist tomorrow at 10am"
+  },
+  "expect": {
+    "parsedType": "reminder",
+    "titleIncludes": ["call", "dentist"],
+    "dueDate": "2026-07-06",
+    "timeHint": "10:00",
+    "lifecycle": "active",
+    "classification": "stored_record"
+  }
+}
