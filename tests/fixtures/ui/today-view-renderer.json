@@ -10,6 +10,7 @@
     "requiresHero": true,
     "requiresAttentionCard": true,
     "requiresTrustNoteSupport": true,
+    "requiresSourceIndicatorSupport": true,
     "requiresLegacyFallback": true,
     "legacyIsVisualTarget": false
   }
