@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Perch App Shell Preview</title>
+  <link rel="stylesheet" href="src/ui/shell.css" />
+</head>
+<body>
+  <main id="perch-shell"></main>
+
+  <script src="src/ui/routes.js"></script>
+  <script src="src/ui/shell.js"></script>
+  <script>
+    window.PerchShell.renderShell(document.getElementById('perch-shell'), {
+      activeRouteId: 'today'
+    });
+  </script>
+</body>
+</html>
