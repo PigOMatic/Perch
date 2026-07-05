@@ -1,0 +1,34 @@
+{
+  "name": "priority-urgent-money-before-low-task",
+  "status": "initial-fixture",
+  "designBibleChapters": ["08-priority-engine", "02-money", "05-projects"],
+  "description": "Protects priority ordering so urgent money risk outranks a low-consequence task.",
+  "given": {
+    "today": "2026-07-05",
+    "candidates": [
+      {
+        "id": "money_low_cushion",
+        "domain": "money",
+        "title": "Low cushion before payday",
+        "dueDate": "2026-07-08",
+        "urgencySignals": ["due_before_payday", "low_cushion"],
+        "consequenceSignals": ["missed_bill_risk"],
+        "sourceIds": ["checkingBalance", "bill_mortgage", "nextPayday"]
+      },
+      {
+        "id": "task_clean_barn",
+        "domain": "project",
+        "title": "Clean barn shelf",
+        "dueDate": null,
+        "urgencySignals": [],
+        "consequenceSignals": ["low"],
+        "sourceIds": ["capture_barn_shelf"]
+      }
+    ]
+  },
+  "expect": {
+    "topCandidateId": "money_low_cushion",
+    "orderedCandidateIds": ["money_low_cushion", "task_clean_barn"],
+    "requiredReasonIncludes": ["due_before_payday", "low_cushion"]
+  }
+}
