@@ -1,0 +1,29 @@
+# Perch Update #002
+
+## Purpose
+
+Add the missing AI workspace foundation, product philosophy, product intelligence, build-plan root, and first marketing concept.
+
+## Added
+
+- perch_ai_workspace/PERCH_IDENTITY.md
+- perch_ai_workspace/GLOBAL_LAWS.md
+- perch_ai_workspace/CONTRIBUTING.md
+- perch_ai_workspace/STATUS_DEFINITIONS.md
+- perch_ai_workspace/GLOSSARY.md
+- perch_ai_workspace/PROMPTS/design_bible.md
+- perch_ai_workspace/PROMPTS/implementation.md
+- perch_ai_workspace/PROMPTS/audit.md
+- perch_ai_workspace/PROMPTS/review.md
+- docs/philosophy.md
+- docs/product_intelligence.md
+- build_plans/README.md
+- marketing/commercial_01.md
+
+## App Code
+
+No application code changed.
+
+## Suggested Commit Message
+
+Perch Update #002 - Add AI workspace foundation and product philosophy
