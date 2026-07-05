@@ -1,0 +1,17 @@
+{
+  "name": "storage-debug-drawer",
+  "status": "dev-fixture",
+  "description": "Documents the read-only storage debug drawer for the rebuilt Today preview.",
+  "given": {
+    "preview": "readonly_today_preview.html"
+  },
+  "expect": {
+    "module": "PerchStorageDebugDrawer",
+    "previewOnly": true,
+    "readOnly": true,
+    "showsSource": true,
+    "showsFallbackStatus": true,
+    "showsWriteStatus": true,
+    "showsMigrationStatus": true
+  }
+}
