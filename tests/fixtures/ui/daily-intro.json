@@ -1,0 +1,17 @@
+{
+  "name": "daily-intro",
+  "status": "experience-fixture",
+  "description": "Protects the once-per-day Perch opening moment that appears briefly and then disappears.",
+  "given": {
+    "preview": "today_field_guide_preview.html"
+  },
+  "expect": {
+    "module": "PerchDailyIntro",
+    "storageKey": "perch_daily_intro_seen_date",
+    "showsOncePerDay": true,
+    "usesLocalStorageOnly": true,
+    "autoDismisses": true,
+    "doesNotBlockPagePermanently": true,
+    "supportsReducedMotion": true
+  }
+}
