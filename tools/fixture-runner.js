@@ -139,6 +139,16 @@ function checkTodayState(f, rel) {
   same(Boolean(r.trustNotice), f.expect.trustNoticeRequired, `${rel} trustNoticeRequired`);
 }
 
+function checkTodayView(f, rel) {
+  if (!rel.endsWith('tests/fixtures/ui/today-view-renderer.json')) return;
+  same(f.expect.renderer, 'PerchTodayView.renderTodayView', `${rel} renderer`);
+  same(f.expect.requiresHero, true, `${rel} requiresHero`);
+  same(f.expect.requiresAttentionCard, true, `${rel} requiresAttentionCard`);
+  same(f.expect.requiresTrustNoteSupport, true, `${rel} requiresTrustNoteSupport`);
+  same(f.expect.requiresLegacyFallback, true, `${rel} requiresLegacyFallback`);
+  same(f.expect.legacyIsVisualTarget, false, `${rel} legacyIsVisualTarget`);
+}
+
 const results = files(fixtureRoot).map((file) => {
   const rel = path.relative(repoRoot, file);
   try {
@@ -151,6 +161,7 @@ const results = files(fixtureRoot).map((file) => {
     checkTruth(fixture, rel);
     checkUi(fixture, rel);
     checkTodayState(fixture, rel);
+    checkTodayView(fixture, rel);
     return { rel, ok: true };
   } catch (error) {
     return { rel, ok: false, error: error.message };
