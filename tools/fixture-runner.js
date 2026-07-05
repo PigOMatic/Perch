@@ -10,6 +10,7 @@ const PerchRecommendation = require('../src/engines/recommendation.js');
 const PerchTruth = require('../src/engines/truth.js');
 const PerchRoutes = require('../src/ui/routes.js');
 const PerchTodayState = require('../src/state/todayState.js');
+const PerchTodayStorageInput = require('../src/state/todayStorageInput.js');
 
 globalThis.PerchMoney = PerchMoney;
 globalThis.PerchCapture = PerchCapture;
@@ -149,6 +150,18 @@ function checkTodayView(f, rel) {
   same(f.expect.legacyIsVisualTarget, false, `${rel} legacyIsVisualTarget`);
 }
 
+function checkTodayStorageInput(f, rel) {
+  if (!rel.endsWith('tests/fixtures/state/today-storage-input-basic.json')) return;
+  const r = PerchTodayStorageInput.buildTodayInputFromStorageSnapshot(f.given.snapshot, f.given.fallbackInput);
+  same(r.money.checkingBalance, f.expect.checkingBalance, `${rel} checkingBalance`);
+  same(r.money.nextPayday, f.expect.nextPayday, `${rel} nextPayday`);
+  sameArray(r.money.bills.map((bill) => bill.id), f.expect.billIds, `${rel} billIds`);
+  same(r.captures.length, f.expect.captureCount, `${rel} captureCount`);
+  same(r.storageRead.mode, f.expect.storageMode, `${rel} storageMode`);
+  same(r.storageRead.wroteData, f.expect.wroteData, `${rel} wroteData`);
+  same(r.storageRead.migratedData, f.expect.migratedData, `${rel} migratedData`);
+}
+
 const results = files(fixtureRoot).map((file) => {
   const rel = path.relative(repoRoot, file);
   try {
@@ -162,6 +175,7 @@ const results = files(fixtureRoot).map((file) => {
     checkUi(fixture, rel);
     checkTodayState(fixture, rel);
     checkTodayView(fixture, rel);
+    checkTodayStorageInput(fixture, rel);
     return { rel, ok: true };
   } catch (error) {
     return { rel, ok: false, error: error.message };
