@@ -5,6 +5,11 @@
   "given": {
     "today": "2026-07-05",
     "headline": "Here is what matters today.",
+    "sourceIndicator": {
+      "source": "sample-fallback",
+      "mode": "read-only",
+      "label": "Using sample data"
+    },
     "money": {
       "checkingBalance": 1200,
       "nextPayday": "2026-07-12",
@@ -62,6 +67,8 @@
     "mode": "read",
     "sectionIds": ["attention", "money", "brain", "recommendation"],
     "trustNoticeRequired": true,
+    "sourceIndicatorRequired": true,
+    "sourceIndicator": "sample-fallback",
     "legacyFallback": "perch_today_live.html"
   }
 }
