@@ -55,6 +55,44 @@
     return { rawText };
   }
 
+  function normalizePerson(rawPerson) {
+    if (!rawPerson || typeof rawPerson !== 'object') return null;
+
+    const id = pickString(rawPerson.id, rawPerson.key, rawPerson.name, rawPerson.fullName);
+    const name = pickString(rawPerson.name, rawPerson.fullName, rawPerson.label, id);
+    const relationship = pickString(rawPerson.relationship, rawPerson.role, rawPerson.type);
+    const birthday = pickString(rawPerson.birthday, rawPerson.birthdate, rawPerson.dob);
+
+    if (!id || !name) return null;
+
+    return {
+      id,
+      name,
+      relationship: relationship || null,
+      birthday: birthday || null
+    };
+  }
+
+  function normalizeWorkShift(rawShift) {
+    if (!rawShift || typeof rawShift !== 'object') return null;
+
+    const id = pickString(rawShift.id, rawShift.key, rawShift.date, rawShift.start, rawShift.startTime);
+    const date = pickString(rawShift.date, rawShift.shiftDate, rawShift.day);
+    const start = pickString(rawShift.start, rawShift.startTime, rawShift.from, rawShift.timeStart);
+    const end = pickString(rawShift.end, rawShift.endTime, rawShift.to, rawShift.timeEnd);
+    const label = pickString(rawShift.label, rawShift.title, rawShift.name) || 'Work shift';
+
+    if (!id || !date) return null;
+
+    return {
+      id,
+      date,
+      start: start || null,
+      end: end || null,
+      label
+    };
+  }
+
   function extractBills(paydayCard, memory) {
     const candidates = [
       paydayCard && paydayCard.bills,
@@ -81,6 +119,35 @@
     return candidates
       .flatMap(asArray)
       .map(normalizeCapture)
+      .filter(Boolean);
+  }
+
+  function extractPeople(memory) {
+    const candidates = [
+      memory && memory.people,
+      memory && memory.basics && memory.basics.people,
+      memory && memory.family,
+      memory && memory.relationships
+    ];
+
+    return candidates
+      .flatMap(asArray)
+      .map(normalizePerson)
+      .filter(Boolean);
+  }
+
+  function extractWorkShifts(memory) {
+    const candidates = [
+      memory && memory.workShifts,
+      memory && memory.shifts,
+      memory && memory.schedule,
+      memory && memory.basics && memory.basics.workShifts,
+      memory && memory.basics && memory.basics.shifts
+    ];
+
+    return candidates
+      .flatMap(asArray)
+      .map(normalizeWorkShift)
       .filter(Boolean);
   }
 
@@ -120,11 +187,21 @@
     const nextPayday = storedNextPayday || pickString(fallbackInput.money && fallbackInput.money.nextPayday);
     const bills = extractBills(paydayCard, memory);
     const captures = extractCaptures(memory, noticed);
+    const people = extractPeople(memory);
+    const workShifts = extractWorkShifts(memory);
 
     const moneyFromStorage = storedCheckingBalance !== null || Boolean(storedNextPayday) || bills.length > 0;
     const capturesFromStorage = captures.length > 0;
+    const peopleFromStorage = people.length > 0;
+    const workShiftsFromStorage = workShifts.length > 0;
     const recommendationsFromStorage = Boolean(recommendationPrefs);
-    const source = sourceStatus([moneyFromStorage, capturesFromStorage, recommendationsFromStorage]);
+    const source = sourceStatus([
+      moneyFromStorage,
+      capturesFromStorage,
+      peopleFromStorage,
+      workShiftsFromStorage,
+      recommendationsFromStorage
+    ]);
 
     const todayInput = {
       ...fallbackInput,
@@ -135,6 +212,8 @@
         bills: bills.length ? bills : asArray(fallbackInput.money && fallbackInput.money.bills)
       },
       captures: captures.length ? captures : asArray(fallbackInput.captures),
+      people: people.length ? people : asArray(fallbackInput.people),
+      workShifts: workShifts.length ? workShifts : asArray(fallbackInput.workShifts),
       recommendation: {
         ...(fallbackInput.recommendation || {}),
         preferences: recommendationPrefs || (fallbackInput.recommendation && fallbackInput.recommendation.preferences) || {}
@@ -150,7 +229,11 @@
         details: {
           moneyFromStorage,
           capturesFromStorage,
-          recommendationsFromStorage
+          peopleFromStorage,
+          workShiftsFromStorage,
+          recommendationsFromStorage,
+          peopleCount: people.length,
+          workShiftCount: workShifts.length
         }
       },
       storageRead: {
@@ -177,7 +260,9 @@
     buildTodayInputFromStorage,
     buildTodayInputFromStorageSnapshot,
     normalizeBill,
-    normalizeCapture
+    normalizeCapture,
+    normalizePerson,
+    normalizeWorkShift
   });
 
   global.PerchTodayStorageInput = PerchTodayStorageInput;

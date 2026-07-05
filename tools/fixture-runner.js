@@ -161,6 +161,10 @@ function checkTodayStorageInput(f, rel) {
   same(r.money.nextPayday, f.expect.nextPayday, `${rel} nextPayday`);
   sameArray(r.money.bills.map((bill) => bill.id), f.expect.billIds, `${rel} billIds`);
   same(r.captures.length, f.expect.captureCount, `${rel} captureCount`);
+  same(r.people.length, f.expect.peopleCount, `${rel} peopleCount`);
+  sameArray(r.people.map((person) => person.id), f.expect.personIds, `${rel} personIds`);
+  same(r.workShifts.length, f.expect.workShiftCount, `${rel} workShiftCount`);
+  sameArray(r.workShifts.map((shift) => shift.id), f.expect.workShiftIds, `${rel} workShiftIds`);
   same(r.sourceIndicator.source, f.expect.sourceIndicator, `${rel} sourceIndicator`);
   same(r.sourceIndicator.label, f.expect.sourceLabel, `${rel} sourceLabel`);
   same(r.storageRead.mode, f.expect.storageMode, `${rel} storageMode`);
@@ -175,6 +179,8 @@ function checkStorageDebugDrawer(f, rel) {
   same(f.expect.readOnly, true, `${rel} readOnly`);
   same(typeof PerchStorageDebugDrawer.summarizeInput, 'function', `${rel} summarizeInput`);
   same(typeof PerchStorageDebugDrawer.renderStorageDebugDrawer, 'function', `${rel} renderStorageDebugDrawer`);
+  same(f.expect.showsPeopleStatus, true, `${rel} showsPeopleStatus`);
+  same(f.expect.showsWorkShiftStatus, true, `${rel} showsWorkShiftStatus`);
   same(f.expect.showsWriteStatus, true, `${rel} showsWriteStatus`);
   same(f.expect.showsMigrationStatus, true, `${rel} showsMigrationStatus`);
 }
