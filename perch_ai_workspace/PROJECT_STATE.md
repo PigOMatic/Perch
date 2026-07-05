@@ -31,10 +31,11 @@ Finish the Design Bible, then freeze Design Bible v1.0 and begin Perch v0.5 impl
 - 11 — Voice Engine
 - 12 — Knowledge & Search
 - 13 — Integrations
+- 14 — Home & Property
 
 ## Current Next Chapter
 
-14 — Home & Property
+15 — People & Relationships
 
 ## Upcoming Chapters
 
@@ -100,6 +101,12 @@ Current build plan: Perch v0.5.
 - No API, import, sync, or OAuth anywhere; only network call is a local file-existence check.
 - No imported-data provenance or confidence propagation exists (nothing to import yet).
 - Tiller, banking/Plaid, Calendar, Email, Weather, GitHub, and Health are all Concept.
+
+### Home & Property
+- Two flat property records (primary and rental properties) with financials; no location hierarchy.
+- No rooms, buildings, land, equipment, or storage as objects; pool/workshop/barn exist only in notes.
+- Utilities are modeled as bills, not property-linked objects; no maintenance history (log empty).
+- Home maintenance overlaps Projects (Ch.5) — two task stores that should be unified.
 
 ## Current Claude Workflow
 
