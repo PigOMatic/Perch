@@ -6,11 +6,25 @@
 
 ---
 
+## Current status
+
+This file is superseded by the deeper audit:
+
+```text
+docs/audits/FULL_REPOSITORY_AUDIT_2026-07-05.md
+```
+
+The earlier conclusion that the repository was ready for an engineering foundation sprint remains true only with an important correction:
+
+> The next engineering foundation work must begin by resolving the implementation-source gap.
+
+---
+
 ## Executive summary
 
-The repository is ready to move from Design Bible creation into engineering foundation work.
+The repository is ready to move from Design Bible creation into engineering foundation work, **but not feature coding**.
 
-The Design Bible is now the stable architectural contract. The next repository risk is not missing vision; it is implementation drift.
+The Design Bible is now the stable architectural contract. The immediate repository risk is that the application source files referenced by the Design Bible are not currently present in GitHub `main`.
 
 ---
 
@@ -18,6 +32,7 @@ The Design Bible is now the stable architectural contract. The next repository r
 
 - Design Bible exists and is locked as v1.0 architecture baseline.
 - Chapters 1–19 are present with normalized filenames.
+- Chapters 15–19 have been polished.
 - Global trust laws are documented.
 - Current implementation gaps are named instead of hidden.
 - AI workspace is conceptually separate from product architecture.
@@ -29,11 +44,11 @@ The Design Bible is now the stable architectural contract. The next repository r
 
 | Risk | Severity | Notes |
 |---|---:|---|
-| Implementation does not yet match the full Design Bible | High | Expected; the Bible is destination, code is journey. |
+| Application source files are not present in GitHub `main` | Critical | The Bible references implementation files that are not currently verifiable in GitHub. |
+| Implementation does not yet match the full Design Bible | High | Expected, but source availability must be resolved first. |
 | Truth Engine enforcement is incomplete at runtime | High | Doctrine exists; universal gate does not. |
-| Priority and Recommendation are partly conflated in code | High | Must be separated before complex suggestions. |
+| Priority and Recommendation are partly conflated in code | High | Must be separated before complex suggestions, if source is restored. |
 | Integrations are absent | Medium | Acceptable for v0.5/manual-first strategy. |
-| Chapters 15–19 need deeper audits after build work starts | Medium | Accepted in v1 lock. |
 | Search and Knowledge overlap between current and future chapters | Medium | Intentional but must be watched. |
 | Home and Home & Property overlap between current and future chapters | Medium | Intentional but must be watched. |
 
@@ -47,12 +62,15 @@ The Design Bible is now the stable architectural contract. The next repository r
 4. The AI workspace must not redefine product architecture.
 5. Release work should happen through branches and pull requests.
 6. Changelogs must state what changed and why.
+7. Engineering work must explicitly state whether it targets restored source or a clean rebuild.
 
 ---
 
 ## Recommended next work
 
-Create the engineering foundation under:
+Resolve implementation source availability first.
+
+Then create the engineering foundation under:
 
 ```text
 docs/architecture/
@@ -61,6 +79,7 @@ docs/architecture/
 Initial files:
 
 ```text
+SOURCE_MANIFEST.md
 SYSTEM_ARCHITECTURE.md
 DATA_MODEL.md
 ENGINE_INTERFACES.md
@@ -75,6 +94,6 @@ IMPLEMENTATION_BACKLOG.md
 
 ## Audit decision
 
-Repository status: **Ready for engineering foundation sprint.**
+Repository status: **Ready for source reconciliation and engineering foundation planning; not ready for feature coding.**
 
 Do not continue expanding the Design Bible unless implementation exposes a real architectural gap.
