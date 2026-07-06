@@ -115,6 +115,32 @@
         label: 'ICU night shift'
       }
     ],
+    schedulePreview: [
+      {
+        date: '2026-07-05',
+        day: 'Sun',
+        number: '5',
+        status: 'off',
+        label: 'Off',
+        detail: 'Family / reset day'
+      },
+      {
+        date: '2026-07-06',
+        day: 'Mon',
+        number: '6',
+        status: 'work',
+        label: 'Work',
+        detail: 'ICU · 7p'
+      },
+      {
+        date: '2026-07-07',
+        day: 'Tue',
+        number: '7',
+        status: 'recover',
+        label: 'Recover',
+        detail: 'Sleep after shift'
+      }
+    ],
     storyDetails: {
       firstSecond: 'A calm page opens. Your eye should land on the sentence, not the navigation.',
       firstFiveSeconds: 'You should know the day is mostly okay, but money needs the first look.',
