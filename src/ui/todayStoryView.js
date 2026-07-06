@@ -44,6 +44,27 @@
     return card;
   }
 
+  function renderFreedomChoice(choice) {
+    if (!choice || !choice.safeToOffer) return null;
+
+    const card = el('section', { className: 'story-freedom-choice' });
+    card.appendChild(el('p', { className: 'eyebrow', text: 'Freedom choice' }));
+    card.appendChild(el('h3', { text: choice.prompt }));
+
+    const actions = el('div', { className: 'story-choice-actions' });
+    actions.appendChild(el('button', { className: 'responsible', text: choice.responsibleAction }));
+    actions.appendChild(el('button', { className: 'fun', text: choice.funAction }));
+    actions.appendChild(el('button', { className: 'irresponsible', text: choice.irresponsibleAction }));
+    card.appendChild(actions);
+
+    card.appendChild(el('p', {
+      className: 'story-choice-note',
+      text: 'Perch only shows this after bills and cushion are accounted for.'
+    }));
+
+    return card;
+  }
+
   function renderTodayStoryView(root, state, storyInput = {}) {
     if (!root) throw new Error('Today story view requires a root element.');
     if (!state) throw new Error('Today story view requires state.');
@@ -84,6 +105,9 @@
     }
     page.appendChild(map);
 
+    const freedomChoice = renderFreedomChoice(storyInput.freedomChoice);
+    if (freedomChoice) page.appendChild(freedomChoice);
+
     const lower = el('section', { className: 'story-lower-notes' });
     lower.appendChild(renderMiniCard('What can wait', 'Barn cleanup and low-pressure property chores stay quiet.'));
     lower.appendChild(renderMiniCard('Trust/source', state.sourceIndicator ? state.sourceIndicator.label : 'Source not labeled yet.'));
@@ -95,12 +119,14 @@
       rendered: true,
       mode: 'story-demo',
       hasFirstSecond: true,
-      usesFakeData: true
+      usesFakeData: true,
+      hasFreedomChoice: Boolean(freedomChoice)
     };
   }
 
   const PerchTodayStoryView = Object.freeze({
     renderTodayStoryView,
+    renderFreedomChoice,
     topAttention,
     moneySummary,
     brainSummary
