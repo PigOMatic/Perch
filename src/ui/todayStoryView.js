@@ -44,6 +44,26 @@
     return card;
   }
 
+  function renderScheduleSquares(days) {
+    if (!Array.isArray(days) || !days.length) return null;
+
+    const wrap = el('section', { className: 'story-schedule-strip' });
+    wrap.appendChild(el('p', { className: 'eyebrow', text: 'Next 3 days' }));
+
+    const squares = el('div', { className: 'story-calendar-squares' });
+    days.slice(0, 3).forEach((day) => {
+      const square = el('div', { className: `story-calendar-square ${day.status || 'unknown'}` });
+      square.appendChild(el('span', { className: 'cal-day', text: day.day }));
+      square.appendChild(el('strong', { className: 'cal-number', text: day.number }));
+      square.appendChild(el('span', { className: 'cal-label', text: day.label }));
+      square.appendChild(el('small', { className: 'cal-detail', text: day.detail }));
+      squares.appendChild(square);
+    });
+
+    wrap.appendChild(squares);
+    return wrap;
+  }
+
   function renderFreedomChoice(choice) {
     if (!choice || !choice.safeToOffer) return null;
 
@@ -74,7 +94,7 @@
 
     const story = storyInput.storyDetails || {};
     const people = storyInput.people || [];
-    const shift = (storyInput.workShifts || [])[0];
+    const scheduleSquares = storyInput.schedulePreview || [];
 
     const page = el('article', { className: 'today-story-page' });
 
@@ -93,12 +113,12 @@
     second.appendChild(renderMiniCard('1 minute', story.firstMinute || 'You can inspect the evidence without feeling flooded.'));
     page.appendChild(second);
 
+    const schedule = renderScheduleSquares(scheduleSquares);
+    if (schedule) page.appendChild(schedule);
+
     const map = el('section', { className: 'story-today-map' });
     map.appendChild(el('p', { className: 'eyebrow', text: 'What the page shows' }));
     map.appendChild(renderMiniCard('Money terrain', moneySummary(state)));
-    if (shift) {
-      map.appendChild(renderMiniCard('Schedule terrain', `${shift.label} · ${shift.date} · ${shift.start}`));
-    }
     map.appendChild(renderMiniCard('Brain notes', brainSummary(state)));
     if (people.length) {
       map.appendChild(renderMiniCard('People nearby', people.map((person) => person.name).slice(0, 3).join(', ')));
@@ -120,12 +140,14 @@
       mode: 'story-demo',
       hasFirstSecond: true,
       usesFakeData: true,
-      hasFreedomChoice: Boolean(freedomChoice)
+      hasFreedomChoice: Boolean(freedomChoice),
+      hasScheduleSquares: Boolean(schedule)
     };
   }
 
   const PerchTodayStoryView = Object.freeze({
     renderTodayStoryView,
+    renderScheduleSquares,
     renderFreedomChoice,
     topAttention,
     moneySummary,
