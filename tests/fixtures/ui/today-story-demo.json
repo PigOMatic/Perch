@@ -1,0 +1,18 @@
+{
+  "name": "today-story-demo",
+  "status": "experience-prototype-fixture",
+  "description": "Protects the realistic fake-data Today demo and first-second evaluation target.",
+  "given": {
+    "preview": "today_story_demo.html",
+    "data": "src/dev/todayStoryMockData.js"
+  },
+  "expect": {
+    "renderer": "PerchTodayStoryView.renderTodayStoryView",
+    "usesFakeData": true,
+    "hasFirstSecondTarget": true,
+    "hasFirstFiveSecondTarget": true,
+    "hasFirstMinuteTarget": true,
+    "doesNotStartWithShellHeader": true,
+    "primaryQuestion": "Do I feel oriented in one second?"
+  }
+}
