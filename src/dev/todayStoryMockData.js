@@ -39,6 +39,14 @@
         }
       ]
     },
+    freedomChoice: {
+      leftAfterBills: 800,
+      safeToOffer: true,
+      prompt: 'You should have about $800 left after bills.',
+      responsibleAction: 'Transfer $500 to savings',
+      funAction: 'Keep $150 for something fun this week',
+      irresponsibleAction: 'Show me safe ridiculous ideas under $200'
+    },
     captures: [
       {
         text: 'remind me to check if the mortgage payment pulled tomorrow morning',
