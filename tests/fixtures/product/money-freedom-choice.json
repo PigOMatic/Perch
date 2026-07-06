@@ -1,0 +1,22 @@
+{
+  "name": "money-freedom-choice",
+  "status": "product-pattern-fixture",
+  "description": "Protects the playful responsible/fun/irresponsible-ish money choice pattern with safety guardrails.",
+  "given": {
+    "leftAfterBills": 800,
+    "billsAccountedFor": true,
+    "minimumCushionProtected": true
+  },
+  "expect": {
+    "patternName": "Money Freedom Choice",
+    "safeFraming": "freedom-choice",
+    "allowsResponsibleAction": true,
+    "allowsFunAction": true,
+    "allowsIrresponsibleIshAction": true,
+    "requiresBillsAccountedFor": true,
+    "requiresMinimumCushionProtected": true,
+    "rejectsHarmfulFinancialSuggestions": true,
+    "noShameLanguage": true,
+    "belongsInTodayMoneyTerrain": true
+  }
+}
