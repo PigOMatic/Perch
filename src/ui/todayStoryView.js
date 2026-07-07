@@ -17,16 +17,6 @@
     return node;
   }
 
-  function sectionById(state, id) {
-    return (state.sections || []).find((section) => section.id === id) || null;
-  }
-
-  function topAttention(state) {
-    const attention = sectionById(state, 'attention');
-    const top = attention && attention.data && attention.data.top;
-    return top ? top.candidateId.replaceAll('_', ' ') : 'nothing urgent';
-  }
-
   function formatAmount(amount) {
     return `$${Number(amount || 0).toLocaleString()}`;
   }
@@ -61,7 +51,7 @@
     if (!choice || !choice.safeToOffer) return null;
 
     const card = el('section', { className: 'story-money-branch' });
-    card.appendChild(el('p', { className: 'eyebrow', text: 'Money first' }));
+    card.appendChild(el('p', { className: 'eyebrow', text: 'Money' }));
     card.appendChild(el('h3', { text: choice.prompt }));
     if (choice.note) card.appendChild(el('p', { className: 'story-branch-note', text: choice.note }));
     card.appendChild(renderBillsTab(money.bills || []));
@@ -87,7 +77,7 @@
     const event = storyInput.nextEvent || { title: 'Nothing due', detail: 'No next event set.' };
 
     const wrap = el('section', { className: 'story-week-branch' });
-    wrap.appendChild(el('p', { className: 'eyebrow', text: 'Week shape' }));
+    wrap.appendChild(el('p', { className: 'eyebrow', text: 'Week' }));
 
     const eventCard = el('div', { className: 'week-next-due' });
     eventCard.appendChild(el('p', { className: 'eyebrow', text: event.label || 'Next due' }));
@@ -116,15 +106,16 @@
     root.innerHTML = '';
     root.className = 'today-story-root';
 
-    const page = el('article', { className: 'today-story-page today-path-page' });
+    const page = el('article', {
+      className: `today-story-page today-path-page ${storyInput.layoutMode || 'balanced'}`
+    });
 
     const opening = el('section', { className: 'story-opening compact-opening' });
     opening.appendChild(el('p', { className: 'eyebrow', text: 'Today' }));
-    opening.appendChild(el('h2', { text: state.headline || 'Today is mostly steady. Money gets the first look.' }));
-    opening.appendChild(el('p', {
-      className: 'story-one-line',
-      text: `First look: ${topAttention(state)}.`
-    }));
+    opening.appendChild(el('h2', { text: state.headline || 'Today is mostly steady.' }));
+    if (storyInput.layoutReason) {
+      opening.appendChild(el('p', { className: 'story-one-line', text: storyInput.layoutReason }));
+    }
     page.appendChild(opening);
 
     const path = el('section', { className: 'story-flow-path s-flow-layout' });
@@ -149,6 +140,7 @@
       hasMoneyBranch: Boolean(moneyBranch),
       hasBillsTab: Boolean(storyInput.money && storyInput.money.bills),
       hasWeekBranch: Boolean(weekBranch),
+      hasAdaptiveLayoutMode: Boolean(storyInput.layoutMode),
       hasScheduleSquares: false,
       hasNextEvent: Boolean(storyInput.nextEvent)
     };
@@ -159,8 +151,7 @@
     renderMoneyBranch,
     renderWeekBranch,
     renderBillsTab,
-    renderFreedomChoice: renderMoneyBranch,
-    topAttention
+    renderFreedomChoice: renderMoneyBranch
   });
 
   global.PerchTodayStoryView = PerchTodayStoryView;
