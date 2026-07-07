@@ -146,16 +146,16 @@
     const todayBlock = renderInfoBlock('today-status-block', storyInput.todayStatus);
     if (todayBlock) path.appendChild(todayBlock);
 
-    const dueSoonBlock = renderInfoBlock('due-soon-block', storyInput.dueSoon, renderBillsTab((storyInput.money || {}).bills || []));
-    if (dueSoonBlock) path.appendChild(dueSoonBlock);
+    const nextDueBlock = renderInfoBlock('next-due-block', storyInput.nextDue);
+    if (nextDueBlock) path.appendChild(nextDueBlock);
 
     const moneyBranch = renderMoneyBranch(storyInput.freedomChoice, storyInput.money || {});
     if (moneyBranch) path.appendChild(moneyBranch);
 
     path.appendChild(renderNextShifts(storyInput.nextShifts || []));
 
-    const nextDueBlock = renderInfoBlock('next-due-block', storyInput.nextDue);
-    if (nextDueBlock) path.appendChild(nextDueBlock);
+    const dueSoonBlock = renderInfoBlock('due-soon-block', storyInput.dueSoon, renderBillsTab((storyInput.money || {}).bills || []));
+    if (dueSoonBlock) path.appendChild(dueSoonBlock);
 
     page.appendChild(path);
     root.appendChild(page);
