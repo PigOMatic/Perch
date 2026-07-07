@@ -64,22 +64,30 @@
     return wrap;
   }
 
-  function renderFreedomChoice(choice) {
+  function renderMoneyBranch(choice) {
     if (!choice || !choice.safeToOffer) return null;
 
-    const card = el('section', { className: 'story-freedom-choice' });
-    card.appendChild(el('p', { className: 'eyebrow', text: 'Freedom choice' }));
+    const card = el('section', { className: 'story-money-branch' });
+    card.appendChild(el('p', { className: 'eyebrow', text: 'Money marker' }));
     card.appendChild(el('h3', { text: choice.prompt }));
+    if (choice.note) card.appendChild(el('p', { className: 'story-branch-note', text: choice.note }));
 
-    const actions = el('div', { className: 'story-choice-actions' });
-    actions.appendChild(el('button', { className: 'responsible', text: choice.responsibleAction }));
-    actions.appendChild(el('button', { className: 'fun', text: choice.funAction }));
-    actions.appendChild(el('button', { className: 'irresponsible', text: choice.irresponsibleAction }));
-    card.appendChild(actions);
+    const branch = el('div', { className: 'story-branch-flow' });
+    const trunk = el('div', { className: 'story-branch-trunk' });
+    trunk.appendChild(el('span', { className: 'branch-amount', text: `$${choice.leftAfterBills}` }));
+    trunk.appendChild(el('span', { className: 'branch-label', text: 'open after bills' }));
+    branch.appendChild(trunk);
 
+    const arms = el('div', { className: 'story-branch-arms' });
+    arms.appendChild(el('button', { className: 'branch-option safe', text: choice.safeAction || 'Keep it safe' }));
+    arms.appendChild(el('button', { className: 'branch-option little', text: choice.littleAction || 'Use a little' }));
+    arms.appendChild(el('button', { className: 'branch-option toward', text: choice.towardAction || 'Put it toward something' }));
+    branch.appendChild(arms);
+
+    card.appendChild(branch);
     card.appendChild(el('p', {
       className: 'story-choice-note',
-      text: 'Perch only shows this after bills and cushion are accounted for.'
+      text: 'This appears only after bills and cushion are accounted for.'
     }));
 
     return card;
@@ -100,33 +108,27 @@
 
     const opening = el('section', { className: 'story-opening' });
     opening.appendChild(el('p', { className: 'eyebrow', text: 'Today · first glance' }));
-    opening.appendChild(el('h2', { text: state.headline || 'You have one real thing to look at first.' }));
+    opening.appendChild(el('h2', { text: state.headline || 'Most of today can stay quiet. Money gets the first mark.' }));
     opening.appendChild(el('p', {
       className: 'story-one-line',
       text: `First marker: ${topAttention(state)}.`
     }));
     page.appendChild(opening);
 
-    const second = el('section', { className: 'story-second-row' });
-    second.appendChild(renderMiniCard('1 second', story.firstSecond || 'Your eye lands on the page statement.'));
-    second.appendChild(renderMiniCard('5 seconds', story.firstFiveSeconds || 'You understand the first pressure point.'));
-    second.appendChild(renderMiniCard('1 minute', story.firstMinute || 'You can inspect the evidence without feeling flooded.'));
-    page.appendChild(second);
+    const moneyBranch = renderMoneyBranch(storyInput.freedomChoice);
+    if (moneyBranch) page.appendChild(moneyBranch);
 
     const schedule = renderScheduleSquares(scheduleSquares);
     if (schedule) page.appendChild(schedule);
 
     const map = el('section', { className: 'story-today-map' });
-    map.appendChild(el('p', { className: 'eyebrow', text: 'What the page shows' }));
+    map.appendChild(el('p', { className: 'eyebrow', text: 'Nearby context' }));
     map.appendChild(renderMiniCard('Money terrain', moneySummary(state)));
     map.appendChild(renderMiniCard('Brain notes', brainSummary(state)));
     if (people.length) {
       map.appendChild(renderMiniCard('People nearby', people.map((person) => person.name).slice(0, 3).join(', ')));
     }
     page.appendChild(map);
-
-    const freedomChoice = renderFreedomChoice(storyInput.freedomChoice);
-    if (freedomChoice) page.appendChild(freedomChoice);
 
     const lower = el('section', { className: 'story-lower-notes' });
     lower.appendChild(renderMiniCard('What can wait', 'Barn cleanup and low-pressure property chores stay quiet.'));
@@ -140,7 +142,8 @@
       mode: 'story-demo',
       hasFirstSecond: true,
       usesFakeData: true,
-      hasFreedomChoice: Boolean(freedomChoice),
+      hasMoneyBranch: Boolean(moneyBranch),
+      hasFreedomChoice: Boolean(moneyBranch),
       hasScheduleSquares: Boolean(schedule)
     };
   }
@@ -148,7 +151,8 @@
   const PerchTodayStoryView = Object.freeze({
     renderTodayStoryView,
     renderScheduleSquares,
-    renderFreedomChoice,
+    renderMoneyBranch,
+    renderFreedomChoice: renderMoneyBranch,
     topAttention,
     moneySummary,
     brainSummary
