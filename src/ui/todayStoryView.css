@@ -35,14 +35,6 @@
   line-height: 0.98;
 }
 
-.story-one-line {
-  margin: 12px 0 0;
-  max-width: 620px;
-  color: var(--perch-ink) !important;
-  font-size: clamp(0.98rem, 2vw, 1.28rem);
-  line-height: 1.24 !important;
-}
-
 .story-always-show {
   width: fit-content;
   margin-top: 12px;
@@ -91,40 +83,76 @@
   font-weight: 800;
 }
 
-.story-flow-path {
+.story-flow-path.practical-flow {
   display: grid;
-  gap: clamp(16px, 3vw, 28px);
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
+  grid-template-areas:
+    'today due'
+    'money money'
+    'shifts nextdue';
+  gap: clamp(14px, 2.5vw, 24px);
 }
 
-.story-money-branch,
-.story-week-branch {
+.practical-block,
+.story-money-branch {
   position: relative;
   display: grid;
-  gap: 16px;
-  padding: clamp(18px, 3vw, 28px);
+  gap: 12px;
+  padding: clamp(16px, 3vw, 24px);
   border: 1px solid rgba(33, 27, 21, 0.14);
-  border-radius: 24px;
+  border-radius: 22px;
+  background: rgba(255, 250, 242, 0.82);
+}
+
+.today-status-block {
+  grid-area: today;
+}
+
+.due-soon-block {
+  grid-area: due;
+}
+
+.story-money-branch {
+  grid-area: money;
   background:
-    radial-gradient(circle at 28% 44%, rgba(127, 95, 63, 0.12), transparent 34%),
-    rgba(255, 250, 242, 0.84);
+    radial-gradient(circle at 28% 44%, rgba(132, 90, 52, 0.14), transparent 34%),
+    rgba(255, 250, 242, 0.88);
 }
 
-.money-heavy .story-money-branch {
+.next-shifts-block {
+  grid-area: shifts;
+}
+
+.next-due-block {
+  grid-area: nextdue;
+}
+
+.money-heavy .story-money-branch,
+.money-heavy .due-soon-block {
   border-color: rgba(132, 90, 52, 0.28);
-  box-shadow: 0 18px 44px rgba(132, 90, 52, 0.12);
+  box-shadow: 0 18px 44px rgba(132, 90, 52, 0.1);
 }
 
+.practical-block h3,
 .story-money-branch h3 {
   max-width: 720px;
   margin: 0;
-  font-size: clamp(1.7rem, 4.8vw, 3.3rem);
+  color: var(--perch-ink);
+  font-size: clamp(1.25rem, 3.5vw, 2.8rem);
   line-height: 0.98;
 }
 
+.practical-block p:not(.eyebrow),
 .story-branch-note {
   max-width: 760px;
   margin: 0;
-  font-size: clamp(0.98rem, 2vw, 1.15rem);
+  color: var(--perch-muted);
+  font-size: clamp(0.95rem, 2vw, 1.12rem);
+  line-height: 1.25;
+}
+
+.due-soon-block h3 {
+  color: rgb(115, 74, 41);
 }
 
 .story-bills-tab {
@@ -302,18 +330,7 @@
   border-style: dashed;
 }
 
-.story-week-branch {
-  direction: rtl;
-  background:
-    radial-gradient(circle at 72% 40%, rgba(33, 27, 21, 0.09), transparent 32%),
-    rgba(255, 250, 242, 0.76);
-}
-
-.story-week-branch > * {
-  direction: ltr;
-}
-
-.week-header-row {
+.next-shifts-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -332,127 +349,75 @@
   font-weight: 850;
 }
 
-.week-next-due {
-  width: min(360px, 100%);
-  justify-self: end;
+.shift-ticket-row {
   display: grid;
-  gap: 6px;
-  padding: 16px;
-  border: 1px solid rgba(33, 27, 21, 0.14);
-  border-radius: 20px;
-  background: rgba(255, 250, 242, 0.9);
-}
-
-.week-next-due strong {
-  color: var(--perch-ink);
-  font-size: clamp(1.2rem, 3vw, 2rem);
-  line-height: 1;
-}
-
-.week-next-due span {
-  color: var(--perch-muted);
-  line-height: 1.25;
-}
-
-.week-rail {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(7, minmax(82px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
-  padding-top: 24px;
 }
 
-.week-rail::before {
-  content: '';
-  position: absolute;
-  left: 6%;
-  right: 6%;
-  top: 12px;
-  height: 1px;
-  background: rgba(33, 27, 21, 0.28);
-}
-
-.week-day {
-  position: relative;
-  min-height: 116px;
+.shift-ticket {
+  min-height: 128px;
   display: grid;
   align-content: space-between;
-  gap: 5px;
-  padding: 12px;
+  gap: 6px;
+  padding: 14px;
   border: 1px solid rgba(33, 27, 21, 0.14);
   border-radius: 18px;
   background: rgba(255, 250, 242, 0.78);
-  text-align: left;
 }
 
-.week-day::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: -24px;
-  width: 1px;
-  height: 24px;
-  background: rgba(33, 27, 21, 0.26);
-}
-
-.week-day-name,
-.week-day-label,
-.week-day small {
+.shift-day,
+.shift-label,
+.shift-ticket small {
   color: var(--perch-muted);
 }
 
-.week-day-name {
+.shift-day {
   font-size: 0.76rem;
   font-weight: 850;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.week-day strong {
+.shift-ticket strong {
   color: var(--perch-ink);
-  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  font-size: clamp(2rem, 4vw, 3.4rem);
   line-height: 0.9;
 }
 
-.week-day-label {
+.shift-label {
   font-weight: 850;
 }
 
-.week-day small {
+.shift-ticket small {
   font-size: 0.82rem;
   line-height: 1.1;
 }
 
-.week-day.work {
-  background: rgba(33, 27, 21, 0.09);
-  border-color: rgba(33, 27, 21, 0.22);
-}
-
-.week-day.recover,
-.week-day.event {
-  border-style: dashed;
-}
-
 @media (max-width: 920px) {
+  .story-flow-path.practical-flow {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'today'
+      'due'
+      'money'
+      'shifts'
+      'nextdue';
+  }
+
   .story-branch-flow,
-  .week-rail {
+  .shift-ticket-row {
     grid-template-columns: 1fr;
   }
 
   .story-branch-trunk::after,
   .story-branch-arms::before,
-  .branch-option::before,
-  .week-rail::before,
-  .week-day::before {
+  .branch-option::before {
     display: none;
   }
 
   .story-branch-trunk {
     min-height: 150px;
-  }
-
-  .week-next-due {
-    justify-self: stretch;
   }
 
   .today-story-page {
