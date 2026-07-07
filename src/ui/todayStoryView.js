@@ -27,56 +27,11 @@
     return top ? top.candidateId.replaceAll('_', ' ') : 'nothing urgent';
   }
 
-  function moneySummary(state) {
-    const money = sectionById(state, 'money');
-    return money && money.summary ? money.summary : 'Money details are not ready yet.';
-  }
-
-  function brainSummary(state) {
-    const brain = sectionById(state, 'brain');
-    return brain && brain.summary ? brain.summary : 'No notes are waiting.';
-  }
-
-  function renderMiniCard(label, value) {
-    const card = el('div', { className: 'story-mini-card' });
-    card.appendChild(el('p', { className: 'eyebrow', text: label }));
-    card.appendChild(el('p', { text: value }));
-    return card;
-  }
-
-  function renderAnchorMarker(anchor) {
-    const marker = el('section', { className: `story-anchor-marker ${anchor.id || ''}` });
-    marker.appendChild(el('p', { className: 'eyebrow', text: anchor.label }));
-    marker.appendChild(el('h3', { text: anchor.title }));
-    marker.appendChild(el('p', { text: anchor.detail }));
-    return marker;
-  }
-
-  function renderScheduleSquares(days) {
-    if (!Array.isArray(days) || !days.length) return null;
-
-    const wrap = el('section', { className: 'story-schedule-strip' });
-    wrap.appendChild(el('p', { className: 'eyebrow', text: 'Next work shifts' }));
-
-    const squares = el('div', { className: 'story-calendar-squares' });
-    days.slice(0, 3).forEach((day) => {
-      const square = el('div', { className: `story-calendar-square ${day.status || 'unknown'}` });
-      square.appendChild(el('span', { className: 'cal-day', text: day.day }));
-      square.appendChild(el('strong', { className: 'cal-number', text: day.number }));
-      square.appendChild(el('span', { className: 'cal-label', text: day.label }));
-      square.appendChild(el('small', { className: 'cal-detail', text: day.detail }));
-      squares.appendChild(square);
-    });
-
-    wrap.appendChild(squares);
-    return wrap;
-  }
-
   function renderMoneyBranch(choice) {
     if (!choice || !choice.safeToOffer) return null;
 
     const card = el('section', { className: 'story-money-branch' });
-    card.appendChild(el('p', { className: 'eyebrow', text: 'Today' }));
+    card.appendChild(el('p', { className: 'eyebrow', text: 'Money marker' }));
     card.appendChild(el('h3', { text: choice.prompt }));
     if (choice.note) card.appendChild(el('p', { className: 'story-branch-note', text: choice.note }));
 
@@ -96,17 +51,41 @@
     return card;
   }
 
-  function renderNextEvent(event, sourceIndicator) {
-    if (!event) return null;
+  function renderTimeLeaf(className, label, title, detail) {
+    const leaf = el('div', { className: `time-leaf ${className}` });
+    leaf.appendChild(el('p', { className: 'eyebrow', text: label }));
+    leaf.appendChild(el('strong', { text: title }));
+    leaf.appendChild(el('span', { text: detail }));
+    return leaf;
+  }
 
-    const wrap = el('section', { className: 'story-next-event' });
-    wrap.appendChild(el('p', { className: 'eyebrow', text: event.label || 'Next event' }));
-    wrap.appendChild(el('h3', { text: event.title }));
-    wrap.appendChild(el('p', { text: event.detail }));
-    wrap.appendChild(el('small', {
-      className: 'story-source-stamp',
-      text: event.sourceNote || (sourceIndicator ? sourceIndicator.label : 'Source not labeled yet')
-    }));
+  function renderTimeBranch(storyInput = {}) {
+    const schedule = storyInput.schedulePreview || [];
+    const today = schedule[0] || { label: 'Today', detail: 'Ready' };
+    const work = schedule.find((day) => day.status === 'work') || schedule[1] || { label: 'Work', detail: 'No shift found' };
+    const event = storyInput.nextEvent || { title: 'No event', detail: 'Nothing dated yet.' };
+
+    const wrap = el('section', { className: 'story-time-branch' });
+    wrap.appendChild(el('p', { className: 'eyebrow', text: 'Day shape' }));
+
+    const hub = el('div', { className: 'time-branch-hub' });
+    hub.appendChild(el('span', { className: 'time-hub-kicker', text: 'Today' }));
+    hub.appendChild(el('strong', { text: 'What surrounds the money marker' }));
+    wrap.appendChild(hub);
+
+    const leaves = el('div', { className: 'time-branch-leaves' });
+    leaves.appendChild(renderTimeLeaf('today-leaf', 'Today', `${today.day || ''} ${today.number || ''}`.trim() || today.label, `${today.label || ''} · ${today.detail || ''}`.replace(/^ · /, '')));
+    leaves.appendChild(renderTimeLeaf('work-leaf', 'Work this week', `${work.day || ''} ${work.number || ''}`.trim() || work.label, `${work.label || ''} · ${work.detail || ''}`.replace(/^ · /, '')));
+    leaves.appendChild(renderTimeLeaf('event-leaf', event.label || 'Next event', event.title, event.detail));
+    wrap.appendChild(leaves);
+
+    if (event.sourceNote || storyInput.sourceIndicator) {
+      wrap.appendChild(el('small', {
+        className: 'story-source-stamp',
+        text: event.sourceNote || storyInput.sourceIndicator.label
+      }));
+    }
+
     return wrap;
   }
 
@@ -116,9 +95,6 @@
 
     root.innerHTML = '';
     root.className = 'today-story-root';
-
-    const scheduleSquares = storyInput.schedulePreview || [];
-    const anchors = storyInput.timelineAnchors || [];
 
     const page = el('article', { className: 'today-story-page today-path-page' });
 
@@ -131,23 +107,19 @@
     }));
     page.appendChild(opening);
 
-    const path = el('section', { className: 'story-flow-path' });
-
-    if (anchors[0]) path.appendChild(renderAnchorMarker(anchors[0]));
+    const path = el('section', { className: 'story-flow-path reverse-time-layout' });
 
     const moneyBranch = renderMoneyBranch(storyInput.freedomChoice);
     if (moneyBranch) path.appendChild(moneyBranch);
 
-    if (anchors[1]) path.appendChild(renderAnchorMarker(anchors[1]));
-
-    const schedule = renderScheduleSquares(scheduleSquares);
-    if (schedule) path.appendChild(schedule);
-
-    const nextEvent = renderNextEvent(storyInput.nextEvent, state.sourceIndicator);
-    if (nextEvent) path.appendChild(nextEvent);
+    const timeBranch = renderTimeBranch({
+      schedulePreview: storyInput.schedulePreview,
+      nextEvent: storyInput.nextEvent,
+      sourceIndicator: state.sourceIndicator
+    });
+    path.appendChild(timeBranch);
 
     page.appendChild(path);
-
     root.appendChild(page);
 
     return {
@@ -157,22 +129,20 @@
       usesFakeData: true,
       hasMoneyBranch: Boolean(moneyBranch),
       hasFreedomChoice: Boolean(moneyBranch),
-      hasScheduleSquares: Boolean(schedule),
+      hasTimeBranch: Boolean(timeBranch),
+      hasScheduleSquares: false,
       hasTodayPath: true,
-      hasNextEvent: Boolean(nextEvent)
+      hasNextEvent: Boolean(storyInput.nextEvent)
     };
   }
 
   const PerchTodayStoryView = Object.freeze({
     renderTodayStoryView,
-    renderAnchorMarker,
-    renderScheduleSquares,
     renderMoneyBranch,
-    renderNextEvent,
+    renderTimeBranch,
+    renderTimeLeaf,
     renderFreedomChoice: renderMoneyBranch,
-    topAttention,
-    moneySummary,
-    brainSummary
+    topAttention
   });
 
   global.PerchTodayStoryView = PerchTodayStoryView;
