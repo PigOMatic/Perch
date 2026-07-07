@@ -11,7 +11,7 @@
 
   const PerchTodayStoryMockData = Object.freeze({
     today: '2026-07-05',
-    headline: 'You are not behind. You have one real thing to look at first.',
+    headline: 'Most of today can stay quiet. Money gets the first mark.',
     money: {
       checkingBalance: 1840,
       nextPayday: '2026-07-12',
@@ -42,10 +42,11 @@
     freedomChoice: {
       leftAfterBills: 800,
       safeToOffer: true,
-      prompt: 'You should have about $800 left after bills.',
-      responsibleAction: 'Transfer $500 to savings',
-      funAction: 'Keep $150 for something fun this week',
-      irresponsibleAction: 'Show me safe ridiculous ideas under $200'
+      prompt: '$800 is still open after bills.',
+      note: 'It can stay protected, make today nicer, or move toward something you want.',
+      safeAction: 'Keep it safe',
+      littleAction: 'Use a little',
+      towardAction: 'Put it toward something'
     },
     captures: [
       {
@@ -142,9 +143,9 @@
       }
     ],
     storyDetails: {
-      firstSecond: 'A calm page opens. Your eye should land on the sentence, not the navigation.',
-      firstFiveSeconds: 'You should know the day is mostly okay, but money needs the first look.',
-      firstMinute: 'You should see why Perch thinks that, what can wait, and what source is uncertain.'
+      firstSecond: 'The page opens around one sentence, then lets the money marker pull the eye downward.',
+      firstFiveSeconds: 'You should understand the money number, the next three days, and the branch of possible paths.',
+      firstMinute: 'You should see what can wait and where the estimate came from without feeling managed.'
     }
   });
 
