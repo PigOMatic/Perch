@@ -27,13 +27,44 @@
     return top ? top.candidateId.replaceAll('_', ' ') : 'nothing urgent';
   }
 
-  function renderMoneyBranch(choice) {
+  function formatAmount(amount) {
+    return `$${Number(amount || 0).toLocaleString()}`;
+  }
+
+  function formatDate(date) {
+    if (!date) return 'No date';
+    const parsed = new Date(`${date}T12:00:00`);
+    return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function renderBillsTab(bills = []) {
+    const details = el('details', { className: 'story-bills-tab' });
+    const summary = el('summary');
+    summary.appendChild(el('span', { text: 'Bills checked' }));
+    summary.appendChild(el('small', { text: `${bills.length} counted` }));
+    details.appendChild(summary);
+
+    const list = el('div', { className: 'story-bill-list' });
+    bills.forEach((bill) => {
+      const row = el('div', { className: `story-bill-row ${bill.status || 'due'}` });
+      row.appendChild(el('span', { className: 'bill-check', text: bill.status === 'scheduled' ? '✓' : '○' }));
+      row.appendChild(el('strong', { text: bill.name }));
+      row.appendChild(el('span', { text: formatDate(bill.dueDate) }));
+      row.appendChild(el('span', { text: formatAmount(bill.amount) }));
+      list.appendChild(row);
+    });
+    details.appendChild(list);
+    return details;
+  }
+
+  function renderMoneyBranch(choice, money = {}) {
     if (!choice || !choice.safeToOffer) return null;
 
     const card = el('section', { className: 'story-money-branch' });
-    card.appendChild(el('p', { className: 'eyebrow', text: 'Money marker' }));
+    card.appendChild(el('p', { className: 'eyebrow', text: 'Money first' }));
     card.appendChild(el('h3', { text: choice.prompt }));
     if (choice.note) card.appendChild(el('p', { className: 'story-branch-note', text: choice.note }));
+    card.appendChild(renderBillsTab(money.bills || []));
 
     const branch = el('div', { className: 'story-branch-flow' });
     const trunk = el('div', { className: 'story-branch-trunk' });
@@ -51,40 +82,29 @@
     return card;
   }
 
-  function renderTimeLeaf(className, label, title, detail) {
-    const leaf = el('div', { className: `time-leaf ${className}` });
-    leaf.appendChild(el('p', { className: 'eyebrow', text: label }));
-    leaf.appendChild(el('strong', { text: title }));
-    leaf.appendChild(el('span', { text: detail }));
-    return leaf;
-  }
+  function renderWeekBranch(storyInput = {}) {
+    const week = storyInput.weekSchedule || [];
+    const event = storyInput.nextEvent || { title: 'Nothing due', detail: 'No next event set.' };
 
-  function renderTimeBranch(storyInput = {}) {
-    const schedule = storyInput.schedulePreview || [];
-    const today = schedule[0] || { label: 'Today', detail: 'Ready' };
-    const work = schedule.find((day) => day.status === 'work') || schedule[1] || { label: 'Work', detail: 'No shift found' };
-    const event = storyInput.nextEvent || { title: 'No event', detail: 'Nothing dated yet.' };
+    const wrap = el('section', { className: 'story-week-branch' });
+    wrap.appendChild(el('p', { className: 'eyebrow', text: 'Week shape' }));
 
-    const wrap = el('section', { className: 'story-time-branch' });
-    wrap.appendChild(el('p', { className: 'eyebrow', text: 'Day shape' }));
+    const eventCard = el('div', { className: 'week-next-due' });
+    eventCard.appendChild(el('p', { className: 'eyebrow', text: event.label || 'Next due' }));
+    eventCard.appendChild(el('strong', { text: event.title }));
+    eventCard.appendChild(el('span', { text: event.detail }));
+    wrap.appendChild(eventCard);
 
-    const hub = el('div', { className: 'time-branch-hub' });
-    hub.appendChild(el('span', { className: 'time-hub-kicker', text: 'Today' }));
-    hub.appendChild(el('strong', { text: 'What surrounds the money marker' }));
-    wrap.appendChild(hub);
-
-    const leaves = el('div', { className: 'time-branch-leaves' });
-    leaves.appendChild(renderTimeLeaf('today-leaf', 'Today', `${today.day || ''} ${today.number || ''}`.trim() || today.label, `${today.label || ''} · ${today.detail || ''}`.replace(/^ · /, '')));
-    leaves.appendChild(renderTimeLeaf('work-leaf', 'Work this week', `${work.day || ''} ${work.number || ''}`.trim() || work.label, `${work.label || ''} · ${work.detail || ''}`.replace(/^ · /, '')));
-    leaves.appendChild(renderTimeLeaf('event-leaf', event.label || 'Next event', event.title, event.detail));
-    wrap.appendChild(leaves);
-
-    if (event.sourceNote || storyInput.sourceIndicator) {
-      wrap.appendChild(el('small', {
-        className: 'story-source-stamp',
-        text: event.sourceNote || storyInput.sourceIndicator.label
-      }));
-    }
+    const rail = el('div', { className: 'week-rail' });
+    week.slice().reverse().forEach((day) => {
+      const chip = el('div', { className: `week-day ${day.status || 'off'}` });
+      chip.appendChild(el('span', { className: 'week-day-name', text: day.day }));
+      chip.appendChild(el('strong', { text: day.number }));
+      chip.appendChild(el('span', { className: 'week-day-label', text: day.label }));
+      chip.appendChild(el('small', { text: day.detail }));
+      rail.appendChild(chip);
+    });
+    wrap.appendChild(rail);
 
     return wrap;
   }
@@ -98,26 +118,25 @@
 
     const page = el('article', { className: 'today-story-page today-path-page' });
 
-    const opening = el('section', { className: 'story-opening' });
-    opening.appendChild(el('p', { className: 'eyebrow', text: 'Today · first glance' }));
-    opening.appendChild(el('h2', { text: state.headline || 'Most of today can stay quiet. Money gets the first mark.' }));
+    const opening = el('section', { className: 'story-opening compact-opening' });
+    opening.appendChild(el('p', { className: 'eyebrow', text: 'Today' }));
+    opening.appendChild(el('h2', { text: state.headline || 'Today is mostly steady. Money gets the first look.' }));
     opening.appendChild(el('p', {
       className: 'story-one-line',
-      text: `First marker: ${topAttention(state)}.`
+      text: `First look: ${topAttention(state)}.`
     }));
     page.appendChild(opening);
 
-    const path = el('section', { className: 'story-flow-path reverse-time-layout' });
+    const path = el('section', { className: 'story-flow-path s-flow-layout' });
 
-    const moneyBranch = renderMoneyBranch(storyInput.freedomChoice);
+    const moneyBranch = renderMoneyBranch(storyInput.freedomChoice, storyInput.money || {});
     if (moneyBranch) path.appendChild(moneyBranch);
 
-    const timeBranch = renderTimeBranch({
-      schedulePreview: storyInput.schedulePreview,
-      nextEvent: storyInput.nextEvent,
-      sourceIndicator: state.sourceIndicator
+    const weekBranch = renderWeekBranch({
+      weekSchedule: storyInput.weekSchedule,
+      nextEvent: storyInput.nextEvent
     });
-    path.appendChild(timeBranch);
+    path.appendChild(weekBranch);
 
     page.appendChild(path);
     root.appendChild(page);
@@ -128,10 +147,9 @@
       hasFirstSecond: true,
       usesFakeData: true,
       hasMoneyBranch: Boolean(moneyBranch),
-      hasFreedomChoice: Boolean(moneyBranch),
-      hasTimeBranch: Boolean(timeBranch),
+      hasBillsTab: Boolean(storyInput.money && storyInput.money.bills),
+      hasWeekBranch: Boolean(weekBranch),
       hasScheduleSquares: false,
-      hasTodayPath: true,
       hasNextEvent: Boolean(storyInput.nextEvent)
     };
   }
@@ -139,8 +157,8 @@
   const PerchTodayStoryView = Object.freeze({
     renderTodayStoryView,
     renderMoneyBranch,
-    renderTimeBranch,
-    renderTimeLeaf,
+    renderWeekBranch,
+    renderBillsTab,
     renderFreedomChoice: renderMoneyBranch,
     topAttention
   });
