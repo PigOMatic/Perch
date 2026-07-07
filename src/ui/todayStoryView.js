@@ -62,6 +62,16 @@
     return wrap;
   }
 
+  function renderInfoBlock(className, data, extra) {
+    if (!data) return null;
+    const block = el('section', { className: `practical-block ${className}` });
+    block.appendChild(el('p', { className: 'eyebrow', text: data.label }));
+    block.appendChild(el('h3', { text: data.title }));
+    if (data.detail) block.appendChild(el('p', { text: data.detail }));
+    if (extra) block.appendChild(extra);
+    return block;
+  }
+
   function renderMoneyBranch(choice, money = {}) {
     if (!choice || !choice.safeToOffer) return null;
 
@@ -94,33 +104,23 @@
     return button;
   }
 
-  function renderWeekBranch(storyInput = {}) {
-    const week = storyInput.weekSchedule || [];
-    const event = storyInput.nextEvent || { title: 'Nothing due', detail: 'No next event set.' };
+  function renderNextShifts(shifts = []) {
+    const wrap = el('section', { className: 'practical-block next-shifts-block' });
+    const header = el('div', { className: 'next-shifts-header' });
+    header.appendChild(el('p', { className: 'eyebrow', text: 'Next shifts' }));
+    header.appendChild(renderCalendarButton());
+    wrap.appendChild(header);
 
-    const wrap = el('section', { className: 'story-week-branch' });
-    const weekHeader = el('div', { className: 'week-header-row' });
-    weekHeader.appendChild(el('p', { className: 'eyebrow', text: 'Week' }));
-    weekHeader.appendChild(renderCalendarButton());
-    wrap.appendChild(weekHeader);
-
-    const eventCard = el('div', { className: 'week-next-due' });
-    eventCard.appendChild(el('p', { className: 'eyebrow', text: event.label || 'Next due' }));
-    eventCard.appendChild(el('strong', { text: event.title }));
-    eventCard.appendChild(el('span', { text: event.detail }));
-    wrap.appendChild(eventCard);
-
-    const rail = el('div', { className: 'week-rail' });
-    week.slice().reverse().forEach((day) => {
-      const chip = el('div', { className: `week-day ${day.status || 'off'}` });
-      chip.appendChild(el('span', { className: 'week-day-name', text: day.day }));
-      chip.appendChild(el('strong', { text: day.number }));
-      chip.appendChild(el('span', { className: 'week-day-label', text: day.label }));
-      chip.appendChild(el('small', { text: day.detail }));
-      rail.appendChild(chip);
+    const tickets = el('div', { className: 'shift-ticket-row' });
+    shifts.slice(0, 3).forEach((shift) => {
+      const ticket = el('div', { className: 'shift-ticket' });
+      ticket.appendChild(el('span', { className: 'shift-day', text: shift.day }));
+      ticket.appendChild(el('strong', { text: shift.number }));
+      ticket.appendChild(el('span', { className: 'shift-label', text: shift.label }));
+      ticket.appendChild(el('small', { text: shift.detail }));
+      tickets.appendChild(ticket);
     });
-    wrap.appendChild(rail);
-
+    wrap.appendChild(tickets);
     return wrap;
   }
 
@@ -132,28 +132,30 @@
     root.className = 'today-story-root';
 
     const page = el('article', {
-      className: `today-story-page today-path-page ${storyInput.layoutMode || 'balanced'}`
+      className: `today-story-page today-path-page practical-flow-page ${storyInput.layoutMode || 'balanced'}`
     });
 
     const opening = el('section', { className: 'story-opening compact-opening' });
     opening.appendChild(el('p', { className: 'eyebrow', text: 'Today' }));
     opening.appendChild(el('h2', { text: state.headline || 'Today is mostly steady.' }));
-    if (storyInput.layoutReason) {
-      opening.appendChild(el('p', { className: 'story-one-line', text: storyInput.layoutReason }));
-    }
     opening.appendChild(renderAlwaysShow(storyInput.alwaysShow));
     page.appendChild(opening);
 
-    const path = el('section', { className: 'story-flow-path s-flow-layout' });
+    const path = el('section', { className: 'story-flow-path practical-flow' });
+
+    const todayBlock = renderInfoBlock('today-status-block', storyInput.todayStatus);
+    if (todayBlock) path.appendChild(todayBlock);
+
+    const dueSoonBlock = renderInfoBlock('due-soon-block', storyInput.dueSoon, renderBillsTab((storyInput.money || {}).bills || []));
+    if (dueSoonBlock) path.appendChild(dueSoonBlock);
 
     const moneyBranch = renderMoneyBranch(storyInput.freedomChoice, storyInput.money || {});
     if (moneyBranch) path.appendChild(moneyBranch);
 
-    const weekBranch = renderWeekBranch({
-      weekSchedule: storyInput.weekSchedule,
-      nextEvent: storyInput.nextEvent
-    });
-    path.appendChild(weekBranch);
+    path.appendChild(renderNextShifts(storyInput.nextShifts || []));
+
+    const nextDueBlock = renderInfoBlock('next-due-block', storyInput.nextDue);
+    if (nextDueBlock) path.appendChild(nextDueBlock);
 
     page.appendChild(path);
     root.appendChild(page);
@@ -163,21 +165,24 @@
       mode: 'story-demo',
       hasFirstSecond: true,
       usesFakeData: true,
+      hasTodayStatus: Boolean(todayBlock),
+      hasDueSoon: Boolean(dueSoonBlock),
       hasMoneyBranch: Boolean(moneyBranch),
       hasBillsTab: Boolean(storyInput.money && storyInput.money.bills),
+      hasNextShifts: Boolean(storyInput.nextShifts),
+      hasNextDue: Boolean(nextDueBlock),
       hasAlwaysShow: Boolean(storyInput.alwaysShow),
-      hasCalendarButton: Boolean(weekBranch),
-      hasWeekBranch: Boolean(weekBranch),
+      hasCalendarButton: true,
       hasAdaptiveLayoutMode: Boolean(storyInput.layoutMode),
-      hasScheduleSquares: false,
-      hasNextEvent: Boolean(storyInput.nextEvent)
+      hasScheduleSquares: false
     };
   }
 
   const PerchTodayStoryView = Object.freeze({
     renderTodayStoryView,
     renderMoneyBranch,
-    renderWeekBranch,
+    renderInfoBlock,
+    renderNextShifts,
     renderBillsTab,
     renderAlwaysShow,
     renderCalendarButton,
