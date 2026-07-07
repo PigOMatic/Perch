@@ -11,7 +11,7 @@
 
   const PerchTodayStoryMockData = Object.freeze({
     today: '2026-07-05',
-    headline: 'Most of today can stay quiet. Money gets the first mark.',
+    headline: 'Today is mostly steady. Money gets the first look.',
     money: {
       checkingBalance: 1840,
       nextPayday: '2026-07-12',
@@ -21,14 +21,14 @@
           name: 'Bronze mortgage',
           amount: 3191,
           dueDate: '2026-07-08',
-          status: 'unpaid'
+          status: 'due'
         },
         {
           id: 'bill_power',
           name: 'Duke Energy',
           amount: 246,
           dueDate: '2026-07-10',
-          status: 'unpaid'
+          status: 'due'
         },
         {
           id: 'bill_rv',
@@ -42,32 +42,27 @@
     freedomChoice: {
       leftAfterBills: 800,
       safeToOffer: true,
-      prompt: '$800 is still open after bills.',
-      note: 'It can stay protected, make today nicer, or move toward something you want.',
+      prompt: '$800 open after bills',
+      note: 'The bills are counted. The choice is what this money should do next.',
       safeAction: 'Keep it safe',
       littleAction: 'Use a little',
       towardAction: 'Put it toward something'
     },
-    timelineAnchors: [
-      {
-        id: 'today_anchor',
-        label: 'Today',
-        title: 'Money gets the first mark.',
-        detail: '$800 is open after bills are counted.'
-      },
-      {
-        id: 'work_anchor',
-        label: 'Next work shifts',
-        title: 'Mon 6 · ICU 7p',
-        detail: 'Then Tue 7 is recovery.'
-      },
-      {
-        id: 'event_anchor',
-        label: 'Next event',
-        title: 'Bronze mortgage · Jul 8',
-        detail: 'Check if the payment pulled tomorrow morning.'
-      }
+    weekSchedule: [
+      { day: 'Sun', number: '5', label: 'Off', detail: 'Reset day', status: 'off' },
+      { day: 'Mon', number: '6', label: 'Work', detail: 'ICU · 7p', status: 'work' },
+      { day: 'Tue', number: '7', label: 'Recover', detail: 'Sleep after shift', status: 'recover' },
+      { day: 'Wed', number: '8', label: 'Off', detail: 'Bill check', status: 'event' },
+      { day: 'Thu', number: '9', label: 'Off', detail: 'Open', status: 'off' },
+      { day: 'Fri', number: '10', label: 'Off', detail: 'Power due', status: 'event' },
+      { day: 'Sat', number: '11', label: 'Off', detail: 'Family', status: 'off' }
     ],
+    nextEvent: {
+      label: 'Next due',
+      title: 'Bronze mortgage · Jul 8',
+      detail: 'Check if the payment pulled tomorrow morning.',
+      sourceNote: 'Balance typed yesterday'
+    },
     captures: [
       {
         text: 'remind me to check if the mortgage payment pulled tomorrow morning',
@@ -162,16 +157,10 @@
         detail: 'Sleep after shift'
       }
     ],
-    nextEvent: {
-      label: 'Next event',
-      title: 'Bronze mortgage · Jul 8',
-      detail: 'Check if the payment pulled tomorrow morning.',
-      sourceNote: 'Balance typed yesterday'
-    },
     storyDetails: {
-      firstSecond: 'The page opens around one sentence, then lets the money marker pull the eye downward.',
-      firstFiveSeconds: 'You should understand today, the next work shift, and the next event without scanning separate boxes.',
-      firstMinute: 'You should see one connected path instead of a dashboard stack.'
+      firstSecond: 'The page opens smaller now, then moves into the money choice.',
+      firstFiveSeconds: 'You should see the money options, the bills tab, and the week rhythm without a giant headline.',
+      firstMinute: 'Bill detail stays tucked until pressed.'
     }
   });
 
