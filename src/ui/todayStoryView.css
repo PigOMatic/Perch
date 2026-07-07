@@ -10,10 +10,10 @@
 
 .today-story-page {
   width: min(1120px, 100%);
-  min-height: min(860px, calc(100vh - 48px));
+  min-height: min(820px, calc(100vh - 48px));
   display: grid;
-  gap: clamp(22px, 3vw, 38px);
-  padding: clamp(28px, 6vw, 72px);
+  gap: clamp(18px, 3vw, 32px);
+  padding: clamp(24px, 5vw, 58px);
   border: 1px solid rgba(33, 27, 21, 0.16);
   border-radius: 18px;
   background:
@@ -24,34 +24,35 @@
   box-shadow: 0 28px 90px rgba(33, 27, 21, 0.12);
 }
 
-.story-opening {
-  max-width: 900px;
+.story-opening.compact-opening {
+  max-width: 780px;
 }
 
-.story-opening h2 {
-  max-width: 880px;
-  font-size: clamp(2.8rem, 8vw, 6.8rem);
-  line-height: 0.9;
+.story-opening.compact-opening h2 {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(1.65rem, 4.8vw, 3.4rem);
+  line-height: 0.98;
 }
 
 .story-one-line {
-  margin: 26px 0 0;
-  max-width: 760px;
+  margin: 12px 0 0;
+  max-width: 620px;
   color: var(--perch-ink) !important;
-  font-size: clamp(1.2rem, 3vw, 2rem);
-  line-height: 1.2 !important;
+  font-size: clamp(0.98rem, 2vw, 1.28rem);
+  line-height: 1.24 !important;
 }
 
 .story-flow-path {
   display: grid;
-  gap: clamp(18px, 3vw, 30px);
+  gap: clamp(16px, 3vw, 28px);
 }
 
 .story-money-branch,
-.story-time-branch {
+.story-week-branch {
   position: relative;
   display: grid;
-  gap: 18px;
+  gap: 16px;
   padding: clamp(18px, 3vw, 28px);
   border: 1px solid rgba(33, 27, 21, 0.14);
   border-radius: 24px;
@@ -61,15 +62,94 @@
 }
 
 .story-money-branch h3 {
-  max-width: 780px;
-  font-size: clamp(1.8rem, 5vw, 3.6rem);
+  max-width: 720px;
+  margin: 0;
+  font-size: clamp(1.7rem, 4.8vw, 3.3rem);
   line-height: 0.98;
 }
 
 .story-branch-note {
   max-width: 760px;
   margin: 0;
-  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-size: clamp(0.98rem, 2vw, 1.15rem);
+}
+
+.story-bills-tab {
+  width: fit-content;
+  max-width: 100%;
+}
+
+.story-bills-tab summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding: 8px 13px;
+  border: 1px dashed rgba(33, 27, 21, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 250, 242, 0.72);
+  color: var(--perch-ink);
+  cursor: pointer;
+  font-weight: 850;
+  list-style: none;
+}
+
+.story-bills-tab summary::-webkit-details-marker {
+  display: none;
+}
+
+.story-bills-tab summary::after {
+  content: '+';
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(33, 27, 21, 0.2);
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+.story-bills-tab[open] summary::after {
+  content: '–';
+}
+
+.story-bills-tab summary small {
+  color: var(--perch-muted);
+  font-weight: 800;
+}
+
+.story-bill-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+  min-width: min(520px, calc(100vw - 72px));
+  padding: 12px;
+  border: 1px solid rgba(33, 27, 21, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 250, 242, 0.92);
+}
+
+.story-bill-row {
+  display: grid;
+  grid-template-columns: 24px minmax(150px, 1fr) auto auto;
+  gap: 10px;
+  align-items: center;
+  color: var(--perch-ink);
+}
+
+.story-bill-row span:not(.bill-check) {
+  color: var(--perch-muted);
+  font-size: 0.92rem;
+}
+
+.bill-check {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid rgba(33, 27, 21, 0.22);
+  border-radius: 999px;
+  font-weight: 900;
 }
 
 .story-branch-flow {
@@ -81,7 +161,7 @@
 
 .story-branch-trunk {
   position: relative;
-  min-height: 190px;
+  min-height: 180px;
   display: grid;
   place-items: center;
   align-content: center;
@@ -167,141 +247,138 @@
   border-style: dashed;
 }
 
-.story-time-branch {
-  overflow: hidden;
+.story-week-branch {
+  direction: rtl;
   background:
-    radial-gradient(circle at 50% 18%, rgba(33, 27, 21, 0.1), transparent 30%),
+    radial-gradient(circle at 72% 40%, rgba(33, 27, 21, 0.09), transparent 32%),
     rgba(255, 250, 242, 0.76);
 }
 
-.time-branch-hub {
-  position: relative;
-  width: min(320px, 100%);
-  min-height: 118px;
-  justify-self: center;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 4px;
-  padding: 18px;
-  border: 1px solid rgba(33, 27, 21, 0.18);
-  border-radius: 999px;
-  background: rgba(255, 250, 242, 0.94);
-  text-align: center;
+.story-week-branch > * {
+  direction: ltr;
 }
 
-.time-branch-hub::after {
+.week-next-due {
+  width: min(360px, 100%);
+  justify-self: end;
+  display: grid;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid rgba(33, 27, 21, 0.14);
+  border-radius: 20px;
+  background: rgba(255, 250, 242, 0.9);
+}
+
+.week-next-due strong {
+  color: var(--perch-ink);
+  font-size: clamp(1.2rem, 3vw, 2rem);
+  line-height: 1;
+}
+
+.week-next-due span {
+  color: var(--perch-muted);
+  line-height: 1.25;
+}
+
+.week-rail {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(82px, 1fr));
+  gap: 10px;
+  padding-top: 24px;
+}
+
+.week-rail::before {
   content: '';
   position: absolute;
-  left: 50%;
-  bottom: -34px;
-  width: 1px;
-  height: 34px;
+  left: 6%;
+  right: 6%;
+  top: 12px;
+  height: 1px;
   background: rgba(33, 27, 21, 0.28);
 }
 
-.time-hub-kicker {
+.week-day {
+  position: relative;
+  min-height: 116px;
+  display: grid;
+  align-content: space-between;
+  gap: 5px;
+  padding: 12px;
+  border: 1px solid rgba(33, 27, 21, 0.14);
+  border-radius: 18px;
+  background: rgba(255, 250, 242, 0.78);
+  text-align: left;
+}
+
+.week-day::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -24px;
+  width: 1px;
+  height: 24px;
+  background: rgba(33, 27, 21, 0.26);
+}
+
+.week-day-name,
+.week-day-label,
+.week-day small {
   color: var(--perch-muted);
-  font-size: 0.78rem;
+}
+
+.week-day-name {
+  font-size: 0.76rem;
   font-weight: 850;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.time-branch-hub strong {
-  max-width: 230px;
+.week-day strong {
   color: var(--perch-ink);
-  font-size: clamp(1.25rem, 3vw, 2rem);
-  line-height: 1;
+  font-size: clamp(1.8rem, 4vw, 3.2rem);
+  line-height: 0.9;
 }
 
-.time-branch-leaves {
-  position: relative;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  padding-top: 28px;
+.week-day-label {
+  font-weight: 850;
 }
 
-.time-branch-leaves::before {
-  content: '';
-  position: absolute;
-  left: 16.5%;
-  right: 16.5%;
-  top: 28px;
-  height: 1px;
-  background: rgba(33, 27, 21, 0.28);
+.week-day small {
+  font-size: 0.82rem;
+  line-height: 1.1;
 }
 
-.time-leaf {
-  position: relative;
-  min-height: 122px;
-  display: grid;
-  align-content: space-between;
-  gap: 8px;
-  padding: 14px;
-  border: 1px solid rgba(33, 27, 21, 0.14);
-  border-radius: 18px;
-  background: rgba(255, 250, 242, 0.82);
+.week-day.work {
+  background: rgba(33, 27, 21, 0.09);
+  border-color: rgba(33, 27, 21, 0.22);
 }
 
-.time-leaf::before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: -28px;
-  width: 1px;
-  height: 28px;
-  background: rgba(33, 27, 21, 0.28);
-}
-
-.time-leaf strong {
-  color: var(--perch-ink);
-  font-size: clamp(1.15rem, 3vw, 1.9rem);
-  line-height: 1;
-}
-
-.time-leaf span {
-  color: var(--perch-muted);
-  font-size: 0.92rem;
-  line-height: 1.2;
-}
-
-.time-leaf.event-leaf {
+.week-day.recover,
+.week-day.event {
   border-style: dashed;
 }
 
-.story-source-stamp {
-  width: fit-content;
-  justify-self: center;
-  margin-top: 2px;
-  padding: 6px 10px;
-  border: 1px dashed rgba(33, 27, 21, 0.24);
-  border-radius: 999px;
-  color: var(--perch-muted);
-  font-size: 0.82rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-@media (max-width: 820px) {
+@media (max-width: 920px) {
   .story-branch-flow,
-  .time-branch-leaves {
+  .week-rail {
     grid-template-columns: 1fr;
   }
 
   .story-branch-trunk::after,
   .story-branch-arms::before,
   .branch-option::before,
-  .time-branch-hub::after,
-  .time-branch-leaves::before,
-  .time-leaf::before {
+  .week-rail::before,
+  .week-day::before {
     display: none;
   }
 
   .story-branch-trunk {
     min-height: 150px;
+  }
+
+  .week-next-due {
+    justify-self: stretch;
   }
 
   .today-story-page {
