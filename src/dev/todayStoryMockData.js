@@ -14,6 +14,7 @@
     headline: 'Today is mostly steady.',
     layoutMode: 'money-heavy',
     layoutReason: 'money need is highest and wants are still available',
+    alwaysShow: ['Week', 'Bills', 'Work'],
     money: {
       checkingBalance: 1840,
       nextPayday: '2026-07-12',
