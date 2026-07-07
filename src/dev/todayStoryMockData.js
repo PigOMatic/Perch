@@ -15,6 +15,11 @@
     layoutMode: 'money-heavy',
     layoutReason: 'money need is highest and wants are still available',
     alwaysShow: ['Week', 'Bills', 'Work'],
+    todayStatus: {
+      label: 'Today',
+      title: 'Sun 5 · Off',
+      detail: 'Reset day with one money check worth noticing.'
+    },
     money: {
       checkingBalance: 1840,
       nextPayday: '2026-07-12',
@@ -50,6 +55,21 @@
       safeAction: 'Keep it safe',
       littleAction: 'Use a little',
       towardAction: 'Put it toward something'
+    },
+    dueSoon: {
+      label: 'Due soon',
+      title: 'Bronze mortgage · Jul 8',
+      detail: 'Check if the payment pulled tomorrow morning.'
+    },
+    nextShifts: [
+      { day: 'Mon', number: '6', label: 'ICU · 7p', detail: 'Night shift' },
+      { day: 'Mon', number: '13', label: 'ICU · 7p', detail: 'Night shift' },
+      { day: 'Tue', number: '14', label: 'ICU · 7p', detail: 'Night shift' }
+    ],
+    nextDue: {
+      label: 'Next due',
+      title: 'Duke Energy · Jul 10',
+      detail: '$246 due after mortgage check.'
     },
     weekSchedule: [
       { day: 'Sun', number: '5', label: 'Off', detail: 'Reset day', status: 'off' },
@@ -162,7 +182,7 @@
     ],
     storyDetails: {
       firstSecond: 'The page opens smaller now and lets scale, placement, and available choices show what matters.',
-      firstFiveSeconds: 'You should see the money options, the bills tab, and the week rhythm without being told what to do first.',
+      firstFiveSeconds: 'You should see today, due soon, next shifts, next due, and calendar access without a full week ribbon.',
       firstMinute: 'Bill detail stays tucked until pressed.'
     }
   });
