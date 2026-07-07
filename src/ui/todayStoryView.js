@@ -47,6 +47,21 @@
     return details;
   }
 
+  function renderAlwaysShow(items = []) {
+    const wrap = el('details', { className: 'story-always-show' });
+    const summary = el('summary');
+    summary.appendChild(el('span', { text: 'Always show' }));
+    summary.appendChild(el('small', { text: 'adjust later' }));
+    wrap.appendChild(summary);
+
+    const chips = el('div', { className: 'always-show-chips' });
+    (items.length ? items : ['Week', 'Bills', 'Work']).forEach((item) => {
+      chips.appendChild(el('button', { className: 'always-show-chip', text: item }));
+    });
+    wrap.appendChild(chips);
+    return wrap;
+  }
+
   function renderMoneyBranch(choice, money = {}) {
     if (!choice || !choice.safeToOffer) return null;
 
@@ -116,6 +131,7 @@
     if (storyInput.layoutReason) {
       opening.appendChild(el('p', { className: 'story-one-line', text: storyInput.layoutReason }));
     }
+    opening.appendChild(renderAlwaysShow(storyInput.alwaysShow));
     page.appendChild(opening);
 
     const path = el('section', { className: 'story-flow-path s-flow-layout' });
@@ -139,6 +155,7 @@
       usesFakeData: true,
       hasMoneyBranch: Boolean(moneyBranch),
       hasBillsTab: Boolean(storyInput.money && storyInput.money.bills),
+      hasAlwaysShow: Boolean(storyInput.alwaysShow),
       hasWeekBranch: Boolean(weekBranch),
       hasAdaptiveLayoutMode: Boolean(storyInput.layoutMode),
       hasScheduleSquares: false,
@@ -151,6 +168,7 @@
     renderMoneyBranch,
     renderWeekBranch,
     renderBillsTab,
+    renderAlwaysShow,
     renderFreedomChoice: renderMoneyBranch
   });
 
