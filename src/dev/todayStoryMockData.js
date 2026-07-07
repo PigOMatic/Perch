@@ -11,7 +11,9 @@
 
   const PerchTodayStoryMockData = Object.freeze({
     today: '2026-07-05',
-    headline: 'Today is mostly steady. Money gets the first look.',
+    headline: 'Today is mostly steady.',
+    layoutMode: 'money-heavy',
+    layoutReason: 'money need is highest and wants are still available',
     money: {
       checkingBalance: 1840,
       nextPayday: '2026-07-12',
@@ -158,8 +160,8 @@
       }
     ],
     storyDetails: {
-      firstSecond: 'The page opens smaller now, then moves into the money choice.',
-      firstFiveSeconds: 'You should see the money options, the bills tab, and the week rhythm without a giant headline.',
+      firstSecond: 'The page opens smaller now and lets scale, placement, and available choices show what matters.',
+      firstFiveSeconds: 'You should see the money options, the bills tab, and the week rhythm without being told what to do first.',
       firstMinute: 'Bill detail stays tucked until pressed.'
     }
   });
