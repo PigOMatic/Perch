@@ -87,12 +87,22 @@
     return card;
   }
 
+  function renderCalendarButton() {
+    const button = el('button', { className: 'week-calendar-button', text: 'Calendar' });
+    button.setAttribute('type', 'button');
+    button.setAttribute('aria-label', 'Open full schedule');
+    return button;
+  }
+
   function renderWeekBranch(storyInput = {}) {
     const week = storyInput.weekSchedule || [];
     const event = storyInput.nextEvent || { title: 'Nothing due', detail: 'No next event set.' };
 
     const wrap = el('section', { className: 'story-week-branch' });
-    wrap.appendChild(el('p', { className: 'eyebrow', text: 'Week' }));
+    const weekHeader = el('div', { className: 'week-header-row' });
+    weekHeader.appendChild(el('p', { className: 'eyebrow', text: 'Week' }));
+    weekHeader.appendChild(renderCalendarButton());
+    wrap.appendChild(weekHeader);
 
     const eventCard = el('div', { className: 'week-next-due' });
     eventCard.appendChild(el('p', { className: 'eyebrow', text: event.label || 'Next due' }));
@@ -156,6 +166,7 @@
       hasMoneyBranch: Boolean(moneyBranch),
       hasBillsTab: Boolean(storyInput.money && storyInput.money.bills),
       hasAlwaysShow: Boolean(storyInput.alwaysShow),
+      hasCalendarButton: Boolean(weekBranch),
       hasWeekBranch: Boolean(weekBranch),
       hasAdaptiveLayoutMode: Boolean(storyInput.layoutMode),
       hasScheduleSquares: false,
@@ -169,6 +180,7 @@
     renderWeekBranch,
     renderBillsTab,
     renderAlwaysShow,
+    renderCalendarButton,
     renderFreedomChoice: renderMoneyBranch
   });
 
