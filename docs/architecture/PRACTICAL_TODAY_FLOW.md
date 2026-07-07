@@ -8,10 +8,10 @@ The Today story demo now tests a simpler practical flow instead of a full-week r
 The flow is:
 
 1. Today
-2. Due soon
+2. Next due
 3. Money choice
 4. Next shifts
-5. Next due
+5. Due soon
 6. Calendar access
 
 This is meant to answer what the user actually needs to know without forcing the whole week onto the main page.
@@ -24,6 +24,6 @@ Design rules:
 
 - Do not show a full week unless it helps.
 - Prefer next three work shifts over a decorative calendar strip.
-- Show anything due soon before general schedule context.
+- Put the next specific due item near the top, then keep broader due context lower.
 - Keep full schedule access quiet but available.
 - Let visual hierarchy show importance instead of announcing what is first.
