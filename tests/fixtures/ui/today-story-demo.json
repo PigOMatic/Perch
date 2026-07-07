@@ -1,7 +1,7 @@
 {
   "name": "today-story-demo",
   "status": "experience-prototype-fixture",
-  "description": "Protects the realistic fake-data Today demo and first-second evaluation target.",
+  "description": "Protects the realistic fake-data Today demo, first-second evaluation target, and visual choice flow.",
   "given": {
     "preview": "today_story_demo.html",
     "data": "src/dev/todayStoryMockData.js"
@@ -13,6 +13,9 @@
     "hasFirstFiveSecondTarget": true,
     "hasFirstMinuteTarget": true,
     "doesNotStartWithShellHeader": true,
+    "hasScheduleSquares": true,
+    "hasMoneyBranch": true,
+    "branchLabels": ["Keep it safe", "Use a little", "Put it toward something"],
     "primaryQuestion": "Do I feel oriented in one second?"
   }
 }
