@@ -110,7 +110,8 @@
 }
 
 .money-heavy .story-money-branch {
-  box-shadow: 0 18px 44px rgba(33, 27, 21, 0.08);
+  border-color: rgba(132, 90, 52, 0.28);
+  box-shadow: 0 18px 44px rgba(132, 90, 52, 0.12);
 }
 
 .story-money-branch h3 {
@@ -218,9 +219,11 @@
   place-items: center;
   align-content: center;
   gap: 6px;
-  border: 1px solid rgba(33, 27, 21, 0.18);
+  border: 1px solid rgba(132, 90, 52, 0.26);
   border-radius: 999px;
-  background: rgba(255, 250, 242, 0.94);
+  background:
+    radial-gradient(circle at 50% 45%, rgba(132, 90, 52, 0.12), transparent 58%),
+    rgba(255, 250, 242, 0.96);
 }
 
 .story-branch-trunk::after {
@@ -229,11 +232,11 @@
   right: -34px;
   width: 36px;
   height: 1px;
-  background: rgba(33, 27, 21, 0.32);
+  background: rgba(132, 90, 52, 0.36);
 }
 
 .branch-amount {
-  color: var(--perch-ink);
+  color: rgb(115, 74, 41);
   font-size: clamp(3rem, 8vw, 5.6rem);
   font-weight: 850;
   line-height: 0.9;
@@ -260,7 +263,7 @@
   top: 22px;
   bottom: 22px;
   width: 1px;
-  background: rgba(33, 27, 21, 0.28);
+  background: rgba(132, 90, 52, 0.32);
 }
 
 .branch-option {
@@ -283,7 +286,7 @@
   top: 50%;
   width: 20px;
   height: 1px;
-  background: rgba(33, 27, 21, 0.28);
+  background: rgba(132, 90, 52, 0.32);
 }
 
 .branch-option.safe {
@@ -308,6 +311,25 @@
 
 .story-week-branch > * {
   direction: ltr;
+}
+
+.week-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.week-calendar-button {
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid rgba(33, 27, 21, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 250, 242, 0.58);
+  color: var(--perch-muted);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 850;
 }
 
 .week-next-due {
