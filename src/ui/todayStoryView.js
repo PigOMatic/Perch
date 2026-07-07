@@ -44,11 +44,19 @@
     return card;
   }
 
+  function renderAnchorMarker(anchor) {
+    const marker = el('section', { className: `story-anchor-marker ${anchor.id || ''}` });
+    marker.appendChild(el('p', { className: 'eyebrow', text: anchor.label }));
+    marker.appendChild(el('h3', { text: anchor.title }));
+    marker.appendChild(el('p', { text: anchor.detail }));
+    return marker;
+  }
+
   function renderScheduleSquares(days) {
     if (!Array.isArray(days) || !days.length) return null;
 
     const wrap = el('section', { className: 'story-schedule-strip' });
-    wrap.appendChild(el('p', { className: 'eyebrow', text: 'Next 3 days' }));
+    wrap.appendChild(el('p', { className: 'eyebrow', text: 'Next work shifts' }));
 
     const squares = el('div', { className: 'story-calendar-squares' });
     days.slice(0, 3).forEach((day) => {
@@ -68,7 +76,7 @@
     if (!choice || !choice.safeToOffer) return null;
 
     const card = el('section', { className: 'story-money-branch' });
-    card.appendChild(el('p', { className: 'eyebrow', text: 'Money marker' }));
+    card.appendChild(el('p', { className: 'eyebrow', text: 'Today' }));
     card.appendChild(el('h3', { text: choice.prompt }));
     if (choice.note) card.appendChild(el('p', { className: 'story-branch-note', text: choice.note }));
 
@@ -85,12 +93,21 @@
     branch.appendChild(arms);
 
     card.appendChild(branch);
-    card.appendChild(el('p', {
-      className: 'story-choice-note',
-      text: 'This appears only after bills and cushion are accounted for.'
-    }));
-
     return card;
+  }
+
+  function renderNextEvent(event, sourceIndicator) {
+    if (!event) return null;
+
+    const wrap = el('section', { className: 'story-next-event' });
+    wrap.appendChild(el('p', { className: 'eyebrow', text: event.label || 'Next event' }));
+    wrap.appendChild(el('h3', { text: event.title }));
+    wrap.appendChild(el('p', { text: event.detail }));
+    wrap.appendChild(el('small', {
+      className: 'story-source-stamp',
+      text: event.sourceNote || (sourceIndicator ? sourceIndicator.label : 'Source not labeled yet')
+    }));
+    return wrap;
   }
 
   function renderTodayStoryView(root, state, storyInput = {}) {
@@ -100,11 +117,10 @@
     root.innerHTML = '';
     root.className = 'today-story-root';
 
-    const story = storyInput.storyDetails || {};
-    const people = storyInput.people || [];
     const scheduleSquares = storyInput.schedulePreview || [];
+    const anchors = storyInput.timelineAnchors || [];
 
-    const page = el('article', { className: 'today-story-page' });
+    const page = el('article', { className: 'today-story-page today-path-page' });
 
     const opening = el('section', { className: 'story-opening' });
     opening.appendChild(el('p', { className: 'eyebrow', text: 'Today · first glance' }));
@@ -115,25 +131,22 @@
     }));
     page.appendChild(opening);
 
+    const path = el('section', { className: 'story-flow-path' });
+
+    if (anchors[0]) path.appendChild(renderAnchorMarker(anchors[0]));
+
     const moneyBranch = renderMoneyBranch(storyInput.freedomChoice);
-    if (moneyBranch) page.appendChild(moneyBranch);
+    if (moneyBranch) path.appendChild(moneyBranch);
+
+    if (anchors[1]) path.appendChild(renderAnchorMarker(anchors[1]));
 
     const schedule = renderScheduleSquares(scheduleSquares);
-    if (schedule) page.appendChild(schedule);
+    if (schedule) path.appendChild(schedule);
 
-    const map = el('section', { className: 'story-today-map' });
-    map.appendChild(el('p', { className: 'eyebrow', text: 'Nearby context' }));
-    map.appendChild(renderMiniCard('Money terrain', moneySummary(state)));
-    map.appendChild(renderMiniCard('Brain notes', brainSummary(state)));
-    if (people.length) {
-      map.appendChild(renderMiniCard('People nearby', people.map((person) => person.name).slice(0, 3).join(', ')));
-    }
-    page.appendChild(map);
+    const nextEvent = renderNextEvent(storyInput.nextEvent, state.sourceIndicator);
+    if (nextEvent) path.appendChild(nextEvent);
 
-    const lower = el('section', { className: 'story-lower-notes' });
-    lower.appendChild(renderMiniCard('What can wait', 'Barn cleanup and low-pressure property chores stay quiet.'));
-    lower.appendChild(renderMiniCard('Trust/source', state.sourceIndicator ? state.sourceIndicator.label : 'Source not labeled yet.'));
-    page.appendChild(lower);
+    page.appendChild(path);
 
     root.appendChild(page);
 
@@ -144,14 +157,18 @@
       usesFakeData: true,
       hasMoneyBranch: Boolean(moneyBranch),
       hasFreedomChoice: Boolean(moneyBranch),
-      hasScheduleSquares: Boolean(schedule)
+      hasScheduleSquares: Boolean(schedule),
+      hasTodayPath: true,
+      hasNextEvent: Boolean(nextEvent)
     };
   }
 
   const PerchTodayStoryView = Object.freeze({
     renderTodayStoryView,
+    renderAnchorMarker,
     renderScheduleSquares,
     renderMoneyBranch,
+    renderNextEvent,
     renderFreedomChoice: renderMoneyBranch,
     topAttention,
     moneySummary,

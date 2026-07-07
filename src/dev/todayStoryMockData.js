@@ -48,6 +48,26 @@
       littleAction: 'Use a little',
       towardAction: 'Put it toward something'
     },
+    timelineAnchors: [
+      {
+        id: 'today_anchor',
+        label: 'Today',
+        title: 'Money gets the first mark.',
+        detail: '$800 is open after bills are counted.'
+      },
+      {
+        id: 'work_anchor',
+        label: 'Next work shifts',
+        title: 'Mon 6 · ICU 7p',
+        detail: 'Then Tue 7 is recovery.'
+      },
+      {
+        id: 'event_anchor',
+        label: 'Next event',
+        title: 'Bronze mortgage · Jul 8',
+        detail: 'Check if the payment pulled tomorrow morning.'
+      }
+    ],
     captures: [
       {
         text: 'remind me to check if the mortgage payment pulled tomorrow morning',
@@ -100,7 +120,7 @@
     sourceIndicator: {
       source: 'story-mock-data',
       mode: 'demo',
-      label: 'Using fake story data'
+      label: 'Balance typed yesterday'
     },
     people: [
       { id: 'person_maura', name: 'Maura', relationship: 'wife' },
@@ -142,10 +162,16 @@
         detail: 'Sleep after shift'
       }
     ],
+    nextEvent: {
+      label: 'Next event',
+      title: 'Bronze mortgage · Jul 8',
+      detail: 'Check if the payment pulled tomorrow morning.',
+      sourceNote: 'Balance typed yesterday'
+    },
     storyDetails: {
       firstSecond: 'The page opens around one sentence, then lets the money marker pull the eye downward.',
-      firstFiveSeconds: 'You should understand the money number, the next three days, and the branch of possible paths.',
-      firstMinute: 'You should see what can wait and where the estimate came from without feeling managed.'
+      firstFiveSeconds: 'You should understand today, the next work shift, and the next event without scanning separate boxes.',
+      firstMinute: 'You should see one connected path instead of a dashboard stack.'
     }
   });
 
