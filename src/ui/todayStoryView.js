@@ -55,19 +55,26 @@
     wrap.appendChild(summary);
 
     const chips = el('div', { className: 'always-show-chips' });
-    (items.length ? items : ['Week', 'Bills', 'Work']).forEach((item) => {
+    (items.length ? items : ['Bills', 'Work', 'Brain notes']).forEach((item) => {
       chips.appendChild(el('button', { className: 'always-show-chip', text: item }));
     });
     wrap.appendChild(chips);
     return wrap;
   }
 
+  function renderActionButton(text, className = 'run-action') {
+    const button = el('button', { className, text });
+    button.setAttribute('type', 'button');
+    return button;
+  }
+
   function renderInfoBlock(className, data, extra) {
     if (!data) return null;
-    const block = el('section', { className: `practical-block ${className}` });
+    const block = el('section', { className: `run-sheet-card ${className}` });
     block.appendChild(el('p', { className: 'eyebrow', text: data.label }));
     block.appendChild(el('h3', { text: data.title }));
     if (data.detail) block.appendChild(el('p', { text: data.detail }));
+    if (data.action) block.appendChild(renderActionButton(data.action));
     if (extra) block.appendChild(extra);
     return block;
   }
@@ -75,11 +82,10 @@
   function renderMoneyBranch(choice, money = {}) {
     if (!choice || !choice.safeToOffer) return null;
 
-    const card = el('section', { className: 'story-money-branch' });
+    const card = el('section', { className: 'run-sheet-card story-money-branch' });
     card.appendChild(el('p', { className: 'eyebrow', text: 'Money' }));
     card.appendChild(el('h3', { text: choice.prompt }));
     if (choice.note) card.appendChild(el('p', { className: 'story-branch-note', text: choice.note }));
-    card.appendChild(renderBillsTab(money.bills || []));
 
     const branch = el('div', { className: 'story-branch-flow' });
     const trunk = el('div', { className: 'story-branch-trunk' });
@@ -94,6 +100,7 @@
     branch.appendChild(arms);
 
     card.appendChild(branch);
+    card.appendChild(renderBillsTab(money.bills || []));
     return card;
   }
 
@@ -105,7 +112,7 @@
   }
 
   function renderNextShifts(shifts = []) {
-    const wrap = el('section', { className: 'practical-block next-shifts-block' });
+    const wrap = el('section', { className: 'run-sheet-card next-shifts-block' });
     const header = el('div', { className: 'next-shifts-header' });
     header.appendChild(el('p', { className: 'eyebrow', text: 'Next shifts' }));
     header.appendChild(renderCalendarButton());
@@ -117,10 +124,24 @@
       ticket.appendChild(el('span', { className: 'shift-day', text: shift.day }));
       ticket.appendChild(el('strong', { text: shift.number }));
       ticket.appendChild(el('span', { className: 'shift-label', text: shift.label }));
-      ticket.appendChild(el('small', { text: shift.detail }));
       tickets.appendChild(ticket);
     });
     wrap.appendChild(tickets);
+    return wrap;
+  }
+
+  function renderBrainNotes(notes = []) {
+    if (!notes.length) return null;
+    const wrap = el('section', { className: 'brain-note-strip' });
+    wrap.appendChild(el('p', { className: 'eyebrow', text: 'From your brain' }));
+    const notesWrap = el('div', { className: 'brain-note-row' });
+    notes.slice(0, 2).forEach((note) => {
+      const noteEl = el('article', { className: `posted-note ${note.attachedTo || 'today'}` });
+      noteEl.appendChild(el('span', { className: 'pin-dot' }));
+      noteEl.appendChild(el('p', { text: note.text }));
+      notesWrap.appendChild(noteEl);
+    });
+    wrap.appendChild(notesWrap);
     return wrap;
   }
 
@@ -129,33 +150,40 @@
     if (!state) throw new Error('Today story view requires state.');
 
     root.innerHTML = '';
-    root.className = 'today-story-root';
+    root.className = `today-story-root run-sheet-environment env-${(storyInput.environment && storyInput.environment.id) || 'desk'}`;
 
     const page = el('article', {
-      className: `today-story-page today-path-page practical-flow-page ${storyInput.layoutMode || 'balanced'}`
+      className: `today-story-page today-run-sheet ${storyInput.layoutMode || 'balanced'}`
     });
 
     const opening = el('section', { className: 'story-opening compact-opening' });
-    opening.appendChild(el('p', { className: 'eyebrow', text: 'Today' }));
-    opening.appendChild(el('h2', { text: state.headline || 'Today is mostly steady.' }));
-    opening.appendChild(renderAlwaysShow(storyInput.alwaysShow));
+    const brand = el('div', { className: 'run-sheet-brand' });
+    brand.appendChild(el('p', { className: 'perch-wordmark', text: 'Perch' }));
+    brand.appendChild(renderAlwaysShow(storyInput.alwaysShow));
+    opening.appendChild(brand);
+    opening.appendChild(el('h2', { text: state.headline || 'Today' }));
+    if (storyInput.todayStatus) {
+      opening.appendChild(el('p', { className: 'today-date-line', text: storyInput.todayStatus.title }));
+      opening.appendChild(el('p', { className: 'today-soft-note', text: storyInput.todayStatus.detail }));
+    }
     page.appendChild(opening);
 
-    const path = el('section', { className: 'story-flow-path practical-flow' });
+    const path = el('section', { className: 'story-flow-path mobile-run-sheet-flow' });
 
-    const todayBlock = renderInfoBlock('today-status-block', storyInput.todayStatus);
-    if (todayBlock) path.appendChild(todayBlock);
-
-    const nextDueBlock = renderInfoBlock('next-due-block', storyInput.nextDue);
+    const nextDueBlock = renderInfoBlock('next-due-block pinned-paper', storyInput.nextDue);
     if (nextDueBlock) path.appendChild(nextDueBlock);
 
     const moneyBranch = renderMoneyBranch(storyInput.freedomChoice, storyInput.money || {});
     if (moneyBranch) path.appendChild(moneyBranch);
 
-    path.appendChild(renderNextShifts(storyInput.nextShifts || []));
+    const shifts = renderNextShifts(storyInput.nextShifts || []);
+    if (shifts) path.appendChild(shifts);
 
-    const dueSoonBlock = renderInfoBlock('due-soon-block', storyInput.dueSoon, renderBillsTab((storyInput.money || {}).bills || []));
+    const dueSoonBlock = renderInfoBlock('due-soon-block torn-paper', storyInput.dueSoon);
     if (dueSoonBlock) path.appendChild(dueSoonBlock);
+
+    const brainNotes = renderBrainNotes(storyInput.brainNotes || []);
+    if (brainNotes) path.appendChild(brainNotes);
 
     page.appendChild(path);
     root.appendChild(page);
@@ -165,15 +193,15 @@
       mode: 'story-demo',
       hasFirstSecond: true,
       usesFakeData: true,
-      hasTodayStatus: Boolean(todayBlock),
-      hasDueSoon: Boolean(dueSoonBlock),
+      hasEnvironmentLayer: Boolean(storyInput.environment),
       hasMoneyBranch: Boolean(moneyBranch),
       hasBillsTab: Boolean(storyInput.money && storyInput.money.bills),
       hasNextShifts: Boolean(storyInput.nextShifts),
       hasNextDue: Boolean(nextDueBlock),
+      hasDueSoon: Boolean(dueSoonBlock),
+      hasBrainNotes: Boolean(brainNotes),
       hasAlwaysShow: Boolean(storyInput.alwaysShow),
       hasCalendarButton: true,
-      hasAdaptiveLayoutMode: Boolean(storyInput.layoutMode),
       hasScheduleSquares: false
     };
   }
@@ -185,6 +213,7 @@
     renderNextShifts,
     renderBillsTab,
     renderAlwaysShow,
+    renderBrainNotes,
     renderCalendarButton,
     renderFreedomChoice: renderMoneyBranch
   });
