@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1800" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="room" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#24313d"/>
+      <stop offset="0.35" stop-color="#5b6e7d"/>
+      <stop offset="0.72" stop-color="#d8d7ca"/>
+      <stop offset="1" stop-color="#aeb8bb"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="1800" fill="url(#room)"/>
+  <rect x="0" y="0" width="1200" height="470" fill="#1f2a34" opacity="0.42"/>
+  <rect x="140" y="110" width="320" height="120" rx="18" fill="#dce8ef" opacity="0.22"/>
+  <rect x="715" y="120" width="260" height="80" rx="12" fill="#dce8ef" opacity="0.16"/>
+  <path d="M0 980c210-42 370-20 560 35 230 67 426 56 640-58v843H0z" fill="#d7d2bd" opacity="0.42"/>
+  <rect x="790" y="1340" width="250" height="105" rx="18" fill="#485966" opacity="0.28"/>
+  <circle cx="230" cy="1470" r="110" fill="#2f3c48" opacity="0.24"/>
+  <path d="M180 1480h640" stroke="#28323c" stroke-width="14" opacity="0.16" stroke-linecap="round"/>
+</svg>
