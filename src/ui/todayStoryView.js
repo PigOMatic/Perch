@@ -7,6 +7,14 @@
 (function attachPerchTodayStoryView(global) {
   'use strict';
 
+  const DEFAULT_SCENES = Object.freeze([
+    { id: 'desk', label: 'Desk', detail: 'coffee morning' },
+    { id: 'patio', label: 'Patio', detail: 'warm outside' },
+    { id: 'firepit', label: 'Firepit', detail: 'evening glow' },
+    { id: 'trail', label: 'Trail', detail: 'field guide' },
+    { id: 'breakroom', label: 'Break room', detail: 'work night' }
+  ]);
+
   function el(tag, options = {}) {
     const node = document.createElement(tag);
     if (options.className) node.className = options.className;
@@ -25,6 +33,35 @@
     if (!date) return 'No date';
     const parsed = new Date(`${date}T12:00:00`);
     return parsed.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  }
+
+  function getStoredSceneId(fallback) {
+    try {
+      return global.localStorage.getItem('perch_today_scene_preview') || fallback;
+    } catch (error) {
+      return fallback;
+    }
+  }
+
+  function storeSceneId(sceneId) {
+    try {
+      global.localStorage.setItem('perch_today_scene_preview', sceneId);
+    } catch (error) {
+      // Demo preference only; safe to ignore if storage is unavailable.
+    }
+  }
+
+  function setScene(root, sceneId, switcher) {
+    const classes = Array.from(root.classList).filter((className) => !className.startsWith('env-'));
+    root.className = classes.concat(`env-${sceneId}`).join(' ');
+    if (switcher) {
+      switcher.querySelectorAll('[data-scene-id]').forEach((button) => {
+        const isActive = button.getAttribute('data-scene-id') === sceneId;
+        button.classList.toggle('active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+    }
+    storeSceneId(sceneId);
   }
 
   function renderBillsTab(bills = []) {
@@ -145,12 +182,38 @@
     return wrap;
   }
 
+  function renderSceneSwitcher(scenes, activeSceneId, onSelect) {
+    const wrap = el('section', { className: 'scene-switcher' });
+    wrap.appendChild(el('p', { className: 'eyebrow', text: 'View scene' }));
+    const row = el('div', { className: 'scene-switcher-row' });
+    scenes.forEach((scene) => {
+      const button = el('button', {
+        className: `scene-chip ${scene.id === activeSceneId ? 'active' : ''}`,
+        attrs: {
+          type: 'button',
+          'data-scene-id': scene.id,
+          'aria-pressed': scene.id === activeSceneId ? 'true' : 'false'
+        }
+      });
+      button.appendChild(el('span', { text: scene.label }));
+      button.appendChild(el('small', { text: scene.detail }));
+      button.addEventListener('click', () => onSelect(scene.id, wrap));
+      row.appendChild(button);
+    });
+    wrap.appendChild(row);
+    return wrap;
+  }
+
   function renderTodayStoryView(root, state, storyInput = {}) {
     if (!root) throw new Error('Today story view requires a root element.');
     if (!state) throw new Error('Today story view requires state.');
 
+    const scenes = storyInput.environmentScenes || DEFAULT_SCENES;
+    const fallbackSceneId = (storyInput.environment && storyInput.environment.id) || 'desk';
+    const activeSceneId = getStoredSceneId(fallbackSceneId);
+
     root.innerHTML = '';
-    root.className = `today-story-root run-sheet-environment env-${(storyInput.environment && storyInput.environment.id) || 'desk'}`;
+    root.className = `today-story-root run-sheet-environment env-${activeSceneId}`;
 
     const page = el('article', {
       className: `today-story-page today-run-sheet ${storyInput.layoutMode || 'balanced'}`
@@ -186,6 +249,7 @@
     if (brainNotes) path.appendChild(brainNotes);
 
     page.appendChild(path);
+    page.appendChild(renderSceneSwitcher(scenes, activeSceneId, (sceneId, switcher) => setScene(root, sceneId, switcher)));
     root.appendChild(page);
 
     return {
@@ -194,6 +258,8 @@
       hasFirstSecond: true,
       usesFakeData: true,
       hasEnvironmentLayer: Boolean(storyInput.environment),
+      hasSceneSwitcher: true,
+      activeSceneId,
       hasMoneyBranch: Boolean(moneyBranch),
       hasBillsTab: Boolean(storyInput.money && storyInput.money.bills),
       hasNextShifts: Boolean(storyInput.nextShifts),
@@ -214,6 +280,7 @@
     renderBillsTab,
     renderAlwaysShow,
     renderBrainNotes,
+    renderSceneSwitcher,
     renderCalendarButton,
     renderFreedomChoice: renderMoneyBranch
   });
