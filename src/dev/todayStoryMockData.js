@@ -11,14 +11,18 @@
 
   const PerchTodayStoryMockData = Object.freeze({
     today: '2026-07-05',
-    headline: 'Today is mostly steady.',
+    headline: 'Today',
+    environment: {
+      id: 'desk',
+      label: 'Desk morning',
+      note: 'Same run sheet. Different place.'
+    },
     layoutMode: 'money-heavy',
-    layoutReason: 'money need is highest and wants are still available',
-    alwaysShow: ['Week', 'Bills', 'Work'],
+    alwaysShow: ['Bills', 'Work', 'Brain notes'],
     todayStatus: {
       label: 'Today',
       title: 'Sun 5 · Off',
-      detail: 'Reset day with one money check worth noticing.'
+      detail: 'Reset day.'
     },
     money: {
       checkingBalance: 1840,
@@ -51,26 +55,40 @@
       leftAfterBills: 800,
       safeToOffer: true,
       prompt: '$800 open after bills',
-      note: 'The bills are counted. The choice is what this money should do next.',
+      note: 'Counted through Jul 12 payday.',
       safeAction: 'Keep it safe',
       littleAction: 'Use a little',
       towardAction: 'Put it toward something'
     },
-    dueSoon: {
-      label: 'Due soon',
+    nextDue: {
+      label: 'Next due',
       title: 'Bronze mortgage · Jul 8',
-      detail: 'Check if the payment pulled tomorrow morning.'
+      detail: 'Affects the $800 number.',
+      action: 'Check payment'
     },
     nextShifts: [
       { day: 'Mon', number: '6', label: 'ICU · 7p', detail: 'Night shift' },
       { day: 'Mon', number: '13', label: 'ICU · 7p', detail: 'Night shift' },
       { day: 'Tue', number: '14', label: 'ICU · 7p', detail: 'Night shift' }
     ],
-    nextDue: {
-      label: 'Next due',
+    dueSoon: {
+      label: 'Due soon',
       title: 'Duke Energy · Jul 10',
-      detail: '$246 due after mortgage check.'
+      detail: '$246 after mortgage.',
+      action: 'Review bills'
     },
+    brainNotes: [
+      {
+        id: 'note_payment_pulled',
+        text: 'Check if payment pulled',
+        attachedTo: 'nextDue'
+      },
+      {
+        id: 'note_noah_birthday',
+        text: 'Don\'t forget Noah\'s game Sat 10am',
+        attachedTo: 'today'
+      }
+    ],
     weekSchedule: [
       { day: 'Sun', number: '5', label: 'Off', detail: 'Reset day', status: 'off' },
       { day: 'Mon', number: '6', label: 'Work', detail: 'ICU · 7p', status: 'work' },
@@ -181,9 +199,9 @@
       }
     ],
     storyDetails: {
-      firstSecond: 'The page opens smaller now and lets scale, placement, and available choices show what matters.',
-      firstFiveSeconds: 'You should see today, due soon, next shifts, next due, and calendar access without a full week ribbon.',
-      firstMinute: 'Bill detail stays tucked until pressed.'
+      firstSecond: 'The run sheet sits in a calm place and shows useful information without explaining itself.',
+      firstFiveSeconds: 'You should see next due, money, next shifts, due soon, and a small brain note if it matters.',
+      firstMinute: 'The same run sheet can be viewed in different environments without changing the core information.'
     }
   });
 
