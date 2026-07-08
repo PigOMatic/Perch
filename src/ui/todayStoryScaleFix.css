@@ -1,9 +1,8 @@
 /*
- * Perch Today Story Scale Fix
- * ---------------------------
- * Surgical correction after the first high-fidelity art pass.
- * Keeps the warmer paper direction, but removes the oversized typography
- * and the accidental giant ring from the environment layer.
+ * Perch Today Story Scale Fix + Scene Preview
+ * -------------------------------------------
+ * Keeps the warmer paper direction, removes the accidental oversized ring,
+ * and adds temporary scene controls for comparing Today environments.
  */
 
 .run-sheet-environment.env-desk::after {
@@ -12,6 +11,7 @@
 
 .today-run-sheet {
   width: min(620px, 100%);
+  transition: background 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
 }
 
 .story-opening.compact-opening {
@@ -58,6 +58,146 @@
   min-height: 64px;
 }
 
+/* Temporary scene previews */
+.run-sheet-environment.env-desk {
+  background:
+    radial-gradient(circle at 88% 10%, rgba(80, 112, 76, 0.16), transparent 18%),
+    radial-gradient(circle at 12% 92%, rgba(164, 102, 45, 0.16), transparent 24%),
+    linear-gradient(135deg, #bd9564 0%, #ead7b7 42%, #f8ecd6 70%, #d8b88d 100%);
+}
+
+.run-sheet-environment.env-patio {
+  background:
+    radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.52), transparent 18%),
+    radial-gradient(circle at 92% 8%, rgba(96, 138, 75, 0.24), transparent 20%),
+    radial-gradient(circle at 90% 84%, rgba(224, 161, 71, 0.2), transparent 26%),
+    linear-gradient(140deg, #d8c18f 0%, #f3e6be 38%, #d8e3bb 72%, #95b681 100%);
+}
+
+.run-sheet-environment.env-firepit {
+  background:
+    radial-gradient(circle at 50% 108%, rgba(238, 122, 49, 0.42), transparent 25%),
+    radial-gradient(circle at 78% 20%, rgba(255, 184, 94, 0.16), transparent 20%),
+    linear-gradient(145deg, #1d2630 0%, #334052 44%, #70533e 78%, #c26d38 100%);
+}
+
+.run-sheet-environment.env-trail {
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 247, 214, 0.34), transparent 18%),
+    radial-gradient(circle at 88% 18%, rgba(74, 118, 72, 0.28), transparent 23%),
+    radial-gradient(circle at 12% 90%, rgba(84, 105, 62, 0.2), transparent 25%),
+    linear-gradient(145deg, #9fb184 0%, #d5d4a6 46%, #eee3be 72%, #8f7651 100%);
+}
+
+.run-sheet-environment.env-breakroom {
+  background:
+    radial-gradient(circle at 18% 8%, rgba(178, 205, 221, 0.18), transparent 22%),
+    radial-gradient(circle at 88% 90%, rgba(93, 119, 141, 0.22), transparent 24%),
+    linear-gradient(140deg, #25313c 0%, #576778 42%, #d6d7cb 82%, #aeb6b7 100%);
+}
+
+.run-sheet-environment.env-patio .today-run-sheet {
+  border-color: rgba(88, 116, 67, 0.18);
+  background:
+    radial-gradient(circle at 72% 10%, rgba(145, 177, 103, 0.18), transparent 22%),
+    linear-gradient(90deg, rgba(75, 89, 41, 0.022) 1px, transparent 1px),
+    linear-gradient(rgba(75, 89, 41, 0.02) 1px, transparent 1px),
+    linear-gradient(175deg, #fffdf1, #fff8dc 70%, #eef1cc);
+  box-shadow: 0 34px 90px rgba(73, 89, 47, 0.25), 0 3px 0 rgba(255,255,255,0.55) inset;
+}
+
+.run-sheet-environment.env-firepit .today-run-sheet {
+  border-color: rgba(245, 169, 82, 0.18);
+  background:
+    radial-gradient(circle at 70% 0%, rgba(233, 130, 65, 0.16), transparent 22%),
+    linear-gradient(90deg, rgba(75, 45, 31, 0.026) 1px, transparent 1px),
+    linear-gradient(rgba(75, 45, 31, 0.022) 1px, transparent 1px),
+    linear-gradient(175deg, #fff3dc, #f4dcc0 72%, #e6c29d);
+  box-shadow: 0 34px 100px rgba(20, 18, 18, 0.42), 0 -18px 64px rgba(200, 87, 35, 0.12) inset;
+}
+
+.run-sheet-environment.env-trail .today-run-sheet {
+  border-color: rgba(73, 99, 55, 0.18);
+  background:
+    radial-gradient(circle at 78% 12%, rgba(101, 135, 80, 0.18), transparent 20%),
+    linear-gradient(90deg, rgba(57, 72, 45, 0.026) 1px, transparent 1px),
+    linear-gradient(rgba(57, 72, 45, 0.022) 1px, transparent 1px),
+    linear-gradient(175deg, #fbf6df, #f1ebcc 72%, #dce3c4);
+  box-shadow: 0 34px 90px rgba(40, 55, 35, 0.3), 0 3px 0 rgba(255,255,255,0.5) inset;
+}
+
+.run-sheet-environment.env-breakroom .today-run-sheet {
+  border-color: rgba(87, 108, 124, 0.2);
+  background:
+    radial-gradient(circle at 78% 8%, rgba(123, 157, 177, 0.16), transparent 20%),
+    linear-gradient(90deg, rgba(35, 50, 62, 0.025) 1px, transparent 1px),
+    linear-gradient(rgba(35, 50, 62, 0.022) 1px, transparent 1px),
+    linear-gradient(175deg, #f3f1e7, #e6e4d8 72%, #d2d5d0);
+  box-shadow: 0 34px 96px rgba(17, 25, 34, 0.36), 0 3px 0 rgba(255,255,255,0.42) inset;
+}
+
+.run-sheet-environment.env-firepit .run-action {
+  background: #8d4e34;
+}
+
+.run-sheet-environment.env-trail .run-action,
+.run-sheet-environment.env-patio .run-action {
+  background: #557045;
+}
+
+.run-sheet-environment.env-breakroom .run-action {
+  background: #445d70;
+}
+
+.scene-switcher {
+  display: grid;
+  gap: 10px;
+  margin-top: 4px;
+  padding: 14px;
+  border: 1px solid rgba(33, 27, 21, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 250, 242, 0.52);
+  box-shadow: 0 12px 28px rgba(42, 30, 18, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.scene-switcher-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.scene-chip {
+  min-height: 56px;
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  padding: 8px 7px;
+  border: 1px solid rgba(33, 27, 21, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 250, 242, 0.68);
+  color: #263629;
+  font: inherit;
+  text-align: center;
+}
+
+.scene-chip span {
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.scene-chip small {
+  color: rgba(45, 47, 42, 0.58);
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.scene-chip.active {
+  border-color: rgba(47, 74, 54, 0.36);
+  background: rgba(255, 255, 246, 0.92);
+  box-shadow: 0 8px 18px rgba(42, 30, 18, 0.12);
+}
+
 @media (min-width: 900px) {
   .today-run-sheet {
     width: min(820px, 92vw);
@@ -69,6 +209,12 @@
 
   .story-money-branch h3 {
     font-size: clamp(2rem, 3.7vw, 3rem);
+  }
+}
+
+@media (max-width: 620px) {
+  .scene-switcher-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
