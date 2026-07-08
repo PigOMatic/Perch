@@ -17,6 +17,13 @@
       label: 'Desk morning',
       note: 'Same run sheet. Different place.'
     },
+    environmentScenes: [
+      { id: 'desk', label: 'Desk', detail: 'coffee morning' },
+      { id: 'patio', label: 'Patio', detail: 'warm outside' },
+      { id: 'firepit', label: 'Firepit', detail: 'evening glow' },
+      { id: 'trail', label: 'Trail', detail: 'field guide' },
+      { id: 'breakroom', label: 'Break room', detail: 'work night' }
+    ],
     layoutMode: 'money-heavy',
     alwaysShow: ['Bills', 'Work', 'Brain notes'],
     todayStatus: {

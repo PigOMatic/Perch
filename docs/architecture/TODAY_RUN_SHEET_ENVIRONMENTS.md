@@ -68,6 +68,22 @@ For the desk environment, this means:
 
 The goal is picture-like charm while keeping components reusable.
 
+## Temporary scene switcher
+
+The Today story demo includes a temporary bottom control for comparing environments.
+
+Current demo scenes:
+
+- Desk
+- Patio
+- Firepit
+- Trail
+- Break room
+
+This is not final navigation. It is a design testing control so the same Today run sheet can be viewed through different moods, color tints, and shadow treatments.
+
+A later production version may hide this behind settings, rotate by time of day, or use real generated background assets instead of CSS-generated scene layers.
+
 ## Today page feeling
 
 The user should feel:
