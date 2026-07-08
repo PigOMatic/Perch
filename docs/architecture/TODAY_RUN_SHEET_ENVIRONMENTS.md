@@ -82,7 +82,19 @@ Current demo scenes:
 
 This is not final navigation. It is a design testing control so the same Today run sheet can be viewed through different moods, color tints, and shadow treatments.
 
-A later production version may hide this behind settings, rotate by time of day, or use real generated background assets instead of CSS-generated scene layers.
+## Scene image placeholders
+
+The demo now uses image-backed placeholder assets in `assets/scenes/`:
+
+- `desk-placeholder.svg`
+- `patio-placeholder.svg`
+- `firepit-placeholder.svg`
+- `trail-placeholder.svg`
+- `breakroom-placeholder.svg`
+
+These are temporary stand-ins for future generated PNG/WebP environment art. They prove the intended architecture: a real scene image behind the live Today run sheet.
+
+A later production version may hide the switcher behind settings, rotate scenes by time of day, or replace these placeholders with final generated background assets.
 
 ## Today page feeling
 
