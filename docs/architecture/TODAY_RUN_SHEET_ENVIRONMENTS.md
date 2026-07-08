@@ -53,6 +53,21 @@ The setting gives emotional relief. The foreground gives clarity.
 
 Decoration should mean something. Random stickers should not become the design system.
 
+## High-fidelity scene pass
+
+The app should not stop at cards over a background. A mature Today screen should feel like a composed scene with information resting inside it.
+
+For the desk environment, this means:
+
+- Warm tabletop atmosphere
+- Coffee/table cues in the outer environment
+- A physical paper run sheet surface
+- Layered notes, tickets, and soft shadows
+- Organic placement without sacrificing readability
+- Richer texture and depth than a plain app panel
+
+The goal is picture-like charm while keeping components reusable.
+
 ## Today page feeling
 
 The user should feel:
