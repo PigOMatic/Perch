@@ -8,17 +8,24 @@ import '../../objects/sticky_note_object.dart';
 import '../../scene_engine/scene_definition.dart';
 import '../../scene_engine/scene_object.dart';
 import '../../scene_engine/scene_renderer.dart';
+import '../../world/perch_world_state.dart';
 
 class HomePerchScene extends StatelessWidget {
-  const HomePerchScene({super.key, required this.data});
+  const HomePerchScene({
+    super.key,
+    required this.data,
+    required this.worldState,
+  });
 
   final PerchTodayData data;
+  final PerchWorldState worldState;
 
   @override
   Widget build(BuildContext context) {
     return PerchSceneRenderer(
       scene: homePerchSceneDefinition,
       data: data,
+      worldState: worldState,
     );
   }
 }
@@ -26,7 +33,7 @@ class HomePerchScene extends StatelessWidget {
 final homePerchSceneDefinition = PerchSceneDefinition(
   id: 'home_perch',
   name: 'Home Perch',
-  backgroundBuilder: (context, size) => const HomePerchBackground(),
+  backgroundBuilder: (context, size, worldState) => HomePerchBackground(worldState: worldState),
   objects: [
     SceneObjectDefinition(
       id: 'notebook',
@@ -72,62 +79,137 @@ final homePerchSceneDefinition = PerchSceneDefinition(
 );
 
 class HomePerchBackground extends StatelessWidget {
-  const HomePerchBackground({super.key});
+  const HomePerchBackground({super.key, required this.worldState});
+
+  final PerchWorldState worldState;
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF2D1C12),
-            Color(0xFF704624),
-            Color(0xFFA56B39),
-            Color(0xFF2B1A10),
-          ],
+          colors: _deskGradientFor(worldState),
         ),
       ),
       child: Stack(
-        children: const [
-          Positioned(
+        children: [
+          const Positioned(
             left: -64,
             top: 28,
             child: _CoffeeMugProp(),
           ),
-          Positioned(
+          const Positioned(
             right: -48,
             bottom: -36,
             child: _LeatherCornerProp(),
           ),
-          Positioned(
+          const Positioned(
             left: 42,
             bottom: 146,
             child: _PenProp(),
           ),
-          Positioned.fill(child: _LightAndGrainOverlay()),
+          Positioned.fill(child: _LightAndGrainOverlay(worldState: worldState)),
+          if (worldState.weather == PerchWeather.rain) const Positioned.fill(child: _RainOverlay()),
+          if (worldState.weather == PerchWeather.fog) const Positioned.fill(child: _FogOverlay()),
+          if (worldState.timeOfDay == PerchTimeOfDay.night) const Positioned.fill(child: _NightOverlay()),
         ],
       ),
     );
   }
+
+  List<Color> _deskGradientFor(PerchWorldState state) {
+    if (state.timeOfDay == PerchTimeOfDay.night) {
+      return const [
+        Color(0xFF111417),
+        Color(0xFF2C2118),
+        Color(0xFF5C3820),
+        Color(0xFF101114),
+      ];
+    }
+
+    if (state.season == PerchSeason.fall) {
+      return const [
+        Color(0xFF2D1A10),
+        Color(0xFF7A4322),
+        Color(0xFFB06431),
+        Color(0xFF2B160D),
+      ];
+    }
+
+    return const [
+      Color(0xFF2D1C12),
+      Color(0xFF704624),
+      Color(0xFFA56B39),
+      Color(0xFF2B1A10),
+    ];
+  }
 }
 
 class _LightAndGrainOverlay extends StatelessWidget {
-  const _LightAndGrainOverlay();
+  const _LightAndGrainOverlay({required this.worldState});
+
+  final PerchWorldState worldState;
 
   @override
   Widget build(BuildContext context) {
+    final opacity = switch (worldState.timeOfDay) {
+      PerchTimeOfDay.morning => 0.24,
+      PerchTimeOfDay.midday => 0.18,
+      PerchTimeOfDay.evening => 0.16,
+      PerchTimeOfDay.night => 0.06,
+    };
+
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: RadialGradient(
           center: const Alignment(-0.36, -0.72),
           radius: 0.94,
           colors: [
-            Colors.white.withOpacity(0.22),
+            Colors.white.withOpacity(opacity),
             Colors.transparent,
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _RainOverlay extends StatelessWidget {
+  const _RainOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF2D3C48).withOpacity(0.16),
+      ),
+    );
+  }
+}
+
+class _FogOverlay extends StatelessWidget {
+  const _FogOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFFD7D4C8).withOpacity(0.18),
+      ),
+    );
+  }
+}
+
+class _NightOverlay extends StatelessWidget {
+  const _NightOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0xFF030509).withOpacity(0.22),
       ),
     );
   }
