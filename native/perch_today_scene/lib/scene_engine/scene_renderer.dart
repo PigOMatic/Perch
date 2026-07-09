@@ -10,11 +10,15 @@ class PerchSceneRenderer extends StatelessWidget {
     required this.scene,
     required this.data,
     required this.worldState,
+    required this.ambientProgress,
+    this.onObjectTap,
   });
 
   final PerchSceneDefinition scene;
   final PerchTodayData data;
   final PerchWorldState worldState;
+  final Animation<double> ambientProgress;
+  final ValueChanged<String>? onObjectTap;
 
   @override
   Widget build(BuildContext context) {
@@ -25,10 +29,12 @@ class PerchSceneRenderer extends StatelessWidget {
           return Stack(
             fit: StackFit.expand,
             children: [
-              scene.backgroundBuilder(context, sceneSize, worldState),
+              scene.backgroundBuilder(context, sceneSize, worldState, ambientProgress),
               for (final object in scene.objects)
                 _PlacedSceneObject(
                   rect: object.layout(sceneSize),
+                  objectId: object.id,
+                  onTap: onObjectTap,
                   child: object.builder(context, data),
                 ),
               Positioned(
@@ -46,10 +52,17 @@ class PerchSceneRenderer extends StatelessWidget {
 }
 
 class _PlacedSceneObject extends StatelessWidget {
-  const _PlacedSceneObject({required this.rect, required this.child});
+  const _PlacedSceneObject({
+    required this.rect,
+    required this.child,
+    required this.objectId,
+    this.onTap,
+  });
 
   final Rect rect;
   final Widget child;
+  final String objectId;
+  final ValueChanged<String>? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -58,7 +71,11 @@ class _PlacedSceneObject extends StatelessWidget {
       top: rect.top,
       width: rect.width,
       height: rect.height,
-      child: child,
+      child: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () => onTap?.call(objectId),
+        child: child,
+      ),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../data/perch_today_models.dart';
@@ -10,7 +12,7 @@ import '../../scene_engine/scene_object.dart';
 import '../../scene_engine/scene_renderer.dart';
 import '../../world/perch_world_state.dart';
 
-class HomePerchScene extends StatelessWidget {
+class HomePerchScene extends StatefulWidget {
   const HomePerchScene({
     super.key,
     required this.data,
@@ -21,19 +23,61 @@ class HomePerchScene extends StatelessWidget {
   final PerchWorldState worldState;
 
   @override
+  State<HomePerchScene> createState() => _HomePerchSceneState();
+}
+
+class _HomePerchSceneState extends State<HomePerchScene> with SingleTickerProviderStateMixin {
+  late final AnimationController _ambientController;
+  String? _focusedObject;
+
+  @override
+  void initState() {
+    super.initState();
+    _ambientController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ambientController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return PerchSceneRenderer(
-      scene: homePerchSceneDefinition,
-      data: data,
-      worldState: worldState,
+    return Stack(
+      children: [
+        PerchSceneRenderer(
+          scene: homePerchSceneDefinition,
+          data: widget.data,
+          worldState: widget.worldState,
+          ambientProgress: _ambientController,
+          onObjectTap: _handleObjectTap,
+        ),
+        if (_focusedObject != null)
+          _ObjectFocusOverlay(
+            objectId: _focusedObject!,
+            data: widget.data,
+            onClose: () => setState(() => _focusedObject = null),
+          ),
+      ],
     );
+  }
+
+  void _handleObjectTap(String objectId) {
+    setState(() => _focusedObject = objectId);
   }
 }
 
 final homePerchSceneDefinition = PerchSceneDefinition(
   id: 'home_perch',
   name: 'Home Perch',
-  backgroundBuilder: (context, size, worldState) => HomePerchBackground(worldState: worldState),
+  backgroundBuilder: (context, size, worldState, ambient) => HomePerchBackground(
+    worldState: worldState,
+    ambientProgress: ambient,
+  ),
   objects: [
     SceneObjectDefinition(
       id: 'notebook',
@@ -79,9 +123,14 @@ final homePerchSceneDefinition = PerchSceneDefinition(
 );
 
 class HomePerchBackground extends StatelessWidget {
-  const HomePerchBackground({super.key, required this.worldState});
+  const HomePerchBackground({
+    super.key,
+    required this.worldState,
+    required this.ambientProgress,
+  });
 
   final PerchWorldState worldState;
+  final Animation<double> ambientProgress;
 
   @override
   Widget build(BuildContext context) {
@@ -100,6 +149,14 @@ class HomePerchBackground extends StatelessWidget {
             top: 28,
             child: _CoffeeMugProp(),
           ),
+          Positioned(
+            left: 42,
+            top: 38,
+            child: AnimatedBuilder(
+              animation: ambientProgress,
+              builder: (context, _) => _CoffeeSteam(progress: ambientProgress.value),
+            ),
+          ),
           const Positioned(
             right: -48,
             bottom: -36,
@@ -110,7 +167,7 @@ class HomePerchBackground extends StatelessWidget {
             bottom: 146,
             child: _PenProp(),
           ),
-          Positioned.fill(child: _LightAndGrainOverlay(worldState: worldState)),
+          Positioned.fill(child: _LightAndGrainOverlay(worldState: worldState, ambientProgress: ambientProgress)),
           if (worldState.weather == PerchWeather.rain) const Positioned.fill(child: _RainOverlay()),
           if (worldState.weather == PerchWeather.fog) const Positioned.fill(child: _FogOverlay()),
           if (worldState.timeOfDay == PerchTimeOfDay.night) const Positioned.fill(child: _NightOverlay()),
@@ -148,32 +205,84 @@ class HomePerchBackground extends StatelessWidget {
 }
 
 class _LightAndGrainOverlay extends StatelessWidget {
-  const _LightAndGrainOverlay({required this.worldState});
+  const _LightAndGrainOverlay({required this.worldState, required this.ambientProgress});
 
   final PerchWorldState worldState;
+  final Animation<double> ambientProgress;
 
   @override
   Widget build(BuildContext context) {
-    final opacity = switch (worldState.timeOfDay) {
+    final baseOpacity = switch (worldState.timeOfDay) {
       PerchTimeOfDay.morning => 0.24,
       PerchTimeOfDay.midday => 0.18,
       PerchTimeOfDay.evening => 0.16,
       PerchTimeOfDay.night => 0.06,
     };
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: RadialGradient(
-          center: const Alignment(-0.36, -0.72),
-          radius: 0.94,
-          colors: [
-            Colors.white.withOpacity(opacity),
-            Colors.transparent,
-          ],
-        ),
+    return AnimatedBuilder(
+      animation: ambientProgress,
+      builder: (context, _) {
+        final drift = math.sin(ambientProgress.value * math.pi * 2) * 0.08;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment(-0.36 + drift, -0.72),
+              radius: 0.94,
+              colors: [
+                Colors.white.withOpacity(baseOpacity),
+                Colors.transparent,
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CoffeeSteam extends StatelessWidget {
+  const _CoffeeSteam({required this.progress});
+
+  final double progress;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 118,
+      height: 124,
+      child: CustomPaint(
+        painter: _SteamPainter(progress),
       ),
     );
   }
+}
+
+class _SteamPainter extends CustomPainter {
+  const _SteamPainter(this.progress);
+
+  final double progress;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white.withOpacity(0.22)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round;
+
+    for (var i = 0; i < 3; i += 1) {
+      final offset = (progress + i * 0.23) % 1;
+      final x = size.width * (0.28 + i * 0.18) + math.sin(offset * math.pi * 2) * 7;
+      final y = size.height * (0.9 - offset * 0.78);
+      final path = Path()
+        ..moveTo(x, y)
+        ..cubicTo(x - 16, y - 18, x + 17, y - 34, x - 2, y - 52);
+      canvas.drawPath(path, paint..color = Colors.white.withOpacity((1 - offset) * 0.20));
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _SteamPainter oldDelegate) => oldDelegate.progress != progress;
 }
 
 class _RainOverlay extends StatelessWidget {
@@ -304,4 +413,87 @@ class _LeatherCornerProp extends StatelessWidget {
       ),
     );
   }
+}
+
+class _ObjectFocusOverlay extends StatelessWidget {
+  const _ObjectFocusOverlay({
+    required this.objectId,
+    required this.data,
+    required this.onClose,
+  });
+
+  final String objectId;
+  final PerchTodayData data;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = _detailFor(objectId, data);
+    return Positioned.fill(
+      child: GestureDetector(
+        onTap: onClose,
+        child: ColoredBox(
+          color: Colors.black.withOpacity(0.42),
+          child: Center(
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0.94, end: 1),
+              duration: const Duration(milliseconds: 220),
+              curve: Curves.easeOutCubic,
+              builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
+              child: Container(
+                width: 330,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF4EEDF),
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.34),
+                      blurRadius: 40,
+                      offset: const Offset(0, 24),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(detail.title, style: Theme.of(context).textTheme.titleLarge),
+                    const SizedBox(height: 10),
+                    Text(detail.body, style: Theme.of(context).textTheme.bodyLarge),
+                    const SizedBox(height: 18),
+                    Text(
+                      'Tap anywhere to return home.',
+                      style: TextStyle(color: Colors.black.withOpacity(0.54), fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  _ObjectDetail _detailFor(String id, PerchTodayData data) {
+    switch (id) {
+      case 'money_envelope':
+        return _ObjectDetail('Money envelope', '${data.money.safeThroughText}\n${data.money.availableText}');
+      case 'sticky_note':
+        return _ObjectDetail('Pinned note', data.brainNote);
+      case 'shift_tickets':
+        return _ObjectDetail('Shift tickets', data.shifts.map((shift) => '${shift.day} · ${shift.unit} · ${shift.time}').join('\n'));
+      case 'notebook':
+      default:
+        return _ObjectDetail('Notebook', '${data.dayStatus}\n${data.resetLine}\n${data.nextDue.title}\n${data.nextDue.actionLabel}');
+    }
+  }
+}
+
+class _ObjectDetail {
+  const _ObjectDetail(this.title, this.body);
+
+  final String title;
+  final String body;
 }
