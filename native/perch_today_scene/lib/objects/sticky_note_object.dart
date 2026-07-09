@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../assets/home_perch_assets.dart';
+import '../widgets/perch_asset_layer.dart';
+
 class StickyNoteObject extends StatelessWidget {
   const StickyNoteObject({super.key, required this.text});
 
@@ -9,38 +12,56 @@ class StickyNoteObject extends StatelessWidget {
   Widget build(BuildContext context) {
     return Transform.rotate(
       angle: 0.065,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: const Color(0xFFDFC95D),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.26),
-              blurRadius: 24,
-              offset: const Offset(8, 18),
-            ),
-          ],
-        ),
-        child: Stack(
-          children: [
-            const Positioned(top: -8, left: 0, right: 0, child: Center(child: _PushPin())),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.all(18),
-                child: Text(
-                  text,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    height: 1.04,
-                    fontWeight: FontWeight.w500,
-                    color: Color(0xFF1F241D),
-                  ),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const PerchAssetLayer(
+            assetPath: HomePerchAssets.sticky,
+            fit: BoxFit.fill,
+            fallback: _StickyFallbackSurface(),
+          ),
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Text(
+                text,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 24,
+                  height: 1.04,
+                  fontWeight: FontWeight.w500,
+                  color: Color(0xFF1F241D),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StickyFallbackSurface extends StatelessWidget {
+  const _StickyFallbackSurface();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        color: const Color(0xFFDFC95D),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.26),
+            blurRadius: 24,
+            offset: const Offset(8, 18),
+          ),
+        ],
+      ),
+      child: const Stack(
+        children: [
+          Positioned(top: -8, left: 0, right: 0, child: Center(child: _PushPin())),
+        ],
       ),
     );
   }

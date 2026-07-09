@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../assets/home_perch_assets.dart';
 import '../data/perch_today_models.dart';
+import '../widgets/perch_asset_layer.dart';
 
 class NotebookObject extends StatelessWidget {
   const NotebookObject({super.key, required this.data});
@@ -11,87 +13,80 @@ class NotebookObject extends StatelessWidget {
   Widget build(BuildContext context) {
     return Transform.rotate(
       angle: -0.018,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          color: const Color(0xFF8A653E),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.36),
-              blurRadius: 32,
-              offset: const Offset(14, 24),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          const PerchAssetLayer(
+            assetPath: HomePerchAssets.notebook,
+            fit: BoxFit.fill,
+            fallback: _NotebookFallbackSurface(),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(76, 38, 42, 34),
+            child: _NotebookLiveText(data: data),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotebookLiveText extends StatelessWidget {
+  const _NotebookLiveText({required this.data});
+
+  final PerchTodayData data;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Perch.',
+              style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+                    fontSize: 48,
+                    color: const Color(0xFF1F241D),
+                  ),
+            ),
+            Text(
+              data.dayStatus,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFF1F241D),
+              ),
             ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.only(left: 28, top: 10, right: 8, bottom: 8),
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              color: const Color(0xFFF4EEDF),
-            ),
-            child: Stack(
-              children: [
-                Positioned.fill(child: CustomPaint(painter: _NotebookLinesPainter())),
-                Positioned(left: 14, top: 24, bottom: 24, child: _SpiralHoles()),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(64, 34, 34, 28),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Perch.',
-                            style: Theme.of(context).textTheme.headlineLarge?.copyWith(
-                                  fontSize: 48,
-                                  color: const Color(0xFF1F241D),
-                                ),
-                          ),
-                          Text(
-                            data.dayStatus,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1F241D),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        data.resetLine,
-                        style: const TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.w500,
-                          color: Color(0xFF8B3526),
-                        ),
-                      ),
-                      const SizedBox(height: 46),
-                      _NotebookRunItem(
-                        label: 'Next thing',
-                        title: data.nextDue.title,
-                        action: data.nextDue.actionLabel,
-                      ),
-                      const Spacer(),
-                      const Text(
-                        'Your life is organized enough for the next minute.',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Color(0x8820241D),
-                          fontStyle: FontStyle.italic,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+        const SizedBox(height: 8),
+        Text(
+          data.resetLine,
+          style: const TextStyle(
+            fontSize: 30,
+            fontWeight: FontWeight.w500,
+            color: Color(0xFF8B3526),
           ),
         ),
-      ),
+        const SizedBox(height: 46),
+        _NotebookRunItem(
+          label: 'Next thing',
+          title: data.nextDue.title,
+          action: data.nextDue.actionLabel,
+        ),
+        const Spacer(),
+        const Text(
+          'Your life is organized enough for the next minute.',
+          style: TextStyle(
+            fontSize: 15,
+            color: Color(0x8820241D),
+            fontStyle: FontStyle.italic,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -155,6 +150,42 @@ class _NotebookRunItem extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _NotebookFallbackSurface extends StatelessWidget {
+  const _NotebookFallbackSurface();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(24),
+        color: const Color(0xFF8A653E),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.36),
+            blurRadius: 32,
+            offset: const Offset(14, 24),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.only(left: 28, top: 10, right: 8, bottom: 8),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            color: const Color(0xFFF4EEDF),
+          ),
+          child: Stack(
+            children: [
+              Positioned.fill(child: CustomPaint(painter: _NotebookLinesPainter())),
+              Positioned(left: 14, top: 24, bottom: 24, child: _SpiralHoles()),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
