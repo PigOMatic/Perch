@@ -1,9 +1,15 @@
+import 'dart:convert';
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+
+import '../assets/home_perch_embedded_assets.dart';
 
 /// Renders a photoreal scene asset when present.
 ///
-/// Missing assets intentionally fail soft during development so the app remains
-/// runnable while the art pack is being generated and added.
+/// Physical asset files are preferred. During the current visual slice, several
+/// raster WebP assets are embedded as base64 so the app visibly changes even
+/// before binary asset upload is available in the coding workflow.
 class PerchAssetLayer extends StatelessWidget {
   const PerchAssetLayer({
     super.key,
@@ -22,17 +28,27 @@ class PerchAssetLayer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final embeddedAsset = homePerchEmbeddedAssets[assetPath];
+
     return Opacity(
       opacity: opacity,
-      child: Image.asset(
-        assetPath,
-        fit: fit,
-        alignment: alignment,
-        filterQuality: FilterQuality.medium,
-        errorBuilder: (context, error, stackTrace) {
-          return fallback ?? const SizedBox.shrink();
-        },
-      ),
+      child: embeddedAsset != null
+          ? Image.memory(
+              Uint8List.fromList(base64Decode(embeddedAsset)),
+              fit: fit,
+              alignment: alignment,
+              filterQuality: FilterQuality.medium,
+              gaplessPlayback: true,
+            )
+          : Image.asset(
+              assetPath,
+              fit: fit,
+              alignment: alignment,
+              filterQuality: FilterQuality.medium,
+              errorBuilder: (context, error, stackTrace) {
+                return fallback ?? const SizedBox.shrink();
+              },
+            ),
     );
   }
 }
