@@ -17,6 +17,7 @@ class PerchSceneDefinition {
     BuildContext context,
     Size sceneSize,
     PerchWorldState worldState,
+    Animation<double> ambientProgress,
   ) backgroundBuilder;
   final List<SceneObjectDefinition> objects;
 }
