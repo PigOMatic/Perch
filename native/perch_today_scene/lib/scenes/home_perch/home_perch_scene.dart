@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../../assets/home_perch_assets.dart';
 import '../../data/perch_today_models.dart';
 import '../../objects/money_envelope_object.dart';
 import '../../objects/notebook_object.dart';
@@ -11,6 +12,7 @@ import '../../scene_engine/perch_performance.dart';
 import '../../scene_engine/scene_definition.dart';
 import '../../scene_engine/scene_object.dart';
 import '../../scene_engine/scene_renderer.dart';
+import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
 
 class HomePerchScene extends StatefulWidget {
@@ -135,6 +137,47 @@ class HomePerchBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: PerchPerformance.isolateStaticLayer(
+            PerchAssetLayer(
+              assetPath: HomePerchAssets.background,
+              fit: BoxFit.cover,
+              fallback: _FallbackCabinDesk(worldState: worldState),
+            ),
+          ),
+        ),
+        Positioned(
+          left: 42,
+          top: 38,
+          child: PerchPerformance.isolateAnimatedLayer(
+            AnimatedBuilder(
+              animation: ambientProgress,
+              builder: (context, _) => _CoffeeSteam(progress: ambientProgress.value),
+            ),
+          ),
+        ),
+        Positioned.fill(
+          child: PerchPerformance.isolateAnimatedLayer(
+            _LightAndGrainOverlay(worldState: worldState, ambientProgress: ambientProgress),
+          ),
+        ),
+        if (worldState.weather == PerchWeather.rain) const Positioned.fill(child: _RainOverlay()),
+        if (worldState.weather == PerchWeather.fog) const Positioned.fill(child: _FogOverlay()),
+        if (worldState.timeOfDay == PerchTimeOfDay.night) const Positioned.fill(child: _NightOverlay()),
+      ],
+    );
+  }
+}
+
+class _FallbackCabinDesk extends StatelessWidget {
+  const _FallbackCabinDesk({required this.worldState});
+
+  final PerchWorldState worldState;
+
+  @override
+  Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -142,49 +185,6 @@ class HomePerchBackground extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: _deskGradientFor(worldState),
         ),
-      ),
-      child: Stack(
-        children: [
-          PerchPerformance.isolateStaticLayer(
-            Stack(
-              children: const [
-                Positioned(
-                  left: -64,
-                  top: 28,
-                  child: _CoffeeMugProp(),
-                ),
-                Positioned(
-                  right: -48,
-                  bottom: -36,
-                  child: _LeatherCornerProp(),
-                ),
-                Positioned(
-                  left: 42,
-                  bottom: 146,
-                  child: _PenProp(),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            left: 42,
-            top: 38,
-            child: PerchPerformance.isolateAnimatedLayer(
-              AnimatedBuilder(
-                animation: ambientProgress,
-                builder: (context, _) => _CoffeeSteam(progress: ambientProgress.value),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: PerchPerformance.isolateAnimatedLayer(
-              _LightAndGrainOverlay(worldState: worldState, ambientProgress: ambientProgress),
-            ),
-          ),
-          if (worldState.weather == PerchWeather.rain) const Positioned.fill(child: _RainOverlay()),
-          if (worldState.weather == PerchWeather.fog) const Positioned.fill(child: _FogOverlay()),
-          if (worldState.timeOfDay == PerchTimeOfDay.night) const Positioned.fill(child: _NightOverlay()),
-        ],
       ),
     );
   }
@@ -226,10 +226,10 @@ class _LightAndGrainOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final baseOpacity = switch (worldState.timeOfDay) {
-      PerchTimeOfDay.morning => 0.24,
-      PerchTimeOfDay.midday => 0.18,
-      PerchTimeOfDay.evening => 0.16,
-      PerchTimeOfDay.night => 0.06,
+      PerchTimeOfDay.morning => 0.18,
+      PerchTimeOfDay.midday => 0.12,
+      PerchTimeOfDay.evening => 0.12,
+      PerchTimeOfDay.night => 0.04,
     };
 
     return AnimatedBuilder(
@@ -332,97 +332,6 @@ class _NightOverlay extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: const Color(0xFF030509).withOpacity(0.22),
-      ),
-    );
-  }
-}
-
-class _CoffeeMugProp extends StatelessWidget {
-  const _CoffeeMugProp();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 168,
-      height: 168,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: const Color(0xFFEEE0C3),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.24),
-            blurRadius: PerchPerformance.softShadowBlur,
-            offset: const Offset(8, 14),
-          ),
-        ],
-      ),
-      child: Center(
-        child: Container(
-          width: 94,
-          height: 94,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Color(0xFF22150E),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _PenProp extends StatelessWidget {
-  const _PenProp();
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: -0.72,
-      child: Container(
-        width: 18,
-        height: 220,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          gradient: const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF111315), Color(0xFF2B2F34), Color(0xFF9A8A67)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.22),
-              blurRadius: 18,
-              offset: const Offset(8, 12),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LeatherCornerProp extends StatelessWidget {
-  const _LeatherCornerProp();
-
-  @override
-  Widget build(BuildContext context) {
-    return Transform.rotate(
-      angle: -0.16,
-      child: Container(
-        width: 260,
-        height: 190,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(28),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF6A371D), Color(0xFF2D170E)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.24),
-              blurRadius: PerchPerformance.deepShadowBlur,
-              offset: const Offset(-6, 18),
-            ),
-          ],
-        ),
       ),
     );
   }
