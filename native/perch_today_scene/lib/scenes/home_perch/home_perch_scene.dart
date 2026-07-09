@@ -7,6 +7,7 @@ import '../../objects/money_envelope_object.dart';
 import '../../objects/notebook_object.dart';
 import '../../objects/shift_ticket_object.dart';
 import '../../objects/sticky_note_object.dart';
+import '../../scene_engine/perch_performance.dart';
 import '../../scene_engine/scene_definition.dart';
 import '../../scene_engine/scene_object.dart';
 import '../../scene_engine/scene_renderer.dart';
@@ -35,7 +36,7 @@ class _HomePerchSceneState extends State<HomePerchScene> with SingleTickerProvid
     super.initState();
     _ambientController = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 12),
+      duration: PerchPerformance.ambientLoopDuration,
     )..repeat();
   }
 
@@ -144,30 +145,42 @@ class HomePerchBackground extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          const Positioned(
-            left: -64,
-            top: 28,
-            child: _CoffeeMugProp(),
+          PerchPerformance.isolateStaticLayer(
+            Stack(
+              children: const [
+                Positioned(
+                  left: -64,
+                  top: 28,
+                  child: _CoffeeMugProp(),
+                ),
+                Positioned(
+                  right: -48,
+                  bottom: -36,
+                  child: _LeatherCornerProp(),
+                ),
+                Positioned(
+                  left: 42,
+                  bottom: 146,
+                  child: _PenProp(),
+                ),
+              ],
+            ),
           ),
           Positioned(
             left: 42,
             top: 38,
-            child: AnimatedBuilder(
-              animation: ambientProgress,
-              builder: (context, _) => _CoffeeSteam(progress: ambientProgress.value),
+            child: PerchPerformance.isolateAnimatedLayer(
+              AnimatedBuilder(
+                animation: ambientProgress,
+                builder: (context, _) => _CoffeeSteam(progress: ambientProgress.value),
+              ),
             ),
           ),
-          const Positioned(
-            right: -48,
-            bottom: -36,
-            child: _LeatherCornerProp(),
+          Positioned.fill(
+            child: PerchPerformance.isolateAnimatedLayer(
+              _LightAndGrainOverlay(worldState: worldState, ambientProgress: ambientProgress),
+            ),
           ),
-          const Positioned(
-            left: 42,
-            bottom: 146,
-            child: _PenProp(),
-          ),
-          Positioned.fill(child: _LightAndGrainOverlay(worldState: worldState, ambientProgress: ambientProgress)),
           if (worldState.weather == PerchWeather.rain) const Positioned.fill(child: _RainOverlay()),
           if (worldState.weather == PerchWeather.fog) const Positioned.fill(child: _FogOverlay()),
           if (worldState.timeOfDay == PerchTimeOfDay.night) const Positioned.fill(child: _NightOverlay()),
@@ -222,7 +235,7 @@ class _LightAndGrainOverlay extends StatelessWidget {
     return AnimatedBuilder(
       animation: ambientProgress,
       builder: (context, _) {
-        final drift = math.sin(ambientProgress.value * math.pi * 2) * 0.08;
+        final drift = math.sin(ambientProgress.value * math.pi * 2) * PerchPerformance.maxLightDrift;
         return DecoratedBox(
           decoration: BoxDecoration(
             gradient: RadialGradient(
@@ -338,7 +351,7 @@ class _CoffeeMugProp extends StatelessWidget {
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.24),
-            blurRadius: 24,
+            blurRadius: PerchPerformance.softShadowBlur,
             offset: const Offset(8, 14),
           ),
         ],
@@ -405,7 +418,7 @@ class _LeatherCornerProp extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.24),
-              blurRadius: 28,
+              blurRadius: PerchPerformance.deepShadowBlur,
               offset: const Offset(-6, 18),
             ),
           ],
@@ -437,7 +450,7 @@ class _ObjectFocusOverlay extends StatelessWidget {
           child: Center(
             child: TweenAnimationBuilder<double>(
               tween: Tween(begin: 0.94, end: 1),
-              duration: const Duration(milliseconds: 220),
+              duration: PerchPerformance.objectFocusDuration,
               curve: Curves.easeOutCubic,
               builder: (context, scale, child) => Transform.scale(scale: scale, child: child),
               child: Container(
