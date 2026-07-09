@@ -64,6 +64,27 @@
     storeSceneId(sceneId);
   }
 
+  function renderActionButton(text, className = 'run-action') {
+    const button = el('button', { className, text });
+    button.setAttribute('type', 'button');
+    return button;
+  }
+
+  function renderAlwaysShow(items = []) {
+    const wrap = el('details', { className: 'story-always-show' });
+    const summary = el('summary');
+    summary.appendChild(el('span', { text: 'Always show' }));
+    summary.appendChild(el('small', { text: 'adjust later' }));
+    wrap.appendChild(summary);
+
+    const chips = el('div', { className: 'always-show-chips' });
+    (items.length ? items : ['Bills', 'Work', 'Brain notes']).forEach((item) => {
+      chips.appendChild(el('button', { className: 'always-show-chip', text: item }));
+    });
+    wrap.appendChild(chips);
+    return wrap;
+  }
+
   function renderBillsTab(bills = []) {
     const details = el('details', { className: 'story-bills-tab' });
     const summary = el('summary');
@@ -84,58 +105,61 @@
     return details;
   }
 
-  function renderAlwaysShow(items = []) {
-    const wrap = el('details', { className: 'story-always-show' });
-    const summary = el('summary');
-    summary.appendChild(el('span', { text: 'Always show' }));
-    summary.appendChild(el('small', { text: 'adjust later' }));
-    wrap.appendChild(summary);
-
-    const chips = el('div', { className: 'always-show-chips' });
-    (items.length ? items : ['Bills', 'Work', 'Brain notes']).forEach((item) => {
-      chips.appendChild(el('button', { className: 'always-show-chip', text: item }));
-    });
-    wrap.appendChild(chips);
-    return wrap;
-  }
-
-  function renderActionButton(text, className = 'run-action') {
-    const button = el('button', { className, text });
-    button.setAttribute('type', 'button');
-    return button;
+  function renderRunSheetItem(className, data) {
+    if (!data) return null;
+    const block = el('section', { className: `run-sheet-item ${className}` });
+    block.appendChild(el('p', { className: 'eyebrow', text: data.label }));
+    block.appendChild(el('h3', { text: data.title }));
+    if (data.detail) block.appendChild(el('p', { className: 'item-support', text: data.detail }));
+    if (data.action) block.appendChild(renderActionButton(data.action));
+    return block;
   }
 
   function renderInfoBlock(className, data, extra) {
-    if (!data) return null;
-    const block = el('section', { className: `run-sheet-card ${className}` });
-    block.appendChild(el('p', { className: 'eyebrow', text: data.label }));
-    block.appendChild(el('h3', { text: data.title }));
-    if (data.detail) block.appendChild(el('p', { text: data.detail }));
-    if (data.action) block.appendChild(renderActionButton(data.action));
-    if (extra) block.appendChild(extra);
+    const block = renderRunSheetItem(className, data);
+    if (block && extra) block.appendChild(extra);
     return block;
+  }
+
+  function renderMainPaper(state, storyInput) {
+    const sheet = el('section', { className: 'today-main-paper' });
+
+    const brand = el('div', { className: 'main-paper-brand' });
+    brand.appendChild(el('p', { className: 'perch-wordmark', text: 'Perch' }));
+    brand.appendChild(renderAlwaysShow(storyInput.alwaysShow));
+    sheet.appendChild(brand);
+
+    sheet.appendChild(el('h1', { className: 'today-title', text: state.headline || 'Today' }));
+
+    if (storyInput.todayStatus) {
+      sheet.appendChild(el('p', { className: 'today-date-line', text: storyInput.todayStatus.title }));
+      sheet.appendChild(el('p', { className: 'today-soft-note', text: storyInput.todayStatus.detail }));
+    }
+
+    const itemWrap = el('div', { className: 'main-paper-items' });
+    const nextDue = renderRunSheetItem('next-due-block', storyInput.nextDue);
+    const dueSoon = renderRunSheetItem('due-soon-block', storyInput.dueSoon);
+    if (nextDue) itemWrap.appendChild(nextDue);
+    if (dueSoon) itemWrap.appendChild(dueSoon);
+    sheet.appendChild(itemWrap);
+
+    return { sheet, nextDue, dueSoon };
   }
 
   function renderMoneyBranch(choice, money = {}) {
     if (!choice || !choice.safeToOffer) return null;
 
-    const card = el('section', { className: 'run-sheet-card story-money-branch' });
+    const card = el('section', { className: 'story-money-branch money-object' });
     card.appendChild(el('p', { className: 'eyebrow', text: 'Money' }));
-    card.appendChild(el('h3', { text: choice.prompt }));
+    card.appendChild(el('h2', { text: choice.prompt }));
     if (choice.note) card.appendChild(el('p', { className: 'story-branch-note', text: choice.note }));
 
     const branch = el('div', { className: 'story-branch-flow' });
-    const trunk = el('div', { className: 'story-branch-trunk' });
-    trunk.appendChild(el('span', { className: 'branch-amount', text: `$${choice.leftAfterBills}` }));
-    trunk.appendChild(el('span', { className: 'branch-label', text: 'open after bills' }));
-    branch.appendChild(trunk);
-
     const arms = el('div', { className: 'story-branch-arms' });
     arms.appendChild(el('button', { className: 'branch-option safe', text: choice.safeAction || 'Keep it safe' }));
     arms.appendChild(el('button', { className: 'branch-option little', text: choice.littleAction || 'Use a little' }));
     arms.appendChild(el('button', { className: 'branch-option toward', text: choice.towardAction || 'Put it toward something' }));
     branch.appendChild(arms);
-
     card.appendChild(branch);
     card.appendChild(renderBillsTab(money.bills || []));
     return card;
@@ -149,7 +173,7 @@
   }
 
   function renderNextShifts(shifts = []) {
-    const wrap = el('section', { className: 'run-sheet-card next-shifts-block' });
+    const wrap = el('section', { className: 'next-shifts-block shift-ticket-cluster' });
     const header = el('div', { className: 'next-shifts-header' });
     header.appendChild(el('p', { className: 'eyebrow', text: 'Next shifts' }));
     header.appendChild(renderCalendarButton());
@@ -169,16 +193,12 @@
 
   function renderBrainNotes(notes = []) {
     if (!notes.length) return null;
-    const wrap = el('section', { className: 'brain-note-strip' });
-    wrap.appendChild(el('p', { className: 'eyebrow', text: 'From your brain' }));
-    const notesWrap = el('div', { className: 'brain-note-row' });
-    notes.slice(0, 2).forEach((note) => {
-      const noteEl = el('article', { className: `posted-note ${note.attachedTo || 'today'}` });
-      noteEl.appendChild(el('span', { className: 'pin-dot' }));
-      noteEl.appendChild(el('p', { text: note.text }));
-      notesWrap.appendChild(noteEl);
-    });
-    wrap.appendChild(notesWrap);
+    const wrap = el('section', { className: 'brain-note-strip single-brain-note' });
+    const note = notes[0];
+    const noteEl = el('article', { className: `posted-note ${note.attachedTo || 'today'}` });
+    noteEl.appendChild(el('span', { className: 'pin-dot' }));
+    noteEl.appendChild(el('p', { text: note.text }));
+    wrap.appendChild(noteEl);
     return wrap;
   }
 
@@ -216,55 +236,38 @@
     root.className = `today-story-root run-sheet-environment env-${activeSceneId}`;
 
     const page = el('article', {
-      className: `today-story-page today-run-sheet ${storyInput.layoutMode || 'balanced'}`
+      className: `today-story-page today-run-sheet today-v2-composition ${storyInput.layoutMode || 'balanced'}`
     });
 
-    const opening = el('section', { className: 'story-opening compact-opening' });
-    const brand = el('div', { className: 'run-sheet-brand' });
-    brand.appendChild(el('p', { className: 'perch-wordmark', text: 'Perch' }));
-    brand.appendChild(renderAlwaysShow(storyInput.alwaysShow));
-    opening.appendChild(brand);
-    opening.appendChild(el('h2', { text: state.headline || 'Today' }));
-    if (storyInput.todayStatus) {
-      opening.appendChild(el('p', { className: 'today-date-line', text: storyInput.todayStatus.title }));
-      opening.appendChild(el('p', { className: 'today-soft-note', text: storyInput.todayStatus.detail }));
-    }
-    page.appendChild(opening);
-
-    const path = el('section', { className: 'story-flow-path mobile-run-sheet-flow' });
-
-    const nextDueBlock = renderInfoBlock('next-due-block pinned-paper', storyInput.nextDue);
-    if (nextDueBlock) path.appendChild(nextDueBlock);
-
+    const composition = el('section', { className: 'scene-foreground-composition' });
+    const mainPaper = renderMainPaper(state, storyInput);
     const moneyBranch = renderMoneyBranch(storyInput.freedomChoice, storyInput.money || {});
-    if (moneyBranch) path.appendChild(moneyBranch);
-
     const shifts = renderNextShifts(storyInput.nextShifts || []);
-    if (shifts) path.appendChild(shifts);
-
-    const dueSoonBlock = renderInfoBlock('due-soon-block torn-paper', storyInput.dueSoon);
-    if (dueSoonBlock) path.appendChild(dueSoonBlock);
-
     const brainNotes = renderBrainNotes(storyInput.brainNotes || []);
-    if (brainNotes) path.appendChild(brainNotes);
 
-    page.appendChild(path);
+    composition.appendChild(mainPaper.sheet);
+    if (moneyBranch) composition.appendChild(moneyBranch);
+    if (shifts) composition.appendChild(shifts);
+    if (brainNotes) composition.appendChild(brainNotes);
+
+    page.appendChild(composition);
     page.appendChild(renderSceneSwitcher(scenes, activeSceneId, (sceneId, switcher) => setScene(root, sceneId, switcher)));
     root.appendChild(page);
 
     return {
       rendered: true,
-      mode: 'story-demo',
+      mode: 'story-demo-v2',
       hasFirstSecond: true,
       usesFakeData: true,
       hasEnvironmentLayer: Boolean(storyInput.environment),
       hasSceneSwitcher: true,
       activeSceneId,
+      hasMainPaper: true,
       hasMoneyBranch: Boolean(moneyBranch),
       hasBillsTab: Boolean(storyInput.money && storyInput.money.bills),
       hasNextShifts: Boolean(storyInput.nextShifts),
-      hasNextDue: Boolean(nextDueBlock),
-      hasDueSoon: Boolean(dueSoonBlock),
+      hasNextDue: Boolean(mainPaper.nextDue),
+      hasDueSoon: Boolean(mainPaper.dueSoon),
       hasBrainNotes: Boolean(brainNotes),
       hasAlwaysShow: Boolean(storyInput.alwaysShow),
       hasCalendarButton: true,
