@@ -116,12 +116,48 @@
     return block;
   }
 
+  function renderDueLine(data, className) {
+    if (!data) return null;
+    const row = el('section', { className: `paper-due-line ${className}` });
+    const copy = el('div', { className: 'paper-due-copy' });
+    copy.appendChild(el('p', { className: 'eyebrow', text: data.label }));
+    copy.appendChild(el('h3', { text: data.title }));
+    if (data.detail) copy.appendChild(el('p', { text: data.detail }));
+    row.appendChild(copy);
+    if (data.action) row.appendChild(renderActionButton(data.action, 'run-action paper-action'));
+    return row;
+  }
+
+  function renderMainPaper(state, storyInput = {}) {
+    const paper = el('section', { className: 'today-v2-main-paper' });
+
+    const header = el('header', { className: 'today-v2-paper-header' });
+    header.appendChild(el('p', { className: 'perch-wordmark', text: 'Perch' }));
+    header.appendChild(el('h2', { text: state.headline || 'Today' }));
+    paper.appendChild(header);
+
+    if (storyInput.todayStatus) {
+      const status = el('div', { className: 'today-v2-status' });
+      status.appendChild(el('strong', { text: storyInput.todayStatus.title }));
+      status.appendChild(el('span', { text: storyInput.todayStatus.detail }));
+      paper.appendChild(status);
+    }
+
+    const nextDue = renderDueLine(storyInput.nextDue, 'next-due-block');
+    if (nextDue) paper.appendChild(nextDue);
+
+    const dueSoon = renderDueLine(storyInput.dueSoon, 'due-soon-block');
+    if (dueSoon) paper.appendChild(dueSoon);
+
+    return paper;
+  }
+
   function renderMoneyBranch(choice, money = {}) {
     if (!choice || !choice.safeToOffer) return null;
 
-    const card = el('section', { className: 'run-sheet-card story-money-branch' });
+    const card = el('section', { className: 'story-money-branch today-v2-money-object' });
     card.appendChild(el('p', { className: 'eyebrow', text: 'Money' }));
-    card.appendChild(el('h3', { text: choice.prompt }));
+    card.appendChild(el('h3', { text: choice.prompt || `$${choice.leftAfterBills} open after bills` }));
     if (choice.note) card.appendChild(el('p', { className: 'story-branch-note', text: choice.note }));
 
     const branch = el('div', { className: 'story-branch-flow' });
@@ -149,7 +185,7 @@
   }
 
   function renderNextShifts(shifts = []) {
-    const wrap = el('section', { className: 'run-sheet-card next-shifts-block' });
+    const wrap = el('section', { className: 'next-shifts-block today-v2-shift-tickets' });
     const header = el('div', { className: 'next-shifts-header' });
     header.appendChild(el('p', { className: 'eyebrow', text: 'Next shifts' }));
     header.appendChild(renderCalendarButton());
@@ -169,16 +205,12 @@
 
   function renderBrainNotes(notes = []) {
     if (!notes.length) return null;
-    const wrap = el('section', { className: 'brain-note-strip' });
-    wrap.appendChild(el('p', { className: 'eyebrow', text: 'From your brain' }));
-    const notesWrap = el('div', { className: 'brain-note-row' });
-    notes.slice(0, 2).forEach((note) => {
-      const noteEl = el('article', { className: `posted-note ${note.attachedTo || 'today'}` });
-      noteEl.appendChild(el('span', { className: 'pin-dot' }));
-      noteEl.appendChild(el('p', { text: note.text }));
-      notesWrap.appendChild(noteEl);
-    });
-    wrap.appendChild(notesWrap);
+    const note = notes[0];
+    const wrap = el('section', { className: 'brain-note-strip today-v2-brain-note' });
+    const noteEl = el('article', { className: `posted-note ${note.attachedTo || 'today'}` });
+    noteEl.appendChild(el('span', { className: 'pin-dot' }));
+    noteEl.appendChild(el('p', { text: note.text }));
+    wrap.appendChild(noteEl);
     return wrap;
   }
 
@@ -213,60 +245,44 @@
     const activeSceneId = getStoredSceneId(fallbackSceneId);
 
     root.innerHTML = '';
-    root.className = `today-story-root run-sheet-environment env-${activeSceneId}`;
+    root.className = `today-story-root run-sheet-environment today-v2-root env-${activeSceneId}`;
 
     const page = el('article', {
-      className: `today-story-page today-run-sheet ${storyInput.layoutMode || 'balanced'}`
+      className: `today-story-page today-run-sheet today-v2-composition ${storyInput.layoutMode || 'balanced'}`
     });
 
-    const opening = el('section', { className: 'story-opening compact-opening' });
-    const brand = el('div', { className: 'run-sheet-brand' });
-    brand.appendChild(el('p', { className: 'perch-wordmark', text: 'Perch' }));
-    brand.appendChild(renderAlwaysShow(storyInput.alwaysShow));
-    opening.appendChild(brand);
-    opening.appendChild(el('h2', { text: state.headline || 'Today' }));
-    if (storyInput.todayStatus) {
-      opening.appendChild(el('p', { className: 'today-date-line', text: storyInput.todayStatus.title }));
-      opening.appendChild(el('p', { className: 'today-soft-note', text: storyInput.todayStatus.detail }));
-    }
-    page.appendChild(opening);
-
-    const path = el('section', { className: 'story-flow-path mobile-run-sheet-flow' });
-
-    const nextDueBlock = renderInfoBlock('next-due-block pinned-paper', storyInput.nextDue);
-    if (nextDueBlock) path.appendChild(nextDueBlock);
+    const composition = el('section', { className: 'today-v2-stage', attrs: { 'aria-label': 'Today run sheet' } });
+    composition.appendChild(renderMainPaper(state, storyInput));
 
     const moneyBranch = renderMoneyBranch(storyInput.freedomChoice, storyInput.money || {});
-    if (moneyBranch) path.appendChild(moneyBranch);
+    if (moneyBranch) composition.appendChild(moneyBranch);
 
     const shifts = renderNextShifts(storyInput.nextShifts || []);
-    if (shifts) path.appendChild(shifts);
-
-    const dueSoonBlock = renderInfoBlock('due-soon-block torn-paper', storyInput.dueSoon);
-    if (dueSoonBlock) path.appendChild(dueSoonBlock);
+    if (shifts) composition.appendChild(shifts);
 
     const brainNotes = renderBrainNotes(storyInput.brainNotes || []);
-    if (brainNotes) path.appendChild(brainNotes);
+    if (brainNotes) composition.appendChild(brainNotes);
 
-    page.appendChild(path);
+    page.appendChild(composition);
     page.appendChild(renderSceneSwitcher(scenes, activeSceneId, (sceneId, switcher) => setScene(root, sceneId, switcher)));
     root.appendChild(page);
 
     return {
       rendered: true,
-      mode: 'story-demo',
+      mode: 'story-demo-v2',
       hasFirstSecond: true,
       usesFakeData: true,
       hasEnvironmentLayer: Boolean(storyInput.environment),
       hasSceneSwitcher: true,
       activeSceneId,
+      hasMainPaper: true,
       hasMoneyBranch: Boolean(moneyBranch),
       hasBillsTab: Boolean(storyInput.money && storyInput.money.bills),
       hasNextShifts: Boolean(storyInput.nextShifts),
-      hasNextDue: Boolean(nextDueBlock),
-      hasDueSoon: Boolean(dueSoonBlock),
+      hasNextDue: Boolean(storyInput.nextDue),
+      hasDueSoon: Boolean(storyInput.dueSoon),
       hasBrainNotes: Boolean(brainNotes),
-      hasAlwaysShow: Boolean(storyInput.alwaysShow),
+      hasAlwaysShow: false,
       hasCalendarButton: true,
       hasScheduleSquares: false
     };
