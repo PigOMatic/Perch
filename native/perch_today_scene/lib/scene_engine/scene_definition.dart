@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 
+import '../world/perch_world_state.dart';
 import 'scene_object.dart';
 
 class PerchSceneDefinition {
@@ -12,6 +13,10 @@ class PerchSceneDefinition {
 
   final String id;
   final String name;
-  final Widget Function(BuildContext context, Size sceneSize) backgroundBuilder;
+  final Widget Function(
+    BuildContext context,
+    Size sceneSize,
+    PerchWorldState worldState,
+  ) backgroundBuilder;
   final List<SceneObjectDefinition> objects;
 }
