@@ -3,7 +3,7 @@ class HomePerchAssets {
 
   static const sceneRoot = 'assets/scenes/home_perch';
 
-  static const background = '$sceneRoot/background_cabin_desk.webp';
+  static const background = '$sceneRoot/background_cabin_desk.png';
   static const deskSurface = '$sceneRoot/desk_surface.webp';
   static const morningLight = '$sceneRoot/morning_light_overlay.webp';
   static const notebook = '$sceneRoot/notebook_open_blank.webp';
