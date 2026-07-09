@@ -25,10 +25,6 @@
     return node;
   }
 
-  function formatAmount(amount) {
-    return `$${Number(amount || 0).toLocaleString()}`;
-  }
-
   function formatDate(date) {
     if (!date) return 'No date';
     const parsed = new Date(`${date}T12:00:00`);
@@ -64,122 +60,109 @@
     storeSceneId(sceneId);
   }
 
-  function renderBillsTab(bills = []) {
-    const details = el('details', { className: 'story-bills-tab' });
-    const summary = el('summary');
-    summary.appendChild(el('span', { text: 'Bills checked' }));
-    summary.appendChild(el('small', { text: `${bills.length} counted` }));
-    details.appendChild(summary);
-
-    const list = el('div', { className: 'story-bill-list' });
-    bills.forEach((bill) => {
-      const row = el('div', { className: `story-bill-row ${bill.status || 'due'}` });
-      row.appendChild(el('span', { className: 'bill-check', text: bill.status === 'scheduled' ? '✓' : '○' }));
-      row.appendChild(el('strong', { text: bill.name }));
-      row.appendChild(el('span', { text: formatDate(bill.dueDate) }));
-      row.appendChild(el('span', { text: formatAmount(bill.amount) }));
-      list.appendChild(row);
-    });
-    details.appendChild(list);
-    return details;
-  }
-
-  function renderAlwaysShow(items = []) {
-    const wrap = el('details', { className: 'story-always-show' });
-    const summary = el('summary');
-    summary.appendChild(el('span', { text: 'Always show' }));
-    summary.appendChild(el('small', { text: 'adjust later' }));
-    wrap.appendChild(summary);
-
-    const chips = el('div', { className: 'always-show-chips' });
-    (items.length ? items : ['Bills', 'Work', 'Brain notes']).forEach((item) => {
-      chips.appendChild(el('button', { className: 'always-show-chip', text: item }));
-    });
-    wrap.appendChild(chips);
-    return wrap;
-  }
-
   function renderActionButton(text, className = 'run-action') {
     const button = el('button', { className, text });
     button.setAttribute('type', 'button');
     return button;
   }
 
-  function renderInfoBlock(className, data, extra) {
+  function renderPaperItem(data, className) {
     if (!data) return null;
-    const block = el('section', { className: `run-sheet-card ${className}` });
-    block.appendChild(el('p', { className: 'eyebrow', text: data.label }));
-    block.appendChild(el('h3', { text: data.title }));
-    if (data.detail) block.appendChild(el('p', { text: data.detail }));
-    if (data.action) block.appendChild(renderActionButton(data.action));
-    if (extra) block.appendChild(extra);
-    return block;
+
+    const item = el('article', { className: `paper-priority ${className}` });
+    item.appendChild(el('p', { className: 'eyebrow', text: data.label }));
+    item.appendChild(el('h3', { text: data.title }));
+    if (data.detail) item.appendChild(el('p', { className: 'priority-support', text: data.detail }));
+    if (data.action) item.appendChild(renderActionButton(data.action));
+    return item;
   }
 
-  function renderMoneyBranch(choice, money = {}) {
+  function renderMainPaper(state, storyInput = {}) {
+    const paper = el('section', { className: 'today-main-paper', attrs: { 'aria-label': 'Today relief run sheet' } });
+
+    const header = el('header', { className: 'main-paper-header' });
+    header.appendChild(el('p', { className: 'perch-wordmark', text: 'Perch' }));
+    header.appendChild(el('h1', { text: state.headline || storyInput.headline || 'Today' }));
+
+    if (storyInput.todayStatus) {
+      const meta = el('div', { className: 'today-status-line' });
+      meta.appendChild(el('strong', { text: storyInput.todayStatus.title }));
+      if (storyInput.todayStatus.detail) meta.appendChild(el('span', { text: storyInput.todayStatus.detail }));
+      header.appendChild(meta);
+    }
+
+    paper.appendChild(header);
+
+    const priorities = el('div', { className: 'paper-priority-stack' });
+    const nextDue = renderPaperItem(storyInput.nextDue, 'next-due-line');
+    const dueSoon = renderPaperItem(storyInput.dueSoon, 'due-soon-line');
+    if (nextDue) priorities.appendChild(nextDue);
+    if (dueSoon) priorities.appendChild(dueSoon);
+    paper.appendChild(priorities);
+
+    return paper;
+  }
+
+  function renderMoneyObject(choice, money = {}) {
     if (!choice || !choice.safeToOffer) return null;
 
-    const card = el('section', { className: 'run-sheet-card story-money-branch' });
-    card.appendChild(el('p', { className: 'eyebrow', text: 'Money' }));
-    card.appendChild(el('h3', { text: choice.prompt }));
-    if (choice.note) card.appendChild(el('p', { className: 'story-branch-note', text: choice.note }));
+    const object = el('aside', { className: 'money-object', attrs: { 'aria-label': 'Money relief object' } });
+    object.appendChild(el('p', { className: 'money-label', text: 'Money' }));
+    object.appendChild(el('h2', { text: choice.prompt || `$${choice.leftAfterBills} open after bills` }));
+    if (choice.note) object.appendChild(el('p', { className: 'money-note', text: choice.note }));
 
-    const branch = el('div', { className: 'story-branch-flow' });
-    const trunk = el('div', { className: 'story-branch-trunk' });
-    trunk.appendChild(el('span', { className: 'branch-amount', text: `$${choice.leftAfterBills}` }));
-    trunk.appendChild(el('span', { className: 'branch-label', text: 'open after bills' }));
-    branch.appendChild(trunk);
+    const actions = el('div', { className: 'money-choice-row' });
+    actions.appendChild(el('button', { className: 'money-choice safe', attrs: { type: 'button' }, text: choice.safeAction || 'Keep it safe' }));
+    actions.appendChild(el('button', { className: 'money-choice little', attrs: { type: 'button' }, text: choice.littleAction || 'Use a little' }));
+    actions.appendChild(el('button', { className: 'money-choice toward', attrs: { type: 'button' }, text: choice.towardAction || 'Put it toward something' }));
+    object.appendChild(actions);
 
-    const arms = el('div', { className: 'story-branch-arms' });
-    arms.appendChild(el('button', { className: 'branch-option safe', text: choice.safeAction || 'Keep it safe' }));
-    arms.appendChild(el('button', { className: 'branch-option little', text: choice.littleAction || 'Use a little' }));
-    arms.appendChild(el('button', { className: 'branch-option toward', text: choice.towardAction || 'Put it toward something' }));
-    branch.appendChild(arms);
+    const checked = el('details', { className: 'money-bills-checked' });
+    const summary = el('summary');
+    summary.appendChild(el('span', { text: 'Bills checked' }));
+    summary.appendChild(el('small', { text: `${(money.bills || []).length} counted` }));
+    checked.appendChild(summary);
 
-    card.appendChild(branch);
-    card.appendChild(renderBillsTab(money.bills || []));
-    return card;
+    const billList = el('div', { className: 'money-bill-list' });
+    (money.bills || []).forEach((bill) => {
+      const row = el('div', { className: `money-bill-row ${bill.status || 'due'}` });
+      row.appendChild(el('span', { text: bill.status === 'scheduled' ? '✓' : '○' }));
+      row.appendChild(el('strong', { text: bill.name }));
+      row.appendChild(el('span', { text: formatDate(bill.dueDate) }));
+      billList.appendChild(row);
+    });
+    checked.appendChild(billList);
+    object.appendChild(checked);
+
+    return object;
   }
 
-  function renderCalendarButton() {
-    const button = el('button', { className: 'week-calendar-button', text: 'Calendar' });
-    button.setAttribute('type', 'button');
-    button.setAttribute('aria-label', 'Open full schedule');
-    return button;
-  }
-
-  function renderNextShifts(shifts = []) {
-    const wrap = el('section', { className: 'run-sheet-card next-shifts-block' });
-    const header = el('div', { className: 'next-shifts-header' });
-    header.appendChild(el('p', { className: 'eyebrow', text: 'Next shifts' }));
-    header.appendChild(renderCalendarButton());
-    wrap.appendChild(header);
-
+  function renderShiftTickets(shifts = []) {
+    const wrap = el('section', { className: 'shift-ticket-cluster', attrs: { 'aria-label': 'Upcoming shifts' } });
     const tickets = el('div', { className: 'shift-ticket-row' });
+
     shifts.slice(0, 3).forEach((shift) => {
-      const ticket = el('div', { className: 'shift-ticket' });
-      ticket.appendChild(el('span', { className: 'shift-day', text: shift.day }));
-      ticket.appendChild(el('strong', { text: shift.number }));
-      ticket.appendChild(el('span', { className: 'shift-label', text: shift.label }));
+      const ticket = el('article', { className: 'shift-ticket' });
+      ticket.appendChild(el('span', { className: 'shift-date', text: `${shift.day} ${shift.number}` }));
+      ticket.appendChild(el('strong', { text: shift.label }));
       tickets.appendChild(ticket);
     });
+
     wrap.appendChild(tickets);
+    const calendarButton = renderActionButton('Calendar', 'calendar-ticket-button');
+    calendarButton.setAttribute('aria-label', 'Open full schedule');
+    wrap.appendChild(calendarButton);
     return wrap;
   }
 
-  function renderBrainNotes(notes = []) {
-    if (!notes.length) return null;
-    const wrap = el('section', { className: 'brain-note-strip' });
-    wrap.appendChild(el('p', { className: 'eyebrow', text: 'From your brain' }));
-    const notesWrap = el('div', { className: 'brain-note-row' });
-    notes.slice(0, 2).forEach((note) => {
-      const noteEl = el('article', { className: `posted-note ${note.attachedTo || 'today'}` });
-      noteEl.appendChild(el('span', { className: 'pin-dot' }));
-      noteEl.appendChild(el('p', { text: note.text }));
-      notesWrap.appendChild(noteEl);
-    });
-    wrap.appendChild(notesWrap);
-    return wrap;
+  function renderBrainNote(notes = []) {
+    const note = notes[0];
+    if (!note) return null;
+
+    const article = el('article', { className: `posted-brain-note ${note.attachedTo || 'today'}` });
+    article.appendChild(el('span', { className: 'pin-dot' }));
+    article.appendChild(el('p', { text: note.text }));
+    return article;
   }
 
   function renderSceneSwitcher(scenes, activeSceneId, onSelect) {
@@ -215,79 +198,42 @@
     root.innerHTML = '';
     root.className = `today-story-root run-sheet-environment env-${activeSceneId}`;
 
-    const page = el('article', {
-      className: `today-story-page today-run-sheet ${storyInput.layoutMode || 'balanced'}`
-    });
+    const page = el('article', { className: 'today-v2-composition' });
+    const sceneMat = el('div', { className: 'scene-mat', attrs: { 'aria-hidden': 'true' } });
+    const foreground = el('section', { className: 'today-foreground' });
 
-    const opening = el('section', { className: 'story-opening compact-opening' });
-    const brand = el('div', { className: 'run-sheet-brand' });
-    brand.appendChild(el('p', { className: 'perch-wordmark', text: 'Perch' }));
-    brand.appendChild(renderAlwaysShow(storyInput.alwaysShow));
-    opening.appendChild(brand);
-    opening.appendChild(el('h2', { text: state.headline || 'Today' }));
-    if (storyInput.todayStatus) {
-      opening.appendChild(el('p', { className: 'today-date-line', text: storyInput.todayStatus.title }));
-      opening.appendChild(el('p', { className: 'today-soft-note', text: storyInput.todayStatus.detail }));
-    }
-    page.appendChild(opening);
+    foreground.appendChild(renderMainPaper(state, storyInput));
 
-    const path = el('section', { className: 'story-flow-path mobile-run-sheet-flow' });
+    const moneyObject = renderMoneyObject(storyInput.freedomChoice, storyInput.money || {});
+    if (moneyObject) foreground.appendChild(moneyObject);
 
-    const nextDueBlock = renderInfoBlock('next-due-block pinned-paper', storyInput.nextDue);
-    if (nextDueBlock) path.appendChild(nextDueBlock);
+    const shifts = renderShiftTickets(storyInput.nextShifts || []);
+    foreground.appendChild(shifts);
 
-    const moneyBranch = renderMoneyBranch(storyInput.freedomChoice, storyInput.money || {});
-    if (moneyBranch) path.appendChild(moneyBranch);
+    const brainNote = renderBrainNote(storyInput.brainNotes || []);
+    if (brainNote) foreground.appendChild(brainNote);
 
-    const shifts = renderNextShifts(storyInput.nextShifts || []);
-    if (shifts) path.appendChild(shifts);
-
-    const dueSoonBlock = renderInfoBlock('due-soon-block torn-paper', storyInput.dueSoon);
-    if (dueSoonBlock) path.appendChild(dueSoonBlock);
-
-    const brainNotes = renderBrainNotes(storyInput.brainNotes || []);
-    if (brainNotes) path.appendChild(brainNotes);
-
-    page.appendChild(path);
+    page.appendChild(sceneMat);
+    page.appendChild(foreground);
     page.appendChild(renderSceneSwitcher(scenes, activeSceneId, (sceneId, switcher) => setScene(root, sceneId, switcher)));
     root.appendChild(page);
 
     return {
       rendered: true,
       mode: 'story-demo',
+      structure: 'today-v2-relief-composition',
       hasFirstSecond: true,
       usesFakeData: true,
       hasEnvironmentLayer: Boolean(storyInput.environment),
-      hasSceneSwitcher: true,
-      activeSceneId,
-      hasMoneyBranch: Boolean(moneyBranch),
-      hasBillsTab: Boolean(storyInput.money && storyInput.money.bills),
-      hasNextShifts: Boolean(storyInput.nextShifts),
-      hasNextDue: Boolean(nextDueBlock),
-      hasDueSoon: Boolean(dueSoonBlock),
-      hasBrainNotes: Boolean(brainNotes),
-      hasAlwaysShow: Boolean(storyInput.alwaysShow),
-      hasCalendarButton: true,
-      hasScheduleSquares: false
+      sceneCount: scenes.length
     };
   }
 
-  const PerchTodayStoryView = Object.freeze({
-    renderTodayStoryView,
-    renderMoneyBranch,
-    renderInfoBlock,
-    renderNextShifts,
-    renderBillsTab,
-    renderAlwaysShow,
-    renderBrainNotes,
-    renderSceneSwitcher,
-    renderCalendarButton,
-    renderFreedomChoice: renderMoneyBranch
-  });
-
-  global.PerchTodayStoryView = PerchTodayStoryView;
+  global.PerchTodayStoryView = {
+    renderTodayStoryView
+  };
 
   if (typeof module !== 'undefined' && module.exports) {
-    module.exports = PerchTodayStoryView;
+    module.exports = global.PerchTodayStoryView;
   }
 })(typeof window !== 'undefined' ? window : globalThis);
