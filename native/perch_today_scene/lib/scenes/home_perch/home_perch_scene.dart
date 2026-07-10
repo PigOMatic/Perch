@@ -52,8 +52,14 @@ class _HomePerchSceneState extends State<HomePerchScene> {
             child: LayoutBuilder(
               builder: (context, constraints) {
                 const spacing = 6.0;
-                final columns = constraints.maxWidth >= 680 ? 8 : 4;
-                final itemWidth = (constraints.maxWidth - 16 - (spacing * (columns - 1))) / columns;
+                final columns = switch (constraints.maxWidth) {
+                  >= 760 => 8,
+                  >= 430 => 4,
+                  _ => 2,
+                };
+                final itemWidth =
+                    (constraints.maxWidth - 16 - (spacing * (columns - 1))) / columns;
+                final labelSize = constraints.maxWidth < 430 ? 10.0 : 11.0;
 
                 return Container(
                   padding: const EdgeInsets.all(8),
@@ -82,26 +88,30 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
                           width: itemWidth,
-                          height: 38,
+                          height: 34,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFFE8C891) : const Color(0xFF3B2A20),
-                            borderRadius: BorderRadius.circular(14),
-                            border: Border.all(color: Colors.white.withOpacity(isSelected ? 0.22 : 0.08)),
+                            color: isSelected
+                                ? const Color(0xFFE8C891)
+                                : const Color(0xFF3B2A20),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Colors.white.withOpacity(isSelected ? 0.22 : 0.08),
+                            ),
                           ),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 4),
-                              child: Text(
-                                option.label,
-                                maxLines: 1,
-                                style: TextStyle(
-                                  color: isSelected ? const Color(0xFF2A1B11) : const Color(0xFFF5E9D1),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                          child: Text(
+                            option.label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isSelected
+                                  ? const Color(0xFF2A1B11)
+                                  : const Color(0xFFF5E9D1),
+                              fontSize: labelSize,
+                              height: 1,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
