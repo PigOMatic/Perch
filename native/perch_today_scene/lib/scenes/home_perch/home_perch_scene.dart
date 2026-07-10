@@ -44,57 +44,72 @@ class _HomePerchSceneState extends State<HomePerchScene> {
           ),
         ),
         Positioned(
-          left: 12,
-          right: 12,
-          bottom: 18,
+          left: 10,
+          right: 10,
+          bottom: 12,
           child: SafeArea(
             top: false,
-            child: Container(
-              height: 70,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFF17110D).withOpacity(0.78),
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: Colors.white.withOpacity(0.12)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.35),
-                    blurRadius: 24,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: HomePerchAssets.backgrounds.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 6),
-                itemBuilder: (context, index) {
-                  final option = HomePerchAssets.backgrounds[index];
-                  final isSelected = index == _selectedBackground;
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                const spacing = 6.0;
+                final columns = constraints.maxWidth >= 680 ? 8 : 4;
+                final itemWidth = (constraints.maxWidth - 16 - (spacing * (columns - 1))) / columns;
 
-                  return GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => setState(() => _selectedBackground = index),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 180),
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFFE8C891) : const Color(0xFF3B2A20),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.white.withOpacity(isSelected ? 0.22 : 0.08)),
+                return Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF17110D).withOpacity(0.80),
+                    borderRadius: BorderRadius.circular(22),
+                    border: Border.all(color: Colors.white.withOpacity(0.12)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.35),
+                        blurRadius: 24,
+                        offset: const Offset(0, 10),
                       ),
-                      child: Text(
-                        option.label,
-                        style: TextStyle(
-                          color: isSelected ? const Color(0xFF2A1B11) : const Color(0xFFF5E9D1),
-                          fontWeight: FontWeight.w700,
+                    ],
+                  ),
+                  child: Wrap(
+                    spacing: spacing,
+                    runSpacing: spacing,
+                    children: List.generate(HomePerchAssets.backgrounds.length, (index) {
+                      final option = HomePerchAssets.backgrounds[index];
+                      final isSelected = index == _selectedBackground;
+
+                      return GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        onTap: () => setState(() => _selectedBackground = index),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          width: itemWidth,
+                          height: 38,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFFE8C891) : const Color(0xFF3B2A20),
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: Colors.white.withOpacity(isSelected ? 0.22 : 0.08)),
+                          ),
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                              child: Text(
+                                option.label,
+                                maxLines: 1,
+                                style: TextStyle(
+                                  color: isSelected ? const Color(0xFF2A1B11) : const Color(0xFFF5E9D1),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+                      );
+                    }),
+                  ),
+                );
+              },
             ),
           ),
         ),
