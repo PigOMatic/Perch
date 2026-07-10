@@ -27,76 +27,78 @@ class _HomePerchSceneState extends State<HomePerchScene> {
   Widget build(BuildContext context) {
     final selected = HomePerchAssets.backgrounds[_selectedBackground];
 
-    return Material(
-      type: MaterialType.transparency,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: PerchPerformance.isolateStaticLayer(
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 450),
-                child: PerchAssetLayer(
-                  key: ValueKey(selected.assetPath),
-                  assetPath: selected.assetPath,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
-                  fallback: _BackgroundMissingFallback(assetPath: selected.assetPath),
-                ),
+    return Stack(
+      children: [
+        Positioned.fill(
+          child: PerchPerformance.isolateStaticLayer(
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 450),
+              child: PerchAssetLayer(
+                key: ValueKey(selected.assetPath),
+                assetPath: selected.assetPath,
+                fit: BoxFit.cover,
+                alignment: Alignment.center,
+                fallback: _BackgroundMissingFallback(assetPath: selected.assetPath),
               ),
             ),
           ),
-          Positioned(
-            left: 12,
-            right: 12,
-            bottom: 18,
-            child: SafeArea(
-              top: false,
-              child: Material(
-                color: Colors.transparent,
-                child: Container(
-                  height: 70,
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF17110D).withOpacity(0.78),
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: Colors.white.withOpacity(0.12)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.35),
-                        blurRadius: 24,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+        ),
+        Positioned(
+          left: 12,
+          right: 12,
+          bottom: 18,
+          child: SafeArea(
+            top: false,
+            child: Container(
+              height: 70,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              decoration: BoxDecoration(
+                color: const Color(0xFF17110D).withOpacity(0.78),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(color: Colors.white.withOpacity(0.12)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.35),
+                    blurRadius: 24,
+                    offset: const Offset(0, 10),
                   ),
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: HomePerchAssets.backgrounds.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 6),
-                    itemBuilder: (context, index) {
-                      final option = HomePerchAssets.backgrounds[index];
-                      final selectedOption = index == _selectedBackground;
+                ],
+              ),
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                itemCount: HomePerchAssets.backgrounds.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 6),
+                itemBuilder: (context, index) {
+                  final option = HomePerchAssets.backgrounds[index];
+                  final isSelected = index == _selectedBackground;
 
-                      return ChoiceChip(
-                        label: Text(option.label),
-                        selected: selectedOption,
-                        onSelected: (_) => setState(() => _selectedBackground = index),
-                        labelStyle: TextStyle(
-                          color: selectedOption ? const Color(0xFF2A1B11) : const Color(0xFFF5E9D1),
+                  return GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => setState(() => _selectedBackground = index),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFFE8C891) : const Color(0xFF3B2A20),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white.withOpacity(isSelected ? 0.22 : 0.08)),
+                      ),
+                      child: Text(
+                        option.label,
+                        style: TextStyle(
+                          color: isSelected ? const Color(0xFF2A1B11) : const Color(0xFFF5E9D1),
                           fontWeight: FontWeight.w700,
                         ),
-                        selectedColor: const Color(0xFFE8C891),
-                        backgroundColor: const Color(0xFF3B2A20),
-                        side: BorderSide(color: Colors.white.withOpacity(0.08)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      );
-                    },
-                  ),
-                ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
