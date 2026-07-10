@@ -17,40 +17,36 @@ class LiveJournalContent extends StatelessWidget {
     return IgnorePointer(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final scale = constraints.maxWidth / 852;
-          final titleSize = (focused ? 34.0 : 26.0) * scale.clamp(0.72, 1.35);
-          final sectionSize = (focused ? 13.0 : 11.0) * scale.clamp(0.72, 1.35);
-          final bodySize = (focused ? 15.0 : 12.0) * scale.clamp(0.72, 1.35);
+          final scale = (constraints.maxWidth / 852).clamp(0.72, 1.35);
+          final pageGap = constraints.maxWidth * 0.052;
 
           return Padding(
             padding: EdgeInsets.fromLTRB(
-              constraints.maxWidth * 0.105,
-              constraints.maxHeight * 0.12,
-              constraints.maxWidth * 0.10,
-              constraints.maxHeight * 0.10,
+              constraints.maxWidth * 0.095,
+              constraints.maxHeight * 0.085,
+              constraints.maxWidth * 0.095,
+              constraints.maxHeight * 0.085,
             ),
             child: Row(
               children: [
                 Expanded(
-                  child: _PageSurface(
+                  child: _PaperPage(
+                    scale: scale,
                     child: _LeftPage(
                       data: data,
                       focused: focused,
-                      titleSize: titleSize,
-                      sectionSize: sectionSize,
-                      bodySize: bodySize,
+                      scale: scale,
                     ),
                   ),
                 ),
-                SizedBox(width: constraints.maxWidth * 0.065),
+                SizedBox(width: pageGap),
                 Expanded(
-                  child: _PageSurface(
+                  child: _PaperPage(
+                    scale: scale,
                     child: _RightPage(
                       data: data,
                       focused: focused,
-                      titleSize: titleSize,
-                      sectionSize: sectionSize,
-                      bodySize: bodySize,
+                      scale: scale,
                     ),
                   ),
                 ),
@@ -63,38 +59,93 @@ class LiveJournalContent extends StatelessWidget {
   }
 }
 
-class _PageSurface extends StatelessWidget {
-  const _PageSurface({required this.child});
+class _PaperPage extends StatelessWidget {
+  const _PaperPage({required this.scale, required this.child});
 
+  final double scale;
   final Widget child;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF0DFC0).withOpacity(0.92),
-        borderRadius: BorderRadius.circular(6),
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(7 * scale),
+      child: CustomPaint(
+        painter: _PaperPainter(scale),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            15 * scale,
+            13 * scale,
+            13 * scale,
+            12 * scale,
+          ),
+          child: child,
+        ),
       ),
-      child: child,
     );
   }
+}
+
+class _PaperPainter extends CustomPainter {
+  const _PaperPainter(this.scale);
+
+  final double scale;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final paperPaint = Paint()
+      ..shader = const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFF7EFD9), Color(0xFFEAD8B6)],
+      ).createShader(rect);
+    canvas.drawRect(rect, paperPaint);
+
+    final edgePaint = Paint()
+      ..shader = LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [
+          const Color(0xFF765435).withOpacity(0.12),
+          Colors.transparent,
+          const Color(0xFF765435).withOpacity(0.08),
+        ],
+      ).createShader(rect);
+    canvas.drawRect(rect, edgePaint);
+
+    final linePaint = Paint()
+      ..color = const Color(0xFF7E8A78).withOpacity(0.16)
+      ..strokeWidth = 0.75 * scale;
+    final spacing = 22 * scale;
+    for (double y = 48 * scale; y < size.height - 8; y += spacing) {
+      canvas.drawLine(Offset(10 * scale, y), Offset(size.width - 9 * scale, y), linePaint);
+    }
+
+    final marginPaint = Paint()
+      ..color = const Color(0xFFB45D4E).withOpacity(0.18)
+      ..strokeWidth = 0.9 * scale;
+    canvas.drawLine(
+      Offset(28 * scale, 8),
+      Offset(28 * scale, size.height - 8),
+      marginPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PaperPainter oldDelegate) =>
+      oldDelegate.scale != scale;
 }
 
 class _LeftPage extends StatelessWidget {
   const _LeftPage({
     required this.data,
     required this.focused,
-    required this.titleSize,
-    required this.sectionSize,
-    required this.bodySize,
+    required this.scale,
   });
 
   final PerchTodayData data;
   final bool focused;
-  final double titleSize;
-  final double sectionSize;
-  final double bodySize;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
@@ -103,47 +154,51 @@ class _LeftPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Today',
-          maxLines: 1,
-          style: _inkStyle(titleSize, FontWeight.w600),
-        ),
+        Text('Perch', style: _titleStyle(30 * scale)),
+        SizedBox(height: 2 * scale),
         Text(
           data.dayStatus,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: _inkStyle(bodySize * 0.92, FontWeight.w500),
+          style: _bodyStyle(11.5 * scale, weight: FontWeight.w600),
+        ),
+        SizedBox(height: 11 * scale),
+        Text(
+          data.resetLine,
+          maxLines: focused ? 2 : 1,
+          overflow: TextOverflow.ellipsis,
+          style: _accentStyle(15 * scale),
         ),
         const Spacer(),
-        _SectionLabel('NEXT UP', size: sectionSize),
-        _LineItem(data.nextDue.title, size: bodySize),
-        const Spacer(),
-        _SectionLabel('SCHEDULE', size: sectionSize),
+        _Section('Next thing', scale: scale),
+        _CheckLine(data.nextDue.title, scale: scale),
+        SizedBox(height: 8 * scale),
+        _Section('Schedule', scale: scale),
         ...shifts.map(
           (shift) => Padding(
-            padding: const EdgeInsets.only(bottom: 2),
+            padding: EdgeInsets.only(bottom: 3 * scale),
             child: Text(
               '${shift.day}  ${shift.unit} · ${shift.time}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: _inkStyle(bodySize * 0.90, FontWeight.w500),
+              style: _bodyStyle(10.5 * scale, weight: FontWeight.w600),
             ),
           ),
         ),
         if (focused) ...[
-          const Spacer(),
-          _SectionLabel('MONEY', size: sectionSize),
+          SizedBox(height: 8 * scale),
+          _Section('Money', scale: scale),
           Text(
             data.money.availableText,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: _inkStyle(bodySize * 1.12, FontWeight.w700),
+            style: _bodyStyle(13 * scale, weight: FontWeight.w800),
           ),
           Text(
             data.money.safeThroughText,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: _inkStyle(bodySize * 0.82, FontWeight.w400),
+            style: _bodyStyle(9.5 * scale),
           ),
         ],
         const Spacer(),
@@ -156,95 +211,107 @@ class _RightPage extends StatelessWidget {
   const _RightPage({
     required this.data,
     required this.focused,
-    required this.titleSize,
-    required this.sectionSize,
-    required this.bodySize,
+    required this.scale,
   });
 
   final PerchTodayData data;
   final bool focused;
-  final double titleSize;
-  final double sectionSize;
-  final double bodySize;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _SectionLabel('DAILY BRIEF', size: sectionSize),
-        Text(
-          data.resetLine,
-          maxLines: focused ? 3 : 2,
-          overflow: TextOverflow.ellipsis,
-          style: _inkStyle(bodySize, FontWeight.w500),
+        _Section('Needs attention', scale: scale),
+        _CheckLine(data.nextDue.title, scale: scale),
+        Padding(
+          padding: EdgeInsets.only(left: 20 * scale, top: 2 * scale),
+          child: Text(
+            data.nextDue.actionLabel,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: _bodyStyle(9.5 * scale).copyWith(
+              decoration: TextDecoration.underline,
+              decorationColor: const Color(0xFF7A4F36),
+            ),
+          ),
         ),
-        const Spacer(),
-        _SectionLabel('NEEDS ATTENTION', size: sectionSize),
-        _LineItem(data.nextDue.title, size: bodySize),
-        Text(
-          data.nextDue.actionLabel,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: _inkStyle(bodySize * 0.82, FontWeight.w400),
-        ),
-        const Spacer(),
-        _SectionLabel('FROM YOUR BRAIN', size: sectionSize),
+        SizedBox(height: 13 * scale),
+        _Section('From your brain', scale: scale),
         Text(
           data.brainNote,
-          maxLines: focused ? 4 : 2,
+          maxLines: focused ? 5 : 2,
           overflow: TextOverflow.ellipsis,
-          style: _inkStyle(bodySize, FontWeight.w500),
+          style: _bodyStyle(11 * scale, weight: FontWeight.w500),
         ),
-        if (focused) ...[
-          const Spacer(),
-          _SectionLabel('TODAY', size: sectionSize),
-          _LineItem('One thing at a time.', size: bodySize),
-        ],
         const Spacer(),
+        if (focused) ...[
+          _Section('Quiet thought', scale: scale),
+          Text(
+            'One thing at a time.',
+            maxLines: 2,
+            style: _accentStyle(13 * scale),
+          ),
+          SizedBox(height: 10 * scale),
+        ],
+        Text(
+          'Your life is organized enough for the next minute.',
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: _bodyStyle(8.5 * scale).copyWith(
+            fontStyle: FontStyle.italic,
+            color: const Color(0xFF725F4D),
+          ),
+        ),
       ],
     );
   }
 }
 
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.text, {required this.size});
+class _Section extends StatelessWidget {
+  const _Section(this.text, {required this.scale});
 
   final String text;
-  final double size;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 3),
+      padding: EdgeInsets.only(bottom: 4 * scale),
       child: Text(
-        text,
+        text.toUpperCase(),
         maxLines: 1,
-        style: _inkStyle(size, FontWeight.w800, letterSpacing: 0.7),
+        overflow: TextOverflow.ellipsis,
+        style: _bodyStyle(8.5 * scale, weight: FontWeight.w800).copyWith(
+          letterSpacing: 1.2 * scale,
+          color: const Color(0xFF6A4A35),
+        ),
       ),
     );
   }
 }
 
-class _LineItem extends StatelessWidget {
-  const _LineItem(this.text, {required this.size});
+class _CheckLine extends StatelessWidget {
+  const _CheckLine(this.text, {required this.scale});
 
   final String text;
-  final double size;
+  final double scale;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: EdgeInsets.only(top: size * 0.35, right: size * 0.45),
-          child: Container(
-            width: size * 0.42,
-            height: size * 0.42,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFF3A2A1B), width: 1),
+        Container(
+          width: 11 * scale,
+          height: 11 * scale,
+          margin: EdgeInsets.only(top: 2 * scale, right: 7 * scale),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(2 * scale),
+            border: Border.all(
+              color: const Color(0xFF503A29),
+              width: 1.1 * scale,
             ),
           ),
         ),
@@ -253,7 +320,7 @@ class _LineItem extends StatelessWidget {
             text,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
-            style: _inkStyle(size, FontWeight.w500),
+            style: _bodyStyle(11 * scale, weight: FontWeight.w600),
           ),
         ),
       ],
@@ -261,16 +328,32 @@ class _LineItem extends StatelessWidget {
   }
 }
 
-TextStyle _inkStyle(
-  double size,
-  FontWeight weight, {
-  double? letterSpacing,
-}) {
-  return TextStyle(
-    color: const Color(0xFF312317),
-    fontSize: size,
-    height: 1.18,
-    fontWeight: weight,
-    letterSpacing: letterSpacing,
-  );
-}
+TextStyle _titleStyle(double size) => TextStyle(
+      color: const Color(0xFF2E2118),
+      fontSize: size,
+      height: 0.94,
+      fontWeight: FontWeight.w700,
+      letterSpacing: -1.1,
+      fontFamily: 'Georgia',
+    );
+
+TextStyle _accentStyle(double size) => TextStyle(
+      color: const Color(0xFF8A4934),
+      fontSize: size,
+      height: 1.05,
+      fontWeight: FontWeight.w600,
+      fontStyle: FontStyle.italic,
+      fontFamily: 'Georgia',
+    );
+
+TextStyle _bodyStyle(
+  double size, {
+  FontWeight weight = FontWeight.w400,
+}) =>
+    TextStyle(
+      color: const Color(0xFF34261B),
+      fontSize: size,
+      height: 1.18,
+      fontWeight: weight,
+      fontFamily: 'Georgia',
+    );
