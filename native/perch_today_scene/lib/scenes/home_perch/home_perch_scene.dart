@@ -7,6 +7,7 @@ import '../../assets/home_perch_assets.dart';
 import '../../data/perch_today_models.dart';
 import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
+import 'desk_functionality_layer.dart';
 import 'journal_engine.dart';
 
 class HomePerchScene extends StatefulWidget {
@@ -89,6 +90,10 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                   assetPath: HomePerchAssets.deskInteractionBackground,
                 ),
               ),
+            ),
+            DeskFunctionalityLayer(
+              data: widget.data,
+              journalFocused: _journalFocused,
             ),
             IgnorePointer(
               ignoring: !_journalFocused,
