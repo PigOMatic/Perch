@@ -7,6 +7,7 @@ import '../../assets/home_perch_assets.dart';
 import '../../data/perch_today_models.dart';
 import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
+import 'live_journal_content.dart';
 
 class HomePerchScene extends StatefulWidget {
   const HomePerchScene({
@@ -39,7 +40,6 @@ class _HomePerchSceneState extends State<HomePerchScene> {
         final size = constraints.biggest;
         final availableWidth = math.max(0.0, size.width - 24);
 
-        // Keep the journal visually substantial on small and large windows.
         final desiredCompactWidth = math.max(280.0, size.width * 0.78);
         final compactWidth = math.min(
           availableWidth,
@@ -47,7 +47,6 @@ class _HomePerchSceneState extends State<HomePerchScene> {
         );
         final compactHeight = compactWidth / _journalAspectRatio;
 
-        // Anchor the journal near the lower desk surface instead of mid-screen.
         final compactBottom = math.max(18.0, size.height * 0.055);
         final compactTop = math.max(
           12.0,
@@ -132,13 +131,26 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                       ),
                     ],
                   ),
-                  child: PerchAssetLayer(
-                    assetPath: HomePerchAssets.journalOpenToday,
-                    fit: BoxFit.contain,
-                    alignment: Alignment.center,
-                    fallback: const _BackgroundMissingFallback(
-                      assetPath: HomePerchAssets.journalOpenToday,
-                    ),
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      PerchAssetLayer(
+                        assetPath: HomePerchAssets.journalOpenToday,
+                        fit: BoxFit.contain,
+                        alignment: Alignment.center,
+                        fallback: const _BackgroundMissingFallback(
+                          assetPath: HomePerchAssets.journalOpenToday,
+                        ),
+                      ),
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 260),
+                        opacity: 1,
+                        child: LiveJournalContent(
+                          data: widget.data,
+                          focused: _journalFocused,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
