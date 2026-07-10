@@ -14,4 +14,5 @@ flutter:
   uses-material-design: true
   assets:
     - assets/scenes/home_perch/
+    - assets/scenes/home_perch/backgrounds/
     - assets/objects/
