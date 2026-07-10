@@ -14,72 +14,119 @@ class LiveJournalContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return IgnorePointer(
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final scale = (constraints.maxWidth / 852).clamp(0.72, 1.35);
-          final pageGap = constraints.maxWidth * 0.052;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final scale = (constraints.maxWidth / 852).clamp(0.72, 1.35);
+        final pageGap = constraints.maxWidth * 0.052;
 
-          return Padding(
-            padding: EdgeInsets.fromLTRB(
-              constraints.maxWidth * 0.095,
-              constraints.maxHeight * 0.085,
-              constraints.maxWidth * 0.095,
-              constraints.maxHeight * 0.085,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _PaperPage(
-                    scale: scale,
-                    child: _LeftPage(
-                      data: data,
-                      focused: focused,
-                      scale: scale,
-                    ),
-                  ),
+        final leftPage = _LeftPage(
+          data: data,
+          focused: focused,
+          scale: scale,
+        );
+        final rightPage = _RightPage(
+          data: data,
+          focused: focused,
+          scale: scale,
+        );
+
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            constraints.maxWidth * 0.095,
+            constraints.maxHeight * 0.085,
+            constraints.maxWidth * 0.095,
+            constraints.maxHeight * 0.085,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: _PaperPage(
+                  scale: scale,
+                  scrollable: focused,
+                  storageKey: const PageStorageKey('perch-left-page'),
+                  child: leftPage,
                 ),
-                SizedBox(width: pageGap),
-                Expanded(
-                  child: _PaperPage(
-                    scale: scale,
-                    child: _RightPage(
-                      data: data,
-                      focused: focused,
-                      scale: scale,
-                    ),
-                  ),
+              ),
+              SizedBox(width: pageGap),
+              Expanded(
+                child: _PaperPage(
+                  scale: scale,
+                  scrollable: focused,
+                  storageKey: const PageStorageKey('perch-right-page'),
+                  child: rightPage,
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class _PaperPage extends StatelessWidget {
-  const _PaperPage({required this.scale, required this.child});
+class _PaperPage extends StatefulWidget {
+  const _PaperPage({
+    required this.scale,
+    required this.scrollable,
+    required this.storageKey,
+    required this.child,
+  });
 
   final double scale;
+  final bool scrollable;
+  final PageStorageKey<String> storageKey;
   final Widget child;
 
   @override
+  State<_PaperPage> createState() => _PaperPageState();
+}
+
+class _PaperPageState extends State<_PaperPage> {
+  late final ScrollController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final pageBody = Padding(
+      padding: EdgeInsets.fromLTRB(
+        15 * widget.scale,
+        13 * widget.scale,
+        13 * widget.scale,
+        20 * widget.scale,
+      ),
+      child: widget.child,
+    );
+
     return ClipRRect(
-      borderRadius: BorderRadius.circular(7 * scale),
+      borderRadius: BorderRadius.circular(7 * widget.scale),
       child: CustomPaint(
-        painter: _PaperPainter(scale),
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            15 * scale,
-            13 * scale,
-            13 * scale,
-            12 * scale,
-          ),
-          child: child,
-        ),
+        painter: _PaperPainter(widget.scale),
+        child: widget.scrollable
+            ? Scrollbar(
+                controller: _controller,
+                thumbVisibility: true,
+                thickness: 3 * widget.scale,
+                radius: Radius.circular(4 * widget.scale),
+                child: SingleChildScrollView(
+                  key: widget.storageKey,
+                  controller: _controller,
+                  physics: const BouncingScrollPhysics(),
+                  padding: EdgeInsets.only(right: 5 * widget.scale),
+                  child: pageBody,
+                ),
+              )
+            : IgnorePointer(child: pageBody),
       ),
     );
   }
@@ -118,7 +165,11 @@ class _PaperPainter extends CustomPainter {
       ..strokeWidth = 0.75 * scale;
     final spacing = 22 * scale;
     for (double y = 48 * scale; y < size.height - 8; y += spacing) {
-      canvas.drawLine(Offset(10 * scale, y), Offset(size.width - 9 * scale, y), linePaint);
+      canvas.drawLine(
+        Offset(10 * scale, y),
+        Offset(size.width - 9 * scale, y),
+        linePaint,
+      );
     }
 
     final marginPaint = Paint()
@@ -149,9 +200,10 @@ class _LeftPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shifts = focused ? data.shifts.take(3) : data.shifts.take(2);
+    final shifts = focused ? data.shifts : data.shifts.take(2);
 
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('Perch', style: _titleStyle(30 * scale)),
@@ -165,43 +217,51 @@ class _LeftPage extends StatelessWidget {
         SizedBox(height: 11 * scale),
         Text(
           data.resetLine,
-          maxLines: focused ? 2 : 1,
+          maxLines: focused ? 4 : 1,
           overflow: TextOverflow.ellipsis,
           style: _accentStyle(15 * scale),
         ),
-        const Spacer(),
+        SizedBox(height: 18 * scale),
         _Section('Next thing', scale: scale),
         _CheckLine(data.nextDue.title, scale: scale),
-        SizedBox(height: 8 * scale),
+        SizedBox(height: 16 * scale),
         _Section('Schedule', scale: scale),
         ...shifts.map(
           (shift) => Padding(
-            padding: EdgeInsets.only(bottom: 3 * scale),
+            padding: EdgeInsets.only(bottom: 6 * scale),
             child: Text(
               '${shift.day}  ${shift.unit} · ${shift.time}',
-              maxLines: 1,
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
               style: _bodyStyle(10.5 * scale, weight: FontWeight.w600),
             ),
           ),
         ),
         if (focused) ...[
-          SizedBox(height: 8 * scale),
+          SizedBox(height: 18 * scale),
           _Section('Money', scale: scale),
           Text(
             data.money.availableText,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: _bodyStyle(13 * scale, weight: FontWeight.w800),
           ),
+          SizedBox(height: 3 * scale),
           Text(
             data.money.safeThroughText,
-            maxLines: 2,
+            maxLines: 4,
             overflow: TextOverflow.ellipsis,
             style: _bodyStyle(9.5 * scale),
           ),
+          SizedBox(height: 22 * scale),
+          _Section('Action', scale: scale),
+          Text(
+            data.nextDue.actionLabel,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: _bodyStyle(10.5 * scale, weight: FontWeight.w600),
+          ),
         ],
-        const Spacer(),
       ],
     );
   }
@@ -221,15 +281,16 @@ class _RightPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _Section('Needs attention', scale: scale),
         _CheckLine(data.nextDue.title, scale: scale),
         Padding(
-          padding: EdgeInsets.only(left: 20 * scale, top: 2 * scale),
+          padding: EdgeInsets.only(left: 20 * scale, top: 3 * scale),
           child: Text(
             data.nextDue.actionLabel,
-            maxLines: 1,
+            maxLines: focused ? 3 : 1,
             overflow: TextOverflow.ellipsis,
             style: _bodyStyle(9.5 * scale).copyWith(
               decoration: TextDecoration.underline,
@@ -237,27 +298,43 @@ class _RightPage extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: 13 * scale),
+        SizedBox(height: 18 * scale),
         _Section('From your brain', scale: scale),
         Text(
           data.brainNote,
-          maxLines: focused ? 5 : 2,
+          maxLines: focused ? 8 : 2,
           overflow: TextOverflow.ellipsis,
           style: _bodyStyle(11 * scale, weight: FontWeight.w500),
         ),
-        const Spacer(),
+        SizedBox(height: 20 * scale),
         if (focused) ...[
+          _Section('Daily brief', scale: scale),
+          Text(
+            data.resetLine,
+            maxLines: 6,
+            overflow: TextOverflow.ellipsis,
+            style: _bodyStyle(11 * scale),
+          ),
+          SizedBox(height: 20 * scale),
           _Section('Quiet thought', scale: scale),
           Text(
             'One thing at a time.',
             maxLines: 2,
             style: _accentStyle(13 * scale),
           ),
-          SizedBox(height: 10 * scale),
+          SizedBox(height: 22 * scale),
+          _Section('Money note', scale: scale),
+          Text(
+            '${data.money.availableText}\n${data.money.safeThroughText}',
+            maxLines: 5,
+            overflow: TextOverflow.ellipsis,
+            style: _bodyStyle(10 * scale),
+          ),
+          SizedBox(height: 28 * scale),
         ],
         Text(
           'Your life is organized enough for the next minute.',
-          maxLines: 2,
+          maxLines: 3,
           overflow: TextOverflow.ellipsis,
           style: _bodyStyle(8.5 * scale).copyWith(
             fontStyle: FontStyle.italic,
@@ -318,7 +395,7 @@ class _CheckLine extends StatelessWidget {
         Expanded(
           child: Text(
             text,
-            maxLines: 2,
+            maxLines: 3,
             overflow: TextOverflow.ellipsis,
             style: _bodyStyle(11 * scale, weight: FontWeight.w600),
           ),
