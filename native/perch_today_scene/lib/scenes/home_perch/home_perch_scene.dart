@@ -40,7 +40,7 @@ class _BackgroundMissingFallback extends StatelessWidget {
       alignment: Alignment.center,
       padding: const EdgeInsets.all(24),
       child: const Text(
-        'Home Perch background image missing.\nPlace background_cabin_desk.webp in assets/scenes/home_perch/.',
+        'Home Perch background image missing.\nPlace background_cabin_desk.png in assets/scenes/home_perch/.',
         textAlign: TextAlign.center,
         style: TextStyle(
           color: Color(0xFFF6E8C8),
