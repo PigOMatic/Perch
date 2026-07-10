@@ -15,4 +15,5 @@ flutter:
   assets:
     - assets/scenes/home_perch/
     - assets/scenes/home_perch/backgrounds/
+    - assets/scenes/home_perch/interaction/
     - assets/objects/
