@@ -1,8 +1,9 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../../assets/home_perch_assets.dart';
 import '../../data/perch_today_models.dart';
-import '../../scene_engine/perch_performance.dart';
 import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
 
@@ -21,109 +22,134 @@ class HomePerchScene extends StatefulWidget {
 }
 
 class _HomePerchSceneState extends State<HomePerchScene> {
-  int _selectedBackground = 1;
+  bool _journalFocused = false;
+
+  void _setJournalFocused(bool value) {
+    if (_journalFocused == value) return;
+    setState(() => _journalFocused = value);
+  }
 
   @override
   Widget build(BuildContext context) {
-    final selected = HomePerchAssets.backgrounds[_selectedBackground];
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final size = constraints.biggest;
+        final compactWidth = size.width * 0.64;
+        final compactHeight = size.height * 0.34;
+        final focusedWidth = size.width * 0.92;
+        final focusedHeight = size.height * 0.82;
 
-    return Stack(
-      children: [
-        Positioned.fill(
-          child: PerchPerformance.isolateStaticLayer(
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 450),
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            AnimatedScale(
+              duration: const Duration(milliseconds: 520),
+              curve: Curves.easeInOutCubic,
+              scale: _journalFocused ? 1.035 : 1,
               child: PerchAssetLayer(
-                key: ValueKey(selected.assetPath),
-                assetPath: selected.assetPath,
+                assetPath: HomePerchAssets.deskInteractionBackground,
                 fit: BoxFit.cover,
                 alignment: Alignment.center,
-                fallback: _BackgroundMissingFallback(assetPath: selected.assetPath),
+                fallback: const _BackgroundMissingFallback(
+                  assetPath: HomePerchAssets.deskInteractionBackground,
+                ),
               ),
             ),
-          ),
-        ),
-        Positioned(
-          left: 10,
-          right: 10,
-          bottom: 12,
-          child: SafeArea(
-            top: false,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                const spacing = 6.0;
-                final columns = switch (constraints.maxWidth) {
-                  >= 760 => 8,
-                  >= 430 => 4,
-                  _ => 2,
-                };
-                final itemWidth =
-                    (constraints.maxWidth - 16 - (spacing * (columns - 1))) / columns;
-                final labelSize = constraints.maxWidth < 430 ? 10.0 : 11.0;
-
-                return Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF17110D).withOpacity(0.80),
-                    borderRadius: BorderRadius.circular(22),
-                    border: Border.all(color: Colors.white.withOpacity(0.12)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.35),
-                        blurRadius: 24,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
+            IgnorePointer(
+              ignoring: !_journalFocused,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 420),
+                opacity: _journalFocused ? 1 : 0,
+                child: GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => _setJournalFocused(false),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(
+                      sigmaX: _journalFocused ? 5 : 0,
+                      sigmaY: _journalFocused ? 5 : 0,
+                    ),
+                    child: Container(color: Colors.black.withOpacity(0.36)),
                   ),
-                  child: Wrap(
-                    spacing: spacing,
-                    runSpacing: spacing,
-                    children: List.generate(HomePerchAssets.backgrounds.length, (index) {
-                      final option = HomePerchAssets.backgrounds[index];
-                      final isSelected = index == _selectedBackground;
-
-                      return GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => setState(() => _selectedBackground = index),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 180),
-                          width: itemWidth,
-                          height: 34,
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: isSelected
-                                ? const Color(0xFFE8C891)
-                                : const Color(0xFF3B2A20),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(isSelected ? 0.22 : 0.08),
-                            ),
-                          ),
-                          child: Text(
-                            option.label,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
+                ),
+              ),
+            ),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 560),
+              curve: Curves.easeInOutCubicEmphasized,
+              left: _journalFocused
+                  ? (size.width - focusedWidth) / 2
+                  : (size.width - compactWidth) / 2,
+              top: _journalFocused
+                  ? (size.height - focusedHeight) / 2
+                  : size.height * 0.40,
+              width: _journalFocused ? focusedWidth : compactWidth,
+              height: _journalFocused ? focusedHeight : compactHeight,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => _setJournalFocused(true),
+                child: Hero(
+                  tag: 'home-perch-journal',
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 560),
+                    curve: Curves.easeInOutCubicEmphasized,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(_journalFocused ? 18 : 12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(_journalFocused ? 0.55 : 0.42),
+                          blurRadius: _journalFocused ? 46 : 24,
+                          spreadRadius: _journalFocused ? 6 : 1,
+                          offset: Offset(0, _journalFocused ? 22 : 12),
+                        ),
+                      ],
+                    ),
+                    child: PerchAssetLayer(
+                      assetPath: HomePerchAssets.journalOpenToday,
+                      fit: BoxFit.contain,
+                      alignment: Alignment.center,
+                      fallback: const _BackgroundMissingFallback(
+                        assetPath: HomePerchAssets.journalOpenToday,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            if (_journalFocused)
+              Positioned(
+                left: 18,
+                top: 18,
+                child: SafeArea(
+                  child: GestureDetector(
+                    onTap: () => _setJournalFocused(false),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF17110D).withOpacity(0.84),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: Colors.white.withOpacity(0.16)),
+                      ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.arrow_back, color: Color(0xFFF6E8C8), size: 18),
+                          SizedBox(width: 7),
+                          Text(
+                            'Back to desk',
                             style: TextStyle(
-                              color: isSelected
-                                  ? const Color(0xFF2A1B11)
-                                  : const Color(0xFFF5E9D1),
-                              fontSize: labelSize,
-                              height: 1,
+                              color: Color(0xFFF6E8C8),
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                        ),
-                      );
-                    }),
+                        ],
+                      ),
+                    ),
                   ),
-                );
-              },
-            ),
-          ),
-        ),
-      ],
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -140,7 +166,7 @@ class _BackgroundMissingFallback extends StatelessWidget {
       alignment: Alignment.center,
       padding: const EdgeInsets.all(24),
       child: Text(
-        'Home Perch background image missing.\nPlace this file in the project:\n$assetPath',
+        'Perch image missing.\nPlace this file in the project:\n$assetPath',
         textAlign: TextAlign.center,
         style: const TextStyle(
           color: Color(0xFFF6E8C8),
