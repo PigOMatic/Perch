@@ -3,7 +3,6 @@ class HomePerchAssets {
 
   static const sceneRoot = 'assets/scenes/home_perch';
   static const backgroundRoot = '$sceneRoot/backgrounds';
-  static const interactionRoot = '$sceneRoot/interaction';
 
   static const backgrounds = <HomePerchBackgroundOption>[
     HomePerchBackgroundOption('Dawn', '$backgroundRoot/background_dawn.png'),
@@ -17,8 +16,8 @@ class HomePerchAssets {
   ];
 
   static const deskInteractionBackground =
-      '$interactionRoot/desk_reference_background.png';
-  static const journalOpenToday = '$interactionRoot/journal_open_today.png';
+      '$sceneRoot/desk_reference_background.png';
+  static const journalOpenToday = '$sceneRoot/journal_open_today.png';
 
   static const background = '$sceneRoot/background_cabin_desk.png';
   static const deskSurface = '$sceneRoot/desk_surface.webp';
