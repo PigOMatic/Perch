@@ -7,7 +7,7 @@ import '../../assets/home_perch_assets.dart';
 import '../../data/perch_today_models.dart';
 import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
-import 'live_journal_content.dart';
+import 'journal_engine.dart';
 
 class HomePerchScene extends StatefulWidget {
   const HomePerchScene({
@@ -38,9 +38,13 @@ class _HomePerchSceneState extends State<HomePerchScene> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;
+        final portrait = size.height >= size.width;
         final availableWidth = math.max(0.0, size.width - 24);
 
-        final desiredCompactWidth = math.max(280.0, size.width * 0.78);
+        final desiredCompactWidth = math.max(
+          280.0,
+          size.width * (portrait ? 0.90 : 0.78),
+        );
         final compactWidth = math.min(
           availableWidth,
           math.min(720.0, desiredCompactWidth),
@@ -53,16 +57,21 @@ class _HomePerchSceneState extends State<HomePerchScene> {
           size.height - compactHeight - compactBottom,
         );
 
-        var focusedWidth = math.min(size.width * 0.94, 1100.0);
+        var focusedWidth = math.min(
+          size.width * (portrait ? 0.98 : 0.94),
+          1100.0,
+        );
         var focusedHeight = focusedWidth / _journalAspectRatio;
-        final maxFocusedHeight = size.height * 0.82;
+        final maxFocusedHeight = size.height * (portrait ? 0.64 : 0.82);
         if (focusedHeight > maxFocusedHeight) {
           focusedHeight = maxFocusedHeight;
           focusedWidth = focusedHeight * _journalAspectRatio;
         }
 
         final focusedLeft = (size.width - focusedWidth) / 2;
-        final focusedTop = (size.height - focusedHeight) / 2;
+        final focusedTop = portrait
+            ? math.max(74.0, (size.height - focusedHeight) / 2)
+            : (size.height - focusedHeight) / 2;
         final compactLeft = (size.width - compactWidth) / 2;
 
         return Stack(
@@ -108,7 +117,9 @@ class _HomePerchSceneState extends State<HomePerchScene> {
               height: _journalFocused ? focusedHeight : compactHeight,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: () => _setJournalFocused(true),
+                onTap: _journalFocused
+                    ? null
+                    : () => _setJournalFocused(true),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 560),
                   curve: Curves.easeInOutCubicEmphasized,
@@ -142,13 +153,9 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                           assetPath: HomePerchAssets.journalOpenToday,
                         ),
                       ),
-                      AnimatedOpacity(
-                        duration: const Duration(milliseconds: 260),
-                        opacity: 1,
-                        child: LiveJournalContent(
-                          data: widget.data,
-                          focused: _journalFocused,
-                        ),
+                      JournalEngine(
+                        data: widget.data,
+                        focused: _journalFocused,
                       ),
                     ],
                   ),
@@ -157,18 +164,18 @@ class _HomePerchSceneState extends State<HomePerchScene> {
             ),
             if (_journalFocused)
               Positioned(
-                left: 18,
-                top: 18,
+                left: 14,
+                top: 14,
                 child: SafeArea(
                   child: GestureDetector(
                     onTap: () => _setJournalFocused(false),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 10,
+                        horizontal: 13,
+                        vertical: 9,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF17110D).withOpacity(0.84),
+                        color: const Color(0xFF17110D).withOpacity(0.86),
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
                           color: Colors.white.withOpacity(0.16),
