@@ -7,6 +7,7 @@ import '../../assets/home_perch_assets.dart';
 import '../../data/perch_today_models.dart';
 import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
+import 'coffee_steam_object.dart';
 import 'desk_functionality_layer.dart';
 import 'journal_engine.dart';
 
@@ -93,6 +94,9 @@ class _HomePerchSceneState extends State<HomePerchScene> {
             ),
             DeskFunctionalityLayer(
               data: widget.data,
+              journalFocused: _journalFocused,
+            ),
+            CoffeeSteamObject(
               journalFocused: _journalFocused,
             ),
             IgnorePointer(
