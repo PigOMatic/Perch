@@ -25,5 +25,7 @@ abstract final class PerchEventTypes {
   static const priorityChanged = 'priority.changed';
   static const taskCompletionChanged = 'task.completion.changed';
   static const deskObjectActivated = 'desk.object.activated';
+  static const deskAmbienceChanged = 'desk.ambience.changed';
+  static const plantStageChanged = 'desk.plant.stage.changed';
   static const worldStateChanged = 'world.state.changed';
 }
