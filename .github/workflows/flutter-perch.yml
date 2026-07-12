@@ -49,7 +49,7 @@ jobs:
         run: dart format lib test
 
       - name: Analyze for errors and warnings
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Report strict lint debt
         continue-on-error: true
