@@ -33,6 +33,33 @@ void main() {
       expect(night.ambientLabel, 'Night room tone');
     });
 
+    test('lantern automatically illuminates for night and dark evenings', () {
+      expect(
+        world(timeOfDay: PerchTimeOfDay.night).shouldAutoIlluminateLantern,
+        isTrue,
+      );
+      expect(
+        world(
+          timeOfDay: PerchTimeOfDay.evening,
+          weather: PerchWeather.rain,
+        ).shouldAutoIlluminateLantern,
+        isTrue,
+      );
+      expect(
+        world(
+          timeOfDay: PerchTimeOfDay.evening,
+          weather: PerchWeather.fog,
+        ).shouldAutoIlluminateLantern,
+        isTrue,
+      );
+      expect(
+        world(timeOfDay: PerchTimeOfDay.evening)
+            .shouldAutoIlluminateLantern,
+        isFalse,
+      );
+      expect(world().shouldAutoIlluminateLantern, isFalse);
+    });
+
     test('every non-clear weather requests motion and a distinct ambience', () {
       final expected = <PerchWeather, String>{
         PerchWeather.rain: 'Rain ambience',
