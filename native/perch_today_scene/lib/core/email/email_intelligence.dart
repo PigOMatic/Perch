@@ -35,6 +35,12 @@ enum EmailAttentionLevel { quiet, review, important, urgent }
 class EmailAssessment {
   const EmailAssessment({
     required this.emailId,
+    required this.sender,
+    required this.subject,
+    required this.preview,
+    required this.receivedAt,
+    required this.isUnread,
+    required this.hasAttachment,
     required this.score,
     required this.level,
     required this.reason,
@@ -42,6 +48,12 @@ class EmailAssessment {
   });
 
   final String emailId;
+  final String sender;
+  final String subject;
+  final String preview;
+  final DateTime receivedAt;
+  final bool isUnread;
+  final bool hasAttachment;
   final double score;
   final EmailAttentionLevel level;
   final String reason;
@@ -74,6 +86,12 @@ class EmailIntelligence {
 
     return EmailAssessment(
       emailId: email.id,
+      sender: email.sender,
+      subject: email.subject,
+      preview: email.preview,
+      receivedAt: email.receivedAt,
+      isUnread: email.isUnread,
+      hasAttachment: email.hasAttachment,
       score: score,
       level: level,
       reason: _reason(email, level),
@@ -89,16 +107,22 @@ class EmailIntelligence {
 
   String _reason(EmailSignal email, EmailAttentionLevel level) {
     if (email.hasDeadlineLanguage) return 'Contains time-sensitive language.';
-    if (email.hasQuestion && email.isDirectToUser) return 'A direct question appears to need a response.';
+    if (email.hasQuestion && email.isDirectToUser) {
+      return 'A direct question appears to need a response.';
+    }
     if (email.senderImportance >= 0.8) return 'From a high-priority sender.';
-    if (level == EmailAttentionLevel.quiet) return 'No strong attention signals detected.';
+    if (level == EmailAttentionLevel.quiet) {
+      return 'No strong attention signals detected.';
+    }
     return 'Unread and recent enough to review.';
   }
 
   String _action(EmailSignal email, EmailAttentionLevel level) {
     if (email.hasQuestion) return 'Review and draft a response.';
     if (email.hasDeadlineLanguage) return 'Open now and confirm the deadline.';
-    if (level == EmailAttentionLevel.quiet) return 'Leave in the normal inbox flow.';
+    if (level == EmailAttentionLevel.quiet) {
+      return 'Leave in the normal inbox flow.';
+    }
     return 'Review when the desk is clear.';
   }
 }
