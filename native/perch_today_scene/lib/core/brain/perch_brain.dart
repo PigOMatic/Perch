@@ -68,8 +68,24 @@ class PerchBrain extends ChangeNotifier {
         break;
       case PerchEventTypes.deskObjectActivated:
         final id = event.payload['id'];
-        if (id is String) {
-          next = _state.copyWith(activeDeskObjectId: id);
+        if (id is String && id.trim().isNotEmpty) {
+          next = _state.copyWith(activeDeskObjectId: id.trim());
+        }
+        break;
+      case PerchEventTypes.deskAmbienceChanged:
+        final lanternOn = event.payload['lanternOn'];
+        final steamOn = event.payload['steamOn'];
+        if (lanternOn is bool || steamOn is bool) {
+          next = _state.copyWith(
+            lanternOn: lanternOn is bool ? lanternOn : null,
+            steamOn: steamOn is bool ? steamOn : null,
+          );
+        }
+        break;
+      case PerchEventTypes.plantStageChanged:
+        final stage = event.payload['stage'];
+        if (stage is int) {
+          next = _state.copyWith(plantStage: stage.clamp(0, 3));
         }
         break;
       default:
