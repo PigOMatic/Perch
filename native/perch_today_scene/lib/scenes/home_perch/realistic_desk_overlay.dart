@@ -10,12 +10,14 @@ class RealisticDeskOverlay extends StatefulWidget {
     required this.journalFocused,
     required this.lanternOn,
     required this.steamOn,
+    required this.plantStage,
     required this.priority,
   });
 
   final bool journalFocused;
   final bool lanternOn;
   final bool steamOn;
+  final int plantStage;
   final String priority;
 
   @override
@@ -103,7 +105,10 @@ class _RealisticDeskOverlayState extends State<RealisticDeskOverlay>
                   portrait ? .075 : .085,
                   portrait ? .19 : .125,
                   portrait ? .21 : .13,
-                  _PlantObject(animation: _ambientController),
+                  _PlantObject(
+                    stage: widget.plantStage,
+                    animation: _ambientController,
+                  ),
                 ),
                 _place(
                   box,
@@ -304,52 +309,113 @@ class _StickyObject extends StatelessWidget {
 }
 
 class _PlantObject extends StatelessWidget {
-  const _PlantObject({required this.animation});
+  const _PlantObject({required this.stage, required this.animation});
 
+  final int stage;
   final Animation<double> animation;
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: animation,
-      builder: (context, child) => Transform.rotate(
-        angle: (animation.value - .5) * .018,
-        alignment: Alignment.bottomCenter,
-        child: child,
-      ),
-      child: AspectRatio(
-        aspectRatio: .9,
-        child: Stack(
+    final normalizedStage = stage.clamp(0, 3).toInt();
+    final scale = switch (normalizedStage) {
+      0 => .56,
+      1 => .72,
+      2 => .88,
+      _ => 1.0,
+    };
+
+    return Semantics(
+      label: 'Plant growth stage $normalizedStage',
+      child: AnimatedBuilder(
+        animation: animation,
+        builder: (context, child) => Transform.rotate(
+          angle: (animation.value - .5) * .018,
           alignment: Alignment.bottomCenter,
-          children: [
-            Container(
-              width: 58,
-              height: 48,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF8B7661), Color(0xFF47392F)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+          child: child,
+        ),
+        child: AspectRatio(
+          aspectRatio: .9,
+          child: Stack(
+            alignment: Alignment.bottomCenter,
+            children: [
+              Container(
+                key: const ValueKey('plant-pot'),
+                width: 58,
+                height: 48,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF8B7661), Color(0xFF47392F)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(6),
+                    bottom: Radius.circular(16),
+                  ),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black45,
+                      blurRadius: 14,
+                      offset: Offset(0, 9),
+                    ),
+                  ],
                 ),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(6),
-                  bottom: Radius.circular(16),
-                ),
-                boxShadow: const [
-                  BoxShadow(color: Colors.black45, blurRadius: 14, offset: Offset(0, 9)),
-                ],
               ),
-            ),
-            const Positioned(
-              bottom: 34,
-              child: Icon(Icons.eco, size: 76, color: Color(0xFF496D38)),
-            ),
-            const Positioned(
-              left: 17,
-              bottom: 45,
-              child: Icon(Icons.eco, size: 54, color: Color(0xFF6F914E)),
-            ),
-          ],
+              AnimatedScale(
+                key: ValueKey('plant-stage-$normalizedStage'),
+                duration: const Duration(milliseconds: 420),
+                curve: Curves.easeOutBack,
+                scale: scale,
+                alignment: Alignment.bottomCenter,
+                child: SizedBox(
+                  width: 96,
+                  height: 105,
+                  child: Stack(
+                    alignment: Alignment.bottomCenter,
+                    children: [
+                      Positioned(
+                        bottom: 30,
+                        child: Icon(
+                          Icons.eco,
+                          size: normalizedStage == 0 ? 44 : 76,
+                          color: const Color(0xFF496D38),
+                        ),
+                      ),
+                      if (normalizedStage >= 1)
+                        const Positioned(
+                          left: 8,
+                          bottom: 40,
+                          child: Icon(
+                            Icons.eco,
+                            size: 48,
+                            color: Color(0xFF6F914E),
+                          ),
+                        ),
+                      if (normalizedStage >= 2)
+                        const Positioned(
+                          right: 4,
+                          bottom: 50,
+                          child: Icon(
+                            Icons.eco,
+                            size: 52,
+                            color: Color(0xFF587D42),
+                          ),
+                        ),
+                      if (normalizedStage >= 3)
+                        const Positioned(
+                          top: 0,
+                          child: Icon(
+                            Icons.local_florist,
+                            size: 36,
+                            color: Color(0xFFD79A5A),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -400,7 +466,11 @@ class _LanternObject extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   border: Border.all(color: const Color(0xFF7D6A55), width: 2),
                   boxShadow: const [
-                    BoxShadow(color: Colors.black54, blurRadius: 20, offset: Offset(0, 12)),
+                    BoxShadow(
+                      color: Colors.black54,
+                      blurRadius: 20,
+                      offset: Offset(0, 12),
+                    ),
                   ],
                 ),
                 child: Center(
