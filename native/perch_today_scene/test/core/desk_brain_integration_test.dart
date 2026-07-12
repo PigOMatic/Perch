@@ -48,4 +48,52 @@ void main() {
 
     expect(brain.state.captures, ['One', 'Two']);
   });
+
+  test('ambience updates can change one setting without resetting the other', () {
+    final brain = PerchBrain();
+    addTearDown(brain.dispose);
+
+    brain.publish(const PerchEvent(
+      type: PerchEventTypes.deskAmbienceChanged,
+      source: 'desk.persistence',
+      payload: {'lanternOn': true, 'steamOn': false},
+    ));
+    expect(brain.state.lanternOn, isTrue);
+    expect(brain.state.steamOn, isFalse);
+
+    brain.publish(const PerchEvent(
+      type: PerchEventTypes.deskAmbienceChanged,
+      source: 'desk.coffee',
+      payload: {'steamOn': true},
+    ));
+    expect(brain.state.lanternOn, isTrue);
+    expect(brain.state.steamOn, isTrue);
+
+    brain.publish(const PerchEvent(
+      type: PerchEventTypes.deskAmbienceChanged,
+      source: 'desk.lantern',
+      payload: {'lanternOn': false},
+    ));
+    expect(brain.state.lanternOn, isFalse);
+    expect(brain.state.steamOn, isTrue);
+  });
+
+  test('plant growth is clamped before entering shared brain state', () {
+    final brain = PerchBrain();
+    addTearDown(brain.dispose);
+
+    brain.publish(const PerchEvent(
+      type: PerchEventTypes.plantStageChanged,
+      source: 'desk.plant',
+      payload: {'stage': 99},
+    ));
+    expect(brain.state.plantStage, 3);
+
+    brain.publish(const PerchEvent(
+      type: PerchEventTypes.plantStageChanged,
+      source: 'desk.plant',
+      payload: {'stage': -4},
+    ));
+    expect(brain.state.plantStage, 0);
+  });
 }
