@@ -33,7 +33,7 @@ void main() {
     expect(find.byKey(const ValueKey('desk-object-sheet')), findsOneWidget);
     expect(find.byKey(const ValueKey('ruled-journal-page')), findsOneWidget);
     expect(find.text('Today'), findsOneWidget);
-    expect(find.text('What matters next'), findsOneWidget);
+    expect(find.text('WHAT MATTERS NEXT'), findsOneWidget);
     expect(find.text(demoTodayData.nextDue.title), findsOneWidget);
 
     final sheetSize = tester.getSize(
