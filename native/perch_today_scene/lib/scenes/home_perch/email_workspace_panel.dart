@@ -14,10 +14,10 @@ Future<void> showEmailWorkspace(
     barrierDismissible: true,
     barrierColor: Colors.black.withValues(alpha: 0.44),
     transitionDuration: const Duration(milliseconds: 460),
-    pageBuilder: (context, animation, secondaryAnimation) {
-      return _EmailWorkspacePanel(assessments: assessments);
-    },
-    transitionBuilder: (context, animation, secondaryAnimation, child) {
+    pageBuilder: (_, __, ___) => _EmailWorkspacePanel(
+      assessments: assessments,
+    ),
+    transitionBuilder: (_, animation, __, child) {
       final curved = CurvedAnimation(
         parent: animation,
         curve: Curves.easeOutCubic,
@@ -51,28 +51,30 @@ class _EmailWorkspacePanel extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             final compact = constraints.maxWidth < 680;
-            final width = compact
+            final double width = compact
                 ? constraints.maxWidth
-                : constraints.maxWidth.clamp(520.0, 760.0);
+                : constraints.maxWidth.clamp(520.0, 760.0).toDouble();
+            final double height = compact
+                ? constraints.maxHeight * 0.88
+                : constraints.maxHeight;
 
             return Align(
-              alignment: compact ? Alignment.bottomCenter : Alignment.centerRight,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: width,
-                  maxHeight: compact
-                      ? constraints.maxHeight * 0.88
-                      : constraints.maxHeight,
-                ),
+              alignment:
+                  compact ? Alignment.bottomCenter : Alignment.centerRight,
+              child: SizedBox(
+                width: width,
+                height: height,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(compact ? 24 : 18),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
                     child: DecoratedBox(
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF0E4C8).withValues(alpha: 0.97),
+                        color: const Color(0xFFF0E4C8)
+                            .withValues(alpha: 0.97),
                         border: Border.all(
-                          color: const Color(0xFF5A3D27).withValues(alpha: 0.42),
+                          color: const Color(0xFF5A3D27)
+                              .withValues(alpha: 0.42),
                         ),
                         boxShadow: const [
                           BoxShadow(
@@ -87,20 +89,26 @@ class _EmailWorkspacePanel extends StatelessWidget {
                           const Positioned.fill(child: _PaperTexture()),
                           Column(
                             children: [
-                              _WorkspaceHeader(onClose: () => Navigator.pop(context)),
+                              _WorkspaceHeader(
+                                onClose: () => Navigator.pop(context),
+                              ),
                               Expanded(
                                 child: assessments.isEmpty
                                     ? const _EmptyInbox()
                                     : ListView.separated(
-                                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
+                                        padding: const EdgeInsets.fromLTRB(
+                                          20,
+                                          8,
+                                          20,
+                                          28,
+                                        ),
                                         itemCount: assessments.length,
-                                        separatorBuilder: (_, __) => const SizedBox(height: 12),
-                                        itemBuilder: (context, index) {
-                                          return _LetterCard(
-                                            assessment: assessments[index],
-                                            index: index,
-                                          );
-                                        },
+                                        separatorBuilder: (_, __) =>
+                                            const SizedBox(height: 12),
+                                        itemBuilder: (_, index) => _LetterCard(
+                                          assessment: assessments[index],
+                                          index: index,
+                                        ),
                                       ),
                               ),
                             ],
@@ -144,7 +152,10 @@ class _WorkspaceHeader extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.mail_outline, color: Color(0xFFFFE9C9)),
+            child: const Icon(
+              Icons.mail_outline,
+              color: Color(0xFFFFE9C9),
+            ),
           ),
           const SizedBox(width: 14),
           const Expanded(
@@ -253,12 +264,18 @@ class _LetterCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  Wrap(
+                  const Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      _PaperAction(label: 'Open letter', icon: Icons.drafts_outlined),
-                      _PaperAction(label: 'Draft reply', icon: Icons.edit_note),
+                      _PaperAction(
+                        label: 'Open letter',
+                        icon: Icons.drafts_outlined,
+                      ),
+                      _PaperAction(
+                        label: 'Draft reply',
+                        icon: Icons.edit_note,
+                      ),
                       _PaperAction(label: 'Later', icon: Icons.schedule),
                     ],
                   ),
@@ -287,7 +304,11 @@ class _ScoreSeal extends StatelessWidget {
         color: Color(0xFF7E2929),
         shape: BoxShape.circle,
         boxShadow: [
-          BoxShadow(color: Color(0x33000000), blurRadius: 5, offset: Offset(0, 2)),
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 5,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: Text(
@@ -310,31 +331,27 @@ class _PaperAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      borderRadius: BorderRadius.circular(20),
-      onTap: () {},
-      child: Ink(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFFE8DBC0),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFC4B28F)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 16, color: const Color(0xFF584333)),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Color(0xFF584333),
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8DBC0),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFC4B28F)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: const Color(0xFF584333)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF584333),
+              fontWeight: FontWeight.w700,
+              fontSize: 12,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
