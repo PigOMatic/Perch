@@ -147,6 +147,7 @@ class _HomePerchSceneState extends State<HomePerchScene> {
               journalFocused: _journalFocused,
               lanternOn: brain.state.lanternOn,
               steamOn: brain.state.steamOn,
+              plantStage: brain.state.plantStage,
               priority: brain.state.priority.isEmpty
                   ? widget.data.nextDue.title
                   : brain.state.priority,
