@@ -30,12 +30,10 @@ class HomePerchScene extends StatefulWidget {
 class _HomePerchSceneState extends State<HomePerchScene> {
   static const double _journalAspectRatio = 1.55;
 
-  bool _journalFocused = false;
-
   void _setJournalFocused(bool value) {
-    if (_journalFocused == value) return;
-    setState(() => _journalFocused = value);
-    PerchBrainScope.read(context).publish(
+    final brain = PerchBrainScope.read(context);
+    if (brain.state.journalFocused == value) return;
+    brain.publish(
       PerchEvent(
         type: value
             ? PerchEventTypes.journalFocused
@@ -72,6 +70,7 @@ class _HomePerchSceneState extends State<HomePerchScene> {
   @override
   Widget build(BuildContext context) {
     final brain = PerchBrainScope.of(context);
+    final journalFocused = brain.state.journalFocused;
     final backgroundAsset = _backgroundForWorldState();
 
     return LayoutBuilder(
@@ -122,7 +121,7 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                 key: ValueKey(backgroundAsset),
                 duration: const Duration(milliseconds: 520),
                 curve: Curves.easeInOutCubic,
-                scale: _journalFocused ? 1.035 : 1,
+                scale: journalFocused ? 1.035 : 1,
                 child: PerchAssetLayer(
                   assetPath: backgroundAsset,
                   fit: BoxFit.cover,
@@ -141,10 +140,10 @@ class _HomePerchSceneState extends State<HomePerchScene> {
             _AmbientWeatherOverlay(worldState: widget.worldState),
             DeskFunctionalityLayer(
               data: widget.data,
-              journalFocused: _journalFocused,
+              journalFocused: journalFocused,
             ),
             RealisticDeskOverlay(
-              journalFocused: _journalFocused,
+              journalFocused: journalFocused,
               lanternOn: brain.state.lanternOn,
               steamOn: brain.state.steamOn,
               plantStage: brain.state.plantStage,
@@ -153,17 +152,17 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                   : brain.state.priority,
             ),
             IgnorePointer(
-              ignoring: !_journalFocused,
+              ignoring: !journalFocused,
               child: AnimatedOpacity(
                 duration: const Duration(milliseconds: 420),
-                opacity: _journalFocused ? 1 : 0,
+                opacity: journalFocused ? 1 : 0,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
                   onTap: () => _setJournalFocused(false),
                   child: BackdropFilter(
                     filter: ImageFilter.blur(
-                      sigmaX: _journalFocused ? 5 : 0,
-                      sigmaY: _journalFocused ? 5 : 0,
+                      sigmaX: journalFocused ? 5 : 0,
+                      sigmaY: journalFocused ? 5 : 0,
                     ),
                     child: Container(color: Colors.black.withOpacity(0.36)),
                   ),
@@ -173,34 +172,34 @@ class _HomePerchSceneState extends State<HomePerchScene> {
             AnimatedPositioned(
               duration: const Duration(milliseconds: 560),
               curve: Curves.easeInOutCubicEmphasized,
-              left: _journalFocused ? focusedLeft : compactLeft,
-              top: _journalFocused ? focusedTop : compactTop,
-              width: _journalFocused ? focusedWidth : compactWidth,
-              height: _journalFocused ? focusedHeight : compactHeight,
+              left: journalFocused ? focusedLeft : compactLeft,
+              top: journalFocused ? focusedTop : compactTop,
+              width: journalFocused ? focusedWidth : compactWidth,
+              height: journalFocused ? focusedHeight : compactHeight,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onTap: _journalFocused
+                onTap: journalFocused
                     ? null
                     : () => _setJournalFocused(true),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 560),
                   curve: Curves.easeInOutCubicEmphasized,
-                  transform: _journalFocused
+                  transform: journalFocused
                       ? Matrix4.identity()
                       : (Matrix4.identity()..rotateZ(-0.008)),
                   transformAlignment: Alignment.center,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(
-                      _journalFocused ? 18 : 12,
+                      journalFocused ? 18 : 12,
                     ),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(
-                          _journalFocused ? 0.55 : 0.42,
+                          journalFocused ? 0.55 : 0.42,
                         ),
-                        blurRadius: _journalFocused ? 46 : 24,
-                        spreadRadius: _journalFocused ? 6 : 1,
-                        offset: Offset(0, _journalFocused ? 22 : 12),
+                        blurRadius: journalFocused ? 46 : 24,
+                        spreadRadius: journalFocused ? 6 : 1,
+                        offset: Offset(0, journalFocused ? 22 : 12),
                       ),
                     ],
                   ),
@@ -217,14 +216,14 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                       ),
                       JournalEngine(
                         data: widget.data,
-                        focused: _journalFocused,
+                        focused: journalFocused,
                       ),
                     ],
                   ),
                 ),
               ),
             ),
-            if (_journalFocused)
+            if (journalFocused)
               Positioned(
                 left: 14,
                 top: 14,
