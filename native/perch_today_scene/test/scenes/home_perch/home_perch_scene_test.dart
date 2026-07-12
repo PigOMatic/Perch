@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:perch_today_scene/core/brain/perch_brain.dart';
@@ -84,7 +86,6 @@ void main() {
     expect(softwareOpacity().opacity, 0);
     expect(journalOpacity().opacity, 0);
 
-    // Physical ambience remains mounted while the software layer is calm.
     expect(find.byKey(const ValueKey('plant-pot')), findsOneWidget);
     expect(find.byType(Image), findsWidgets);
 
