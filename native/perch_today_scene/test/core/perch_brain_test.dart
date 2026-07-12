@@ -44,4 +44,43 @@ void main() {
 
     expect(brain.state.captures, isEmpty);
   });
+
+  test('brain keeps persistent ambience separate from active object', () {
+    final brain = PerchBrain();
+    addTearDown(brain.dispose);
+
+    brain.publish(const PerchEvent(
+      type: PerchEventTypes.deskAmbienceChanged,
+      source: 'test',
+      payload: {'lanternOn': true, 'steamOn': false},
+    ));
+    brain.publish(const PerchEvent(
+      type: PerchEventTypes.deskObjectActivated,
+      source: 'test',
+      payload: {'id': 'pen'},
+    ));
+
+    expect(brain.state.lanternOn, isTrue);
+    expect(brain.state.steamOn, isFalse);
+    expect(brain.state.activeDeskObjectId, 'pen');
+  });
+
+  test('brain clamps plant growth stage to supported range', () {
+    final brain = PerchBrain();
+    addTearDown(brain.dispose);
+
+    brain.publish(const PerchEvent(
+      type: PerchEventTypes.plantStageChanged,
+      source: 'test',
+      payload: {'stage': 12},
+    ));
+    expect(brain.state.plantStage, 3);
+
+    brain.publish(const PerchEvent(
+      type: PerchEventTypes.plantStageChanged,
+      source: 'test',
+      payload: {'stage': -4},
+    ));
+    expect(brain.state.plantStage, 0);
+  });
 }
