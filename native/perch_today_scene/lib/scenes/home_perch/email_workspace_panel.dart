@@ -1,33 +1,41 @@
 import 'package:flutter/material.dart';
 
 import '../../core/email/email_intelligence.dart';
-import 'desk_workspace_sheet.dart';
+import 'desk_object_sheet.dart';
 
 Future<void> showEmailWorkspace(
   BuildContext context, {
   required List<EmailAssessment> assessments,
 }) {
-  return showDeskWorkspace<void>(
-    context,
-    title: 'Email Intelligence',
-    subtitle: 'The messages that deserve your attention first',
-    tone: DeskWorkspaceTone.email,
-    icon: Icons.mail_outline,
-    expandOnDesktop: true,
-    child: assessments.isEmpty
-        ? const _EmptyInbox()
-        : Column(
-            children: [
-              for (var index = 0; index < assessments.length; index++) ...[
-                _LetterCard(
-                  assessment: assessments[index],
-                  index: index,
-                ),
-                if (index != assessments.length - 1)
-                  const SizedBox(height: 12),
+  return showDeskObjectSheet<void>(
+    context: context,
+    semanticsLabel: 'Email Intelligence',
+    initialChildSize: .72,
+    minChildSize: .32,
+    maxChildSize: .94,
+    builder: (context) => DeskObjectSheetBody(
+      eyebrow: 'Envelope',
+      title: 'Email Intelligence',
+      trailing: IconButton(
+        tooltip: 'Return to desk',
+        onPressed: () => Navigator.pop(context),
+        icon: const Icon(Icons.keyboard_arrow_down),
+      ),
+      child: assessments.isEmpty
+          ? const _EmptyInbox()
+          : Column(
+              children: [
+                for (var index = 0; index < assessments.length; index++) ...[
+                  _LetterCard(
+                    assessment: assessments[index],
+                    index: index,
+                  ),
+                  if (index != assessments.length - 1)
+                    const SizedBox(height: 12),
+                ],
               ],
-            ],
-          ),
+            ),
+    ),
   );
 }
 
