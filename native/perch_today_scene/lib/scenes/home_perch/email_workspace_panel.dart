@@ -1,196 +1,34 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../../core/email/email_intelligence.dart';
+import 'desk_workspace_sheet.dart';
 
 Future<void> showEmailWorkspace(
   BuildContext context, {
   required List<EmailAssessment> assessments,
 }) {
-  return showGeneralDialog<void>(
-    context: context,
-    barrierLabel: 'Close email workspace',
-    barrierDismissible: true,
-    barrierColor: Colors.black.withValues(alpha: 0.44),
-    transitionDuration: const Duration(milliseconds: 460),
-    pageBuilder: (_, __, ___) => _EmailWorkspacePanel(
-      assessments: assessments,
-    ),
-    transitionBuilder: (_, animation, __, child) {
-      final curved = CurvedAnimation(
-        parent: animation,
-        curve: Curves.easeOutCubic,
-        reverseCurve: Curves.easeInCubic,
-      );
-      return FadeTransition(
-        opacity: curved,
-        child: SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(1.08, 0),
-            end: Offset.zero,
-          ).animate(curved),
-          child: child,
-        ),
-      );
-    },
+  return showDeskWorkspace<void>(
+    context,
+    title: 'Email Intelligence',
+    subtitle: 'The messages that deserve your attention first',
+    tone: DeskWorkspaceTone.email,
+    icon: Icons.mail_outline,
+    expandOnDesktop: true,
+    child: assessments.isEmpty
+        ? const _EmptyInbox()
+        : Column(
+            children: [
+              for (var index = 0; index < assessments.length; index++) ...[
+                _LetterCard(
+                  assessment: assessments[index],
+                  index: index,
+                ),
+                if (index != assessments.length - 1)
+                  const SizedBox(height: 12),
+              ],
+            ],
+          ),
   );
-}
-
-class _EmailWorkspacePanel extends StatelessWidget {
-  const _EmailWorkspacePanel({required this.assessments});
-
-  final List<EmailAssessment> assessments;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      type: MaterialType.transparency,
-      child: SafeArea(
-        minimum: const EdgeInsets.all(12),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final compact = constraints.maxWidth < 680;
-            final double width = compact
-                ? constraints.maxWidth
-                : constraints.maxWidth.clamp(520.0, 760.0).toDouble();
-            final double height = compact
-                ? constraints.maxHeight * 0.88
-                : constraints.maxHeight;
-
-            return Align(
-              alignment:
-                  compact ? Alignment.bottomCenter : Alignment.centerRight,
-              child: SizedBox(
-                width: width,
-                height: height,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(compact ? 24 : 18),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF0E4C8)
-                            .withValues(alpha: 0.97),
-                        border: Border.all(
-                          color: const Color(0xFF5A3D27)
-                              .withValues(alpha: 0.42),
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x66000000),
-                            blurRadius: 34,
-                            offset: Offset(-12, 12),
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        children: [
-                          const Positioned.fill(child: _PaperTexture()),
-                          Column(
-                            children: [
-                              _WorkspaceHeader(
-                                onClose: () => Navigator.pop(context),
-                              ),
-                              Expanded(
-                                child: assessments.isEmpty
-                                    ? const _EmptyInbox()
-                                    : ListView.separated(
-                                        padding: const EdgeInsets.fromLTRB(
-                                          20,
-                                          8,
-                                          20,
-                                          28,
-                                        ),
-                                        itemCount: assessments.length,
-                                        separatorBuilder: (_, __) =>
-                                            const SizedBox(height: 12),
-                                        itemBuilder: (_, index) => _LetterCard(
-                                          assessment: assessments[index],
-                                          index: index,
-                                        ),
-                                      ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _WorkspaceHeader extends StatelessWidget {
-  const _WorkspaceHeader({required this.onClose});
-
-  final VoidCallback onClose;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(22, 18, 14, 10),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: const BoxDecoration(
-              color: Color(0xFF8C2F2F),
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x44000000),
-                  blurRadius: 8,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.mail_outline,
-              color: Color(0xFFFFE9C9),
-            ),
-          ),
-          const SizedBox(width: 14),
-          const Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Email Intelligence',
-                  style: TextStyle(
-                    color: Color(0xFF36261B),
-                    fontSize: 24,
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: -0.4,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  'The letters that deserve your attention first',
-                  style: TextStyle(
-                    color: Color(0xFF75614E),
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            tooltip: 'Return letters to envelope',
-            onPressed: onClose,
-            icon: const Icon(Icons.close, color: Color(0xFF4B382A)),
-          ),
-        ],
-      ),
-    );
-  }
 }
 
 class _LetterCard extends StatelessWidget {
@@ -203,86 +41,119 @@ class _LetterCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final urgent = assessment.level == EmailAttentionLevel.urgent;
     final important = assessment.level == EmailAttentionLevel.important;
+    final accent = urgent
+        ? const Color(0xFF9E2C2C)
+        : important
+            ? const Color(0xFFC3832E)
+            : const Color(0xFF71806A);
 
-    return Transform.rotate(
-      angle: index.isEven ? -0.006 : 0.005,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFFFFFAEC),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: const Color(0xFFBFAF91)),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x22000000),
-              blurRadius: 10,
-              offset: Offset(0, 5),
-            ),
-          ],
-        ),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: 8,
-              height: 72,
-              decoration: BoxDecoration(
-                color: urgent
-                    ? const Color(0xFF9E2C2C)
-                    : important
-                        ? const Color(0xFFC3832E)
-                        : const Color(0xFF71806A),
-                borderRadius: BorderRadius.circular(4),
+    return Semantics(
+      container: true,
+      label: '${assessment.subject}, from ${assessment.sender}',
+      child: Transform.rotate(
+        angle: index.isEven ? -0.004 : 0.004,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFFFAEC),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: const Color(0xFFBFAF91)),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x22000000),
+                blurRadius: 10,
+                offset: Offset(0, 5),
               ),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          assessment.suggestedAction,
-                          style: const TextStyle(
-                            color: Color(0xFF35271E),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
+            ],
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 7,
+                height: 94,
+                decoration: BoxDecoration(
+                  color: accent,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            assessment.subject,
+                            style: const TextStyle(
+                              color: Color(0xFF35271E),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                         ),
-                      ),
-                      _ScoreSeal(score: assessment.score),
-                    ],
-                  ),
-                  const SizedBox(height: 7),
-                  Text(
-                    assessment.reason,
-                    style: const TextStyle(
-                      color: Color(0xFF715D4B),
-                      height: 1.35,
+                        _ScoreSeal(score: assessment.score),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  const Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _PaperAction(
-                        label: 'Open letter',
-                        icon: Icons.drafts_outlined,
+                    const SizedBox(height: 3),
+                    Text(
+                      assessment.sender,
+                      style: const TextStyle(
+                        color: Color(0xFF6A5544),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
                       ),
-                      _PaperAction(
-                        label: 'Draft reply',
-                        icon: Icons.edit_note,
+                    ),
+                    if (assessment.preview.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        assessment.preview,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF715D4B),
+                          height: 1.35,
+                        ),
                       ),
-                      _PaperAction(label: 'Later', icon: Icons.schedule),
                     ],
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Text(
+                      assessment.reason,
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _PaperAction(
+                          label: assessment.suggestedAction,
+                          icon: Icons.arrow_forward,
+                        ),
+                        if (assessment.hasAttachment)
+                          const _PaperAction(
+                            label: 'Attachment',
+                            icon: Icons.attach_file,
+                          ),
+                        if (assessment.isUnread)
+                          const _PaperAction(
+                            label: 'Unread',
+                            icon: Icons.mark_email_unread_outlined,
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -332,7 +203,7 @@ class _PaperAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
       decoration: BoxDecoration(
         color: const Color(0xFFE8DBC0),
         borderRadius: BorderRadius.circular(20),
@@ -341,14 +212,16 @@ class _PaperAction extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 16, color: const Color(0xFF584333)),
+          Icon(icon, size: 15, color: const Color(0xFF584333)),
           const SizedBox(width: 6),
-          Text(
-            label,
-            style: const TextStyle(
-              color: Color(0xFF584333),
-              fontWeight: FontWeight.w700,
-              fontSize: 12,
+          Flexible(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFF584333),
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
             ),
           ),
         ],
@@ -362,43 +235,19 @@ class _EmptyInbox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Padding(
-        padding: EdgeInsets.all(32),
-        child: Text(
-          'No letters need your attention.',
-          style: TextStyle(color: Color(0xFF6D5948), fontSize: 16),
-        ),
+    return const Padding(
+      padding: EdgeInsets.all(32),
+      child: Column(
+        children: [
+          Icon(Icons.mark_email_read_outlined, size: 42),
+          SizedBox(height: 12),
+          Text(
+            'No messages need your attention.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          ),
+        ],
       ),
     );
   }
-}
-
-class _PaperTexture extends StatelessWidget {
-  const _PaperTexture();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(painter: _PaperTexturePainter());
-  }
-}
-
-class _PaperTexturePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final linePaint = Paint()
-      ..color = const Color(0xFF8F795F).withValues(alpha: 0.055)
-      ..strokeWidth = 1;
-    for (double y = 72; y < size.height; y += 26) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), linePaint);
-    }
-
-    final marginPaint = Paint()
-      ..color = const Color(0xFF9E4F43).withValues(alpha: 0.08)
-      ..strokeWidth = 1.2;
-    canvas.drawLine(const Offset(68, 0), Offset(68, size.height), marginPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
