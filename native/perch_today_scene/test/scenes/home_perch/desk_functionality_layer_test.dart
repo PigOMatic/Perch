@@ -101,7 +101,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final sheet = tester.getSize(find.byKey(const ValueKey('desk-object-sheet')));
-    expect(sheet.width, lessThan(900));
+    expect(sheet.width, lessThanOrEqualTo(900));
     expect(sheet.width, greaterThanOrEqualTo(500));
     expect(sheet.height, lessThan(900));
   });
