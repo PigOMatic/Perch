@@ -31,6 +31,7 @@ Future<T?> showDeskObjectSheet<T>({
     builder: (sheetContext) => Semantics(
       scopesRoute: true,
       namesRoute: true,
+      explicitChildNodes: true,
       label: semanticsLabel,
       child: DraggableScrollableSheet(
         expand: false,
