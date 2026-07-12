@@ -23,13 +23,19 @@ void main() {
     );
   }
 
+  Iterable<CustomPaint> activePainters(WidgetTester tester) {
+    return tester
+        .widgetList<CustomPaint>(find.byType(CustomPaint))
+        .where((paint) => paint.painter != null);
+  }
+
   testWidgets('steam painter follows the shared steam setting', (tester) async {
     await tester.pumpWidget(buildOverlay(steamOn: false, lanternOn: false));
-    expect(find.byType(CustomPaint), findsNothing);
+    expect(activePainters(tester), isEmpty);
 
     await tester.pumpWidget(buildOverlay(steamOn: true, lanternOn: false));
     await tester.pump();
-    expect(find.byType(CustomPaint), findsOneWidget);
+    expect(activePainters(tester), hasLength(1));
   });
 
   testWidgets('journal focus hides the realistic desk layer', (tester) async {
