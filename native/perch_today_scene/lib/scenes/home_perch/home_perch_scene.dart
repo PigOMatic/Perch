@@ -9,6 +9,7 @@ import '../../core/events/perch_event.dart';
 import '../../data/perch_today_models.dart';
 import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
+import 'ambient_quiet_view.dart';
 import 'desk_functionality_layer.dart';
 import 'journal_engine.dart';
 import 'realistic_desk_overlay.dart';
@@ -73,189 +74,176 @@ class _HomePerchSceneState extends State<HomePerchScene> {
     final journalFocused = brain.state.journalFocused;
     final backgroundAsset = _backgroundForWorldState();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final size = constraints.biggest;
-        final portrait = size.height >= size.width;
-        final availableWidth = math.max(0.0, size.width - 24);
+    return AmbientQuietView(
+      builder: (context, quietRequested) {
+        // Focused journal work is intentional activity. Quiet View only settles
+        // the unfocused desk so it never hides content while the user is reading.
+        final quiet = quietRequested && !journalFocused;
 
-        final desiredCompactWidth = math.max(
-          280.0,
-          size.width * (portrait ? 0.90 : 0.78),
-        );
-        final compactWidth = math.min(
-          availableWidth,
-          math.min(720.0, desiredCompactWidth),
-        );
-        final compactHeight = compactWidth / _journalAspectRatio;
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final size = constraints.biggest;
+            final portrait = size.height >= size.width;
+            final availableWidth = math.max(0.0, size.width - 24);
 
-        final compactBottom = math.max(18.0, size.height * 0.055);
-        final compactTop = math.max(
-          12.0,
-          size.height - compactHeight - compactBottom,
-        );
+            final desiredCompactWidth = math.max(
+              280.0,
+              size.width * (portrait ? 0.90 : 0.78),
+            );
+            final compactWidth = math.min(
+              availableWidth,
+              math.min(720.0, desiredCompactWidth),
+            );
+            final compactHeight = compactWidth / _journalAspectRatio;
 
-        var focusedWidth = math.min(
-          size.width * (portrait ? 0.98 : 0.94),
-          1100.0,
-        );
-        var focusedHeight = focusedWidth / _journalAspectRatio;
-        final maxFocusedHeight = size.height * (portrait ? 0.64 : 0.82);
-        if (focusedHeight > maxFocusedHeight) {
-          focusedHeight = maxFocusedHeight;
-          focusedWidth = focusedHeight * _journalAspectRatio;
-        }
+            final compactBottom = math.max(18.0, size.height * 0.055);
+            final compactTop = math.max(
+              12.0,
+              size.height - compactHeight - compactBottom,
+            );
 
-        final focusedLeft = (size.width - focusedWidth) / 2;
-        final focusedTop = portrait
-            ? math.max(74.0, (size.height - focusedHeight) / 2)
-            : (size.height - focusedHeight) / 2;
-        final compactLeft = (size.width - compactWidth) / 2;
+            var focusedWidth = math.min(
+              size.width * (portrait ? 0.98 : 0.94),
+              1100.0,
+            );
+            var focusedHeight = focusedWidth / _journalAspectRatio;
+            final maxFocusedHeight = size.height * (portrait ? 0.64 : 0.82);
+            if (focusedHeight > maxFocusedHeight) {
+              focusedHeight = maxFocusedHeight;
+              focusedWidth = focusedHeight * _journalAspectRatio;
+            }
 
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 900),
-              child: AnimatedScale(
-                key: ValueKey(backgroundAsset),
-                duration: const Duration(milliseconds: 520),
-                curve: Curves.easeInOutCubic,
-                scale: journalFocused ? 1.035 : 1,
-                child: PerchAssetLayer(
-                  assetPath: backgroundAsset,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
-                  fallback: PerchAssetLayer(
-                    assetPath: HomePerchAssets.deskInteractionBackground,
-                    fit: BoxFit.cover,
-                    alignment: Alignment.center,
-                    fallback: const _BackgroundMissingFallback(
-                      assetPath: HomePerchAssets.deskInteractionBackground,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            _AmbientWeatherOverlay(worldState: widget.worldState),
-            DeskFunctionalityLayer(
-              data: widget.data,
-              journalFocused: journalFocused,
-            ),
-            RealisticDeskOverlay(
-              journalFocused: journalFocused,
-              lanternOn: brain.state.lanternOn,
-              steamOn: brain.state.steamOn,
-              plantStage: brain.state.plantStage,
-              priority: brain.state.priority.isEmpty
-                  ? widget.data.nextDue.title
-                  : brain.state.priority,
-            ),
-            IgnorePointer(
-              ignoring: !journalFocused,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 420),
-                opacity: journalFocused ? 1 : 0,
-                child: GestureDetector(
-                  behavior: HitTestBehavior.opaque,
-                  onTap: () => _setJournalFocused(false),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(
-                      sigmaX: journalFocused ? 5 : 0,
-                      sigmaY: journalFocused ? 5 : 0,
-                    ),
-                    child: Container(color: Colors.black.withOpacity(0.36)),
-                  ),
-                ),
-              ),
-            ),
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 560),
-              curve: Curves.easeInOutCubicEmphasized,
-              left: journalFocused ? focusedLeft : compactLeft,
-              top: journalFocused ? focusedTop : compactTop,
-              width: journalFocused ? focusedWidth : compactWidth,
-              height: journalFocused ? focusedHeight : compactHeight,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: journalFocused
-                    ? null
-                    : () => _setJournalFocused(true),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 560),
-                  curve: Curves.easeInOutCubicEmphasized,
-                  transform: journalFocused
-                      ? Matrix4.identity()
-                      : (Matrix4.identity()..rotateZ(-0.008)),
-                  transformAlignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(
-                      journalFocused ? 18 : 12,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(
-                          journalFocused ? 0.55 : 0.42,
-                        ),
-                        blurRadius: journalFocused ? 46 : 24,
-                        spreadRadius: journalFocused ? 6 : 1,
-                        offset: Offset(0, journalFocused ? 22 : 12),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      PerchAssetLayer(
-                        assetPath: HomePerchAssets.journalOpenToday,
-                        fit: BoxFit.contain,
+            final focusedLeft = (size.width - focusedWidth) / 2;
+            final focusedTop = portrait
+                ? math.max(74.0, (size.height - focusedHeight) / 2)
+                : (size.height - focusedHeight) / 2;
+            final compactLeft = (size.width - compactWidth) / 2;
+
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 900),
+                  child: AnimatedScale(
+                    key: ValueKey(backgroundAsset),
+                    duration: const Duration(milliseconds: 520),
+                    curve: Curves.easeInOutCubic,
+                    scale: journalFocused ? 1.035 : 1,
+                    child: PerchAssetLayer(
+                      assetPath: backgroundAsset,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.center,
+                      fallback: PerchAssetLayer(
+                        assetPath: HomePerchAssets.deskInteractionBackground,
+                        fit: BoxFit.cover,
                         alignment: Alignment.center,
                         fallback: const _BackgroundMissingFallback(
-                          assetPath: HomePerchAssets.journalOpenToday,
+                          assetPath: HomePerchAssets.deskInteractionBackground,
                         ),
                       ),
-                      JournalEngine(
-                        data: widget.data,
-                        focused: journalFocused,
-                      ),
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ),
-            if (journalFocused)
-              Positioned(
-                left: 14,
-                top: 14,
-                child: SafeArea(
-                  child: GestureDetector(
-                    onTap: () => _setJournalFocused(false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 13,
-                        vertical: 9,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF17110D).withOpacity(0.86),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.16),
+                _AmbientWeatherOverlay(worldState: widget.worldState),
+                IgnorePointer(
+                  ignoring: quiet,
+                  child: AnimatedOpacity(
+                    key: const ValueKey('desk-software-affordances'),
+                    duration: const Duration(milliseconds: 900),
+                    curve: Curves.easeOutCubic,
+                    opacity: quiet ? 0 : 1,
+                    child: DeskFunctionalityLayer(
+                      data: widget.data,
+                      journalFocused: journalFocused,
+                    ),
+                  ),
+                ),
+                RealisticDeskOverlay(
+                  journalFocused: journalFocused,
+                  quiet: quiet,
+                  lanternOn: brain.state.lanternOn,
+                  steamOn: brain.state.steamOn,
+                  plantStage: brain.state.plantStage,
+                  priority: brain.state.priority.isEmpty
+                      ? widget.data.nextDue.title
+                      : brain.state.priority,
+                ),
+                IgnorePointer(
+                  ignoring: !journalFocused,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 420),
+                    opacity: journalFocused ? 1 : 0,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: () => _setJournalFocused(false),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(
+                          sigmaX: journalFocused ? 5 : 0,
+                          sigmaY: journalFocused ? 5 : 0,
+                        ),
+                        child: Container(
+                          color: Colors.black.withValues(alpha: 0.36),
                         ),
                       ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.arrow_back,
-                            color: Color(0xFFF6E8C8),
-                            size: 18,
+                    ),
+                  ),
+                ),
+                AnimatedPositioned(
+                  duration: const Duration(milliseconds: 560),
+                  curve: Curves.easeInOutCubicEmphasized,
+                  left: journalFocused ? focusedLeft : compactLeft,
+                  top: journalFocused ? focusedTop : compactTop,
+                  width: journalFocused ? focusedWidth : compactWidth,
+                  height: journalFocused ? focusedHeight : compactHeight,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: journalFocused
+                        ? null
+                        : () => _setJournalFocused(true),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 560),
+                      curve: Curves.easeInOutCubicEmphasized,
+                      transform: journalFocused
+                          ? Matrix4.identity()
+                          : (Matrix4.identity()..rotateZ(-0.008)),
+                      transformAlignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(
+                          journalFocused ? 18 : 12,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(
+                              alpha: journalFocused ? 0.55 : 0.42,
+                            ),
+                            blurRadius: journalFocused ? 46 : 24,
+                            spreadRadius: journalFocused ? 6 : 1,
+                            offset: Offset(0, journalFocused ? 22 : 12),
                           ),
-                          SizedBox(width: 7),
-                          Text(
-                            'Back to desk',
-                            style: TextStyle(
-                              color: Color(0xFFF6E8C8),
-                              fontWeight: FontWeight.w700,
+                        ],
+                      ),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          PerchAssetLayer(
+                            assetPath: HomePerchAssets.journalOpenToday,
+                            fit: BoxFit.contain,
+                            alignment: Alignment.center,
+                            fallback: const _BackgroundMissingFallback(
+                              assetPath: HomePerchAssets.journalOpenToday,
+                            ),
+                          ),
+                          IgnorePointer(
+                            ignoring: quiet,
+                            child: AnimatedOpacity(
+                              key: const ValueKey('journal-live-content'),
+                              duration: const Duration(milliseconds: 850),
+                              curve: Curves.easeOutCubic,
+                              opacity: quiet ? 0 : 1,
+                              child: JournalEngine(
+                                data: widget.data,
+                                focused: journalFocused,
+                              ),
                             ),
                           ),
                         ],
@@ -263,8 +251,52 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                     ),
                   ),
                 ),
-              ),
-          ],
+                if (journalFocused)
+                  Positioned(
+                    left: 14,
+                    top: 14,
+                    child: SafeArea(
+                      child: GestureDetector(
+                        onTap: () => _setJournalFocused(false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 13,
+                            vertical: 9,
+                          ),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF17110D).withValues(
+                              alpha: 0.86,
+                            ),
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.16),
+                            ),
+                          ),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.arrow_back,
+                                color: Color(0xFFF6E8C8),
+                                size: 18,
+                              ),
+                              SizedBox(width: 7),
+                              Text(
+                                'Back to desk',
+                                style: TextStyle(
+                                  color: Color(0xFFF6E8C8),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
         );
       },
     );
@@ -293,7 +325,11 @@ class _AmbientWeatherOverlay extends StatelessWidget {
         duration: const Duration(milliseconds: 800),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [color, Colors.transparent, color.withOpacity(.4)],
+            colors: [
+              color,
+              Colors.transparent,
+              color.withValues(alpha: 0.4),
+            ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
