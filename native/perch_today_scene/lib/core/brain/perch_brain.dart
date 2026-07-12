@@ -21,25 +21,47 @@ class PerchBrain extends ChangeNotifier {
   void publish(PerchEvent event) => eventBus.publish(event);
 
   void _reduce(PerchEvent event) {
+    PerchBrainState? next;
+
     switch (event.type) {
       case PerchEventTypes.journalFocused:
-        _state = _state.copyWith(journalFocused: true, activeDeskObjectId: 'journal');
+        next = _state.copyWith(
+          journalFocused: true,
+          activeDeskObjectId: 'journal',
+        );
+        break;
       case PerchEventTypes.journalClosed:
-        _state = _state.copyWith(journalFocused: false, clearActiveDeskObject: true);
+        next = _state.copyWith(
+          journalFocused: false,
+          clearActiveDeskObject: true,
+        );
+        break;
       case PerchEventTypes.quickCaptureAdded:
         final value = event.payload['text'];
         if (value is String && value.trim().isNotEmpty) {
-          _state = _state.copyWith(captures: <String>[value.trim(), ..._state.captures]);
+          next = _state.copyWith(
+            captures: <String>[value.trim(), ..._state.captures],
+          );
         }
+        break;
       case PerchEventTypes.priorityChanged:
         final value = event.payload['text'];
-        if (value is String) _state = _state.copyWith(priority: value.trim());
+        if (value is String) {
+          next = _state.copyWith(priority: value.trim());
+        }
+        break;
       case PerchEventTypes.deskObjectActivated:
         final id = event.payload['id'];
-        if (id is String) _state = _state.copyWith(activeDeskObjectId: id);
+        if (id is String) {
+          next = _state.copyWith(activeDeskObjectId: id);
+        }
+        break;
       default:
-        return;
+        break;
     }
+
+    if (next == null) return;
+    _state = next;
     notifyListeners();
   }
 
