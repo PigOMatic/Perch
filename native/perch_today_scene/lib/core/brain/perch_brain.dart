@@ -39,15 +39,31 @@ class PerchBrain extends ChangeNotifier {
       case PerchEventTypes.quickCaptureAdded:
         final value = event.payload['text'];
         if (value is String && value.trim().isNotEmpty) {
-          next = _state.copyWith(
-            captures: <String>[value.trim(), ..._state.captures],
-          );
+          final capture = value.trim();
+          final captures = <String>[
+            capture,
+            ..._state.captures.where((item) => item != capture),
+          ];
+          next = _state.copyWith(captures: captures);
         }
         break;
       case PerchEventTypes.priorityChanged:
         final value = event.payload['text'];
         if (value is String) {
           next = _state.copyWith(priority: value.trim());
+        }
+        break;
+      case PerchEventTypes.taskCompletionChanged:
+        final taskId = event.payload['taskId'];
+        final completed = event.payload['completed'];
+        if (taskId is String && completed is bool) {
+          final completedIds = Set<String>.from(_state.completedTaskIds);
+          if (completed) {
+            completedIds.add(taskId);
+          } else {
+            completedIds.remove(taskId);
+          }
+          next = _state.copyWith(completedTaskIds: completedIds);
         }
         break;
       case PerchEventTypes.deskObjectActivated:
