@@ -4,12 +4,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/brain/perch_brain_scope.dart';
 import '../../core/brief/daily_brief_engine.dart';
 import '../../core/context/perch_context_snapshot.dart';
-import '../../core/desk/desk_object.dart';
 import '../../core/email/email_intelligence.dart';
 import '../../core/events/perch_event.dart';
 import '../../core/recommendations/perch_recommendation.dart';
 import '../../data/perch_today_models.dart';
+import 'email_workspace_panel.dart';
 
+/// Invisible interaction map laid over the photorealistic desk.
+///
+/// The visual objects live in [RealisticDeskOverlay]. This layer deliberately
+/// contains no duplicate placeholder icons or colored cards; it only provides
+/// generous, accessible hit targets and opens the physical workspaces behind
+/// each desk object.
 class DeskFunctionalityLayer extends StatefulWidget {
   const DeskFunctionalityLayer({
     super.key,
@@ -21,11 +27,11 @@ class DeskFunctionalityLayer extends StatefulWidget {
   final bool journalFocused;
 
   @override
-  State<DeskFunctionalityLayer> createState() => _DeskFunctionalityLayerState();
+  State<DeskFunctionalityLayer> createState() =>
+      _DeskFunctionalityLayerState();
 }
 
-class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
-    with SingleTickerProviderStateMixin {
+class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer> {
   bool _loaded = false;
   bool _taskDone = false;
   bool _lanternOn = false;
@@ -33,25 +39,18 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
   int _plantStage = 1;
   String _priority = '';
   List<String> _captures = const [];
-  late final AnimationController _steam;
 
   @override
   void initState() {
     super.initState();
-    _steam = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2300),
-    )..repeat();
     _load();
   }
 
-  @override
-  void dispose() {
-    _steam.dispose();
-    super.dispose();
-  }
-
-  void _publish(String type, String source, [Map<String, Object?> payload = const {}]) {
+  void _publish(
+    String type,
+    String source, [
+    Map<String, Object?> payload = const {},
+  ]) {
     PerchBrainScope.read(context).publish(
       PerchEvent(type: type, source: source, payload: payload),
     );
@@ -65,13 +64,16 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
         prefs.getString('perch.sticky.priority') ?? widget.data.nextDue.title;
     final captures =
         prefs.getStringList('perch.brain.captures') ?? <String>[];
+    final lanternOn = prefs.getBool('perch.lantern.on') ?? false;
+    final steamOn = prefs.getBool('perch.coffee.steam') ?? true;
+    final plantStage =
+        (prefs.getInt('perch.plant.stage') ?? 1).clamp(0, 3).toInt();
 
     setState(() {
       _taskDone = prefs.getBool('perch.task.done') ?? false;
-      _lanternOn = prefs.getBool('perch.lantern.on') ?? false;
-      _steamOn = prefs.getBool('perch.coffee.steam') ?? true;
-      _plantStage =
-          (prefs.getInt('perch.plant.stage') ?? 1).clamp(0, 3).toInt();
+      _lanternOn = lanternOn;
+      _steamOn = steamOn;
+      _plantStage = plantStage;
       _priority = priority;
       _captures = captures;
       _loaded = true;
@@ -81,6 +83,16 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
       PerchEventTypes.priorityChanged,
       'desk.persistence',
       {'text': priority},
+    );
+    _publish(
+      PerchEventTypes.deskAmbienceChanged,
+      'desk.persistence',
+      {'lanternOn': lanternOn, 'steamOn': steamOn},
+    );
+    _publish(
+      PerchEventTypes.plantStageChanged,
+      'desk.persistence',
+      {'stage': plantStage},
     );
     for (final capture in captures.reversed) {
       _publish(
@@ -113,9 +125,8 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
     );
     if (value == null || value.isEmpty) return;
 
-    final updated = <String>[value, ..._captures];
+    final updated = <String>[value, ..._captures.where((item) => item != value)];
     setState(() => _captures = updated);
-
     _publish(
       PerchEventTypes.quickCaptureAdded,
       'desk.pen',
@@ -185,8 +196,7 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
   Future<void> _emailIntelligence() async {
     _activate('envelope');
     final now = DateTime.now();
-    final intelligence = const EmailIntelligence();
-    final ranked = intelligence.rank(
+    final ranked = const EmailIntelligence().rank(
       [
         EmailSignal(
           id: 'shift',
@@ -202,6 +212,7 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
           id: 'perch',
           sender: 'Perch Project',
           subject: 'Development notes ready to review',
+          preview: 'The next Perch changes are ready.',
           receivedAt: now.subtract(const Duration(hours: 8)),
           senderImportance: 0.7,
           hasAttachment: true,
@@ -211,41 +222,7 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
     );
 
     if (!mounted) return;
-    await showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Email Intelligence',
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 4),
-              const Text('Prototype ranking until a real inbox is connected.'),
-              const SizedBox(height: 14),
-              ...ranked.map(
-                (item) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    item.level == EmailAttentionLevel.urgent
-                        ? Icons.priority_high
-                        : Icons.mail_outline,
-                  ),
-                  title: Text(item.suggestedAction),
-                  subtitle: Text(item.reason),
-                  trailing: Text('${(item.score * 100).round()}'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+    await showEmailWorkspace(context, assessments: ranked);
   }
 
   void _today() {
@@ -294,8 +271,9 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      isScrollControlled: true,
       builder: (context) => SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -305,10 +283,12 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
               const SizedBox(height: 4),
               Text(brief.opening),
               const SizedBox(height: 12),
-              ...brief.facts.map((fact) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Text('• $fact'),
-                  )),
+              ...brief.facts.map(
+                (fact) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text('• $fact'),
+                ),
+              ),
               if (brief.recommendation != null) ...[
                 const Divider(height: 24),
                 Text(
@@ -355,10 +335,39 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
     );
   }
 
+  Future<void> _toggleSteam() async {
+    _activate('coffee');
+    final next = !_steamOn;
+    setState(() => _steamOn = next);
+    _publish(
+      PerchEventTypes.deskAmbienceChanged,
+      'desk.coffee',
+      {'lanternOn': _lanternOn, 'steamOn': next},
+    );
+    await _setBool('perch.coffee.steam', next);
+  }
+
+  Future<void> _toggleLantern() async {
+    _activate('lantern');
+    final next = !_lanternOn;
+    setState(() => _lanternOn = next);
+    _publish(
+      PerchEventTypes.deskAmbienceChanged,
+      'desk.lantern',
+      {'lanternOn': next, 'steamOn': _steamOn},
+    );
+    await _setBool('perch.lantern.on', next);
+  }
+
   Future<void> _advancePlant() async {
     _activate('plant');
     final next = (_plantStage + 1) % 4;
     setState(() => _plantStage = next);
+    _publish(
+      PerchEventTypes.plantStageChanged,
+      'desk.plant',
+      {'stage': next},
+    );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt('perch.plant.stage', next);
   }
@@ -367,110 +376,76 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
   Widget build(BuildContext context) {
     if (!_loaded) return const SizedBox.shrink();
 
-    final brain = PerchBrainScope.of(context);
-    return LayoutBuilder(
-      builder: (context, box) {
-        final portrait = box.maxHeight >= box.maxWidth;
-        return IgnorePointer(
-          ignoring: widget.journalFocused,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 220),
-            opacity: widget.journalFocused ? 0 : 1,
-            child: Stack(
+    return IgnorePointer(
+      ignoring: widget.journalFocused,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 220),
+        opacity: widget.journalFocused ? 0 : 1,
+        child: LayoutBuilder(
+          builder: (context, box) {
+            final portrait = box.maxHeight >= box.maxWidth;
+            return Stack(
               fit: StackFit.expand,
               children: [
-                _place(
+                _hitTarget(
                   box,
-                  portrait ? .06 : .05,
-                  portrait ? .66 : .63,
-                  portrait ? .19 : .11,
-                  _deskObject(
-                    id: 'coffee',
-                    label: 'Coffee',
-                    activeId: brain.state.activeDeskObjectId,
-                    onTap: () async {
-                      _activate('coffee');
-                      setState(() => _steamOn = !_steamOn);
-                      await _setBool('perch.coffee.steam', _steamOn);
-                    },
-                    child: _Coffee(steam: _steamOn, animation: _steam),
-                  ),
+                  id: 'coffee',
+                  label: 'Toggle coffee steam',
+                  x: portrait ? .03 : .03,
+                  y: portrait ? .60 : .57,
+                  width: portrait ? .26 : .17,
+                  height: portrait ? .18 : .25,
+                  onTap: _toggleSteam,
                 ),
-                _place(
+                _hitTarget(
                   box,
-                  portrait ? .77 : .84,
-                  portrait ? .70 : .67,
-                  portrait ? .15 : .09,
-                  _deskObject(
-                    id: 'pen',
-                    label: 'Quick Capture',
-                    activeId: brain.state.activeDeskObjectId,
-                    onTap: _capture,
-                    child: const _IconObject(icon: Icons.edit, label: 'Pen'),
-                  ),
+                  id: 'pen',
+                  label: 'Quick capture',
+                  x: portrait ? .73 : .80,
+                  y: portrait ? .63 : .60,
+                  width: portrait ? .24 : .16,
+                  height: portrait ? .18 : .24,
+                  onTap: _capture,
                 ),
-                _place(
+                _hitTarget(
                   box,
-                  portrait ? .72 : .78,
-                  portrait ? .50 : .47,
-                  portrait ? .22 : .13,
-                  _deskObject(
-                    id: 'envelope',
-                    label: 'Email Intelligence',
-                    activeId: brain.state.activeDeskObjectId,
-                    hasNotification: true,
-                    onTap: _emailIntelligence,
-                    child: const _IconObject(
-                      icon: Icons.mail_outline,
-                      label: 'Envelope',
-                    ),
-                  ),
+                  id: 'envelope',
+                  label: 'Open Email Intelligence',
+                  x: portrait ? .67 : .73,
+                  y: portrait ? .43 : .42,
+                  width: portrait ? .31 : .22,
+                  height: portrait ? .20 : .22,
+                  onTap: _emailIntelligence,
                 ),
-                _place(
+                _hitTarget(
                   box,
-                  portrait ? .05 : .06,
-                  portrait ? .49 : .45,
-                  portrait ? .27 : .16,
-                  _deskObject(
-                    id: 'sticky_note',
-                    label: 'Priority',
-                    activeId: brain.state.activeDeskObjectId,
-                    rotation: -.035,
-                    onTap: _editPriority,
-                    child: _Sticky(text: brain.state.priority.isEmpty
-                        ? _priority
-                        : brain.state.priority),
-                  ),
+                  id: 'sticky_note',
+                  label: 'Edit desk priority',
+                  x: portrait ? .02 : .035,
+                  y: portrait ? .42 : .40,
+                  width: portrait ? .34 : .22,
+                  height: portrait ? .24 : .27,
+                  onTap: _editPriority,
                 ),
-                _place(
+                _hitTarget(
                   box,
-                  portrait ? .08 : .10,
-                  portrait ? .24 : .17,
-                  portrait ? .18 : .10,
-                  _deskObject(
-                    id: 'plant',
-                    label: 'Plant',
-                    activeId: brain.state.activeDeskObjectId,
-                    onTap: _advancePlant,
-                    child: _Plant(stage: _plantStage),
-                  ),
+                  id: 'plant',
+                  label: 'Grow plant',
+                  x: portrait ? .03 : .06,
+                  y: portrait ? .18 : .12,
+                  width: portrait ? .25 : .15,
+                  height: portrait ? .19 : .23,
+                  onTap: _advancePlant,
                 ),
-                _place(
+                _hitTarget(
                   box,
-                  portrait ? .79 : .85,
-                  portrait ? .23 : .17,
-                  portrait ? .15 : .09,
-                  _deskObject(
-                    id: 'lantern',
-                    label: 'Lantern',
-                    activeId: brain.state.activeDeskObjectId,
-                    onTap: () async {
-                      _activate('lantern');
-                      setState(() => _lanternOn = !_lanternOn);
-                      await _setBool('perch.lantern.on', _lanternOn);
-                    },
-                    child: _Lantern(on: _lanternOn),
-                  ),
+                  id: 'lantern',
+                  label: 'Toggle lantern',
+                  x: portrait ? .72 : .80,
+                  y: portrait ? .14 : .11,
+                  width: portrait ? .26 : .17,
+                  height: portrait ? .25 : .29,
+                  onTap: _toggleLantern,
                 ),
                 Positioned(
                   top: 14,
@@ -478,227 +453,52 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
                   child: SafeArea(
                     child: _TodayButton(
                       done: _taskDone,
-                      captures: brain.state.captures.length,
+                      captures: _captures.length,
                       onTap: _today,
                     ),
                   ),
                 ),
               ],
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 
-  Widget _deskObject({
+  Widget _hitTarget(
+    BoxConstraints box, {
     required String id,
     required String label,
-    required String? activeId,
+    required double x,
+    required double y,
+    required double width,
+    required double height,
     required VoidCallback onTap,
-    required Widget child,
-    bool hasNotification = false,
-    double rotation = 0,
   }) {
-    return DeskObject(
-      spec: DeskObjectSpec(
-        id: id,
-        label: label,
-        position: Offset.zero,
-        widthFactor: 1,
-        rotation: rotation,
-        hasNotification: hasNotification,
-      ),
-      focused: activeId == id,
-      onTap: onTap,
-      child: child,
-    );
-  }
-
-  Widget _place(
-    BoxConstraints box,
-    double x,
-    double y,
-    double w,
-    Widget child,
-  ) {
     return Positioned(
       left: box.maxWidth * x,
       top: box.maxHeight * y,
-      width: box.maxWidth * w,
-      child: child,
-    );
-  }
-}
-
-class _IconObject extends StatelessWidget {
-  const _IconObject({required this.icon, required this.label});
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => AspectRatio(
-        aspectRatio: 1.3,
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF6C4B35).withOpacity(.92),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white24),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black38,
-                blurRadius: 10,
-                offset: Offset(0, 6),
-              ),
-            ],
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: const Color(0xFFF5E5C7), size: 28),
-                Text(
-                  label,
-                  style: const TextStyle(color: Color(0xFFF5E5C7)),
-                ),
-              ],
+      width: box.maxWidth * width,
+      height: box.maxHeight * height,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: Tooltip(
+          message: label,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.click,
+            child: GestureDetector(
+              key: ValueKey('desk-hit-$id'),
+              behavior: HitTestBehavior.translucent,
+              onTap: onTap,
+              child: const SizedBox.expand(),
             ),
           ),
         ),
-      );
-}
-
-class _Coffee extends StatelessWidget {
-  const _Coffee({required this.steam, required this.animation});
-  final bool steam;
-  final AnimationController animation;
-
-  @override
-  Widget build(BuildContext context) => AspectRatio(
-        aspectRatio: .9,
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            const Icon(Icons.coffee, size: 52, color: Color(0xFFF3E7D0)),
-            if (steam)
-              Positioned(
-                top: 0,
-                child: AnimatedBuilder(
-                  animation: animation,
-                  builder: (_, __) => Opacity(
-                    opacity: (1 - animation.value).clamp(0.0, 1.0),
-                    child: Transform.translate(
-                      offset: Offset(
-                        5 * (animation.value - .5),
-                        -20 * animation.value,
-                      ),
-                      child: const Icon(
-                        Icons.air,
-                        color: Colors.white70,
-                        size: 29,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
-        ),
-      );
-}
-
-class _Sticky extends StatelessWidget {
-  const _Sticky({required this.text});
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => AspectRatio(
-        aspectRatio: 1.15,
-        child: Container(
-          padding: const EdgeInsets.all(9),
-          decoration: BoxDecoration(
-            color: const Color(0xFFF2D77D),
-            borderRadius: BorderRadius.circular(3),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black38,
-                blurRadius: 9,
-                offset: Offset(2, 6),
-              ),
-            ],
-          ),
-          child: Center(
-            child: Text(
-              text,
-              maxLines: 4,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF4A3A23),
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ),
-      );
-}
-
-class _Plant extends StatelessWidget {
-  const _Plant({required this.stage});
-  final int stage;
-
-  @override
-  Widget build(BuildContext context) {
-    const icons = [Icons.grass, Icons.eco, Icons.local_florist, Icons.park];
-    const labels = ['Seed', 'Sprout', 'Small', 'Mature'];
-    return Container(
-      padding: const EdgeInsets.all(7),
-      decoration: BoxDecoration(
-        color: Colors.black26,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icons[stage], color: const Color(0xFFB8D48B), size: 42),
-          Text(
-            labels[stage],
-            style: const TextStyle(color: Colors.white, fontSize: 10),
-          ),
-        ],
       ),
     );
   }
-}
-
-class _Lantern extends StatelessWidget {
-  const _Lantern({required this.on});
-  final bool on;
-
-  @override
-  Widget build(BuildContext context) => AnimatedContainer(
-        duration: const Duration(milliseconds: 260),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: on ? const Color(0xFFFFC85B).withOpacity(.35) : Colors.black26,
-          boxShadow: on
-              ? const [
-                  BoxShadow(
-                    color: Color(0xAAFFB44A),
-                    blurRadius: 26,
-                    spreadRadius: 7,
-                  ),
-                ]
-              : null,
-        ),
-        child: Icon(
-          on ? Icons.lightbulb : Icons.lightbulb_outline,
-          color: on ? const Color(0xFFFFE29A) : const Color(0xFFBBAE99),
-          size: 38,
-        ),
-      );
 }
 
 class _TodayButton extends StatelessWidget {
@@ -713,16 +513,27 @@ class _TodayButton extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => MouseRegion(
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Open Today brief',
+      child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
             decoration: BoxDecoration(
-              color: const Color(0xFF17110D).withOpacity(.82),
+              color: const Color(0xFF17110D).withValues(alpha: .82),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Colors.white24),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x44000000),
+                  blurRadius: 12,
+                  offset: Offset(0, 5),
+                ),
+              ],
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -746,5 +557,7 @@ class _TodayButton extends StatelessWidget {
             ),
           ),
         ),
-      );
+      ),
+    );
+  }
 }
