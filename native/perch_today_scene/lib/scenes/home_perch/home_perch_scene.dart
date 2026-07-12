@@ -76,8 +76,6 @@ class _HomePerchSceneState extends State<HomePerchScene> {
 
     return AmbientQuietView(
       builder: (context, quietRequested) {
-        // Focused journal work is intentional activity. Quiet View only settles
-        // the unfocused desk so it never hides content while the user is reading.
         final quiet = quietRequested && !journalFocused;
 
         return LayoutBuilder(
@@ -160,7 +158,6 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                 ),
                 RealisticDeskOverlay(
                   journalFocused: journalFocused,
-                  quiet: quiet,
                   lanternOn: brain.state.lanternOn,
                   steamOn: brain.state.steamOn,
                   plantStage: brain.state.plantStage,
