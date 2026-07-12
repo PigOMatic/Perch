@@ -1,0 +1,55 @@
+name: Perch Flutter CI
+
+on:
+  pull_request:
+    paths:
+      - 'native/perch_today_scene/**'
+      - '.github/workflows/flutter-perch.yml'
+  push:
+    branches:
+      - main
+      - feat/perch-core-foundation
+    paths:
+      - 'native/perch_today_scene/**'
+      - '.github/workflows/flutter-perch.yml'
+
+concurrency:
+  group: perch-flutter-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: native/perch_today_scene
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Report tool versions
+        run: |
+          flutter --version
+          dart --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Analyze
+        run: flutter analyze --fatal-infos
+
+      - name: Run tests
+        run: flutter test --reporter=expanded
