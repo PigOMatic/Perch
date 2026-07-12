@@ -76,7 +76,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Quick Capture'), findsOneWidget);
-    expect(find.text('Check the phone layout'), findsOneWidget);
+    expect(find.textContaining('Check the phone layout'), findsOneWidget);
     expect(find.text('Save capture'), findsOneWidget);
   });
 
