@@ -10,10 +10,12 @@ void main() {
       id: 'urgent',
       sender: 'Charge Nurse',
       subject: 'Response needed before shift',
+      preview: 'Please confirm the updated assignment.',
       receivedAt: now.subtract(const Duration(hours: 1)),
       senderImportance: 1,
       hasDeadlineLanguage: true,
       hasQuestion: true,
+      hasAttachment: true,
     );
 
     final quiet = EmailSignal(
@@ -30,6 +32,10 @@ void main() {
 
     expect(ranked.first.emailId, 'urgent');
     expect(ranked.first.level, EmailAttentionLevel.urgent);
+    expect(ranked.first.sender, 'Charge Nurse');
+    expect(ranked.first.subject, 'Response needed before shift');
+    expect(ranked.first.preview, 'Please confirm the updated assignment.');
+    expect(ranked.first.hasAttachment, isTrue);
     expect(ranked.last.level, EmailAttentionLevel.quiet);
   });
 
