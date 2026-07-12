@@ -85,7 +85,7 @@ class PerchBrain extends ChangeNotifier {
       case PerchEventTypes.plantStageChanged:
         final stage = event.payload['stage'];
         if (stage is int) {
-          next = _state.copyWith(plantStage: stage.clamp(0, 3));
+          next = _state.copyWith(plantStage: stage.clamp(0, 3).toInt());
         }
         break;
       default:
