@@ -73,6 +73,8 @@ class _HomePerchSceneState extends State<HomePerchScene> {
     final brain = PerchBrainScope.of(context);
     final journalFocused = brain.state.journalFocused;
     final backgroundAsset = _backgroundForWorldState();
+    final lanternOn =
+        brain.state.lanternOn || widget.worldState.shouldAutoIlluminateLantern;
 
     return AmbientQuietView(
       builder: (context, quietRequested) {
@@ -143,6 +145,10 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                   ),
                 ),
                 _AmbientWeatherOverlay(worldState: widget.worldState),
+                _LanternRoomGlow(
+                  illuminated: lanternOn,
+                  portrait: portrait,
+                ),
                 IgnorePointer(
                   ignoring: quiet,
                   child: AnimatedOpacity(
@@ -158,7 +164,7 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                 ),
                 RealisticDeskOverlay(
                   journalFocused: journalFocused,
-                  lanternOn: brain.state.lanternOn,
+                  lanternOn: lanternOn,
                   steamOn: brain.state.steamOn,
                   plantStage: brain.state.plantStage,
                   priority: brain.state.priority.isEmpty
@@ -296,6 +302,45 @@ class _HomePerchSceneState extends State<HomePerchScene> {
           },
         );
       },
+    );
+  }
+}
+
+class _LanternRoomGlow extends StatelessWidget {
+  const _LanternRoomGlow({
+    required this.illuminated,
+    required this.portrait,
+  });
+
+  final bool illuminated;
+  final bool portrait;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      child: AnimatedOpacity(
+        key: const ValueKey('lantern-room-glow'),
+        duration: const Duration(milliseconds: 900),
+        curve: Curves.easeInOutCubic,
+        opacity: illuminated ? 1 : 0,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: RadialGradient(
+              center: Alignment(
+                portrait ? 0.82 : 0.76,
+                portrait ? -0.58 : -0.66,
+              ),
+              radius: portrait ? 0.72 : 0.64,
+              colors: [
+                const Color(0xFFFFC66B).withValues(alpha: 0.20),
+                const Color(0xFFFFA637).withValues(alpha: 0.08),
+                Colors.transparent,
+              ],
+              stops: const [0, 0.42, 1],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
