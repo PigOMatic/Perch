@@ -94,14 +94,15 @@ void main() {
     expect(find.byKey(const ValueKey('desk-object-sheet')), findsOneWidget);
   });
 
-  testWidgets('wide surfaces keep the same interaction model', (tester) async {
+  testWidgets('wide surfaces keep a centered readable workspace', (tester) async {
     await pumpDesk(tester, size: const Size(1440, 900));
 
     await tester.tap(find.byKey(const ValueKey('desk-hit-envelope')));
     await tester.pumpAndSettle();
 
     final sheet = tester.getSize(find.byKey(const ValueKey('desk-object-sheet')));
-    expect(sheet.width, closeTo(1440, 1));
+    expect(sheet.width, lessThan(900));
+    expect(sheet.width, greaterThanOrEqualTo(500));
     expect(sheet.height, lessThan(900));
   });
 }
