@@ -9,7 +9,6 @@ import '../../core/events/perch_event.dart';
 import '../../data/perch_today_models.dart';
 import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
-import 'coffee_steam_object.dart';
 import 'desk_functionality_layer.dart';
 import 'journal_engine.dart';
 import 'realistic_desk_overlay.dart';
@@ -146,14 +145,11 @@ class _HomePerchSceneState extends State<HomePerchScene> {
             ),
             RealisticDeskOverlay(
               journalFocused: _journalFocused,
-              lanternOn: brain.state.activeDeskObjectId == 'lantern',
-              steamOn: true,
+              lanternOn: brain.state.lanternOn,
+              steamOn: brain.state.steamOn,
               priority: brain.state.priority.isEmpty
                   ? widget.data.nextDue.title
                   : brain.state.priority,
-            ),
-            CoffeeSteamObject(
-              journalFocused: _journalFocused,
             ),
             IgnorePointer(
               ignoring: !_journalFocused,
