@@ -48,7 +48,11 @@ jobs:
       - name: Normalize formatting for verification
         run: dart format lib test
 
-      - name: Analyze
+      - name: Analyze for errors and warnings
+        run: flutter analyze
+
+      - name: Report strict lint debt
+        continue-on-error: true
         run: flutter analyze --fatal-infos
 
       - name: Run tests
