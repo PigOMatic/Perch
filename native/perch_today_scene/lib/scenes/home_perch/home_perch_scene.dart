@@ -4,6 +4,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../assets/home_perch_assets.dart';
+import '../../core/brain/perch_brain_scope.dart';
+import '../../core/events/perch_event.dart';
 import '../../data/perch_today_models.dart';
 import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
@@ -33,6 +35,14 @@ class _HomePerchSceneState extends State<HomePerchScene> {
   void _setJournalFocused(bool value) {
     if (_journalFocused == value) return;
     setState(() => _journalFocused = value);
+    PerchBrainScope.read(context).publish(
+      PerchEvent(
+        type: value
+            ? PerchEventTypes.journalFocused
+            : PerchEventTypes.journalClosed,
+        source: 'home_perch.journal',
+      ),
+    );
   }
 
   @override
