@@ -15,9 +15,8 @@ class HomePerchAssets {
     HomePerchBackgroundOption('Storm', '$backgroundRoot/background_storm.png'),
   ];
 
-  static const deskInteractionBackground =
-      '$sceneRoot/desk_reference_background.png';
-  static const journalOpenToday = '$sceneRoot/journal_open_today.png';
+  static const deskInteractionBackground = '$sceneRoot/background_cabin_desk.png';
+  static const journalOpenToday = '$sceneRoot/notebook_open_blank.webp';
 
   static const background = '$sceneRoot/background_cabin_desk.png';
   static const deskSurface = '$sceneRoot/desk_surface.webp';
