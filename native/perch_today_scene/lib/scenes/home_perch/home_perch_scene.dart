@@ -12,6 +12,7 @@ import '../../world/perch_world_state.dart';
 import 'coffee_steam_object.dart';
 import 'desk_functionality_layer.dart';
 import 'journal_engine.dart';
+import 'realistic_desk_overlay.dart';
 
 class HomePerchScene extends StatefulWidget {
   const HomePerchScene({
@@ -45,8 +46,35 @@ class _HomePerchSceneState extends State<HomePerchScene> {
     );
   }
 
+  String _backgroundForWorldState() {
+    switch (widget.worldState.weather) {
+      case PerchWeather.rain:
+        return '${HomePerchAssets.backgroundRoot}/background_rain.png';
+      case PerchWeather.snow:
+        return '${HomePerchAssets.backgroundRoot}/background_snow.png';
+      case PerchWeather.fog:
+        return '${HomePerchAssets.backgroundRoot}/background_dawn.png';
+      case PerchWeather.wind:
+        return '${HomePerchAssets.backgroundRoot}/background_storm.png';
+      case PerchWeather.clear:
+        switch (widget.worldState.timeOfDay) {
+          case PerchTimeOfDay.morning:
+            return '${HomePerchAssets.backgroundRoot}/background_morning.png';
+          case PerchTimeOfDay.midday:
+            return '${HomePerchAssets.backgroundRoot}/background_afternoon.png';
+          case PerchTimeOfDay.evening:
+            return '${HomePerchAssets.backgroundRoot}/background_golden_hour.png';
+          case PerchTimeOfDay.night:
+            return '${HomePerchAssets.backgroundRoot}/background_night.png';
+        }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final brain = PerchBrainScope.of(context);
+    final backgroundAsset = _backgroundForWorldState();
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final size = constraints.biggest;
@@ -89,22 +117,40 @@ class _HomePerchSceneState extends State<HomePerchScene> {
         return Stack(
           fit: StackFit.expand,
           children: [
-            AnimatedScale(
-              duration: const Duration(milliseconds: 520),
-              curve: Curves.easeInOutCubic,
-              scale: _journalFocused ? 1.035 : 1,
-              child: PerchAssetLayer(
-                assetPath: HomePerchAssets.deskInteractionBackground,
-                fit: BoxFit.cover,
-                alignment: Alignment.center,
-                fallback: const _BackgroundMissingFallback(
-                  assetPath: HomePerchAssets.deskInteractionBackground,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 900),
+              child: AnimatedScale(
+                key: ValueKey(backgroundAsset),
+                duration: const Duration(milliseconds: 520),
+                curve: Curves.easeInOutCubic,
+                scale: _journalFocused ? 1.035 : 1,
+                child: PerchAssetLayer(
+                  assetPath: backgroundAsset,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                  fallback: PerchAssetLayer(
+                    assetPath: HomePerchAssets.deskInteractionBackground,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                    fallback: const _BackgroundMissingFallback(
+                      assetPath: HomePerchAssets.deskInteractionBackground,
+                    ),
+                  ),
                 ),
               ),
             ),
+            _AmbientWeatherOverlay(worldState: widget.worldState),
             DeskFunctionalityLayer(
               data: widget.data,
               journalFocused: _journalFocused,
+            ),
+            RealisticDeskOverlay(
+              journalFocused: _journalFocused,
+              lanternOn: brain.state.activeDeskObjectId == 'lantern',
+              steamOn: true,
+              priority: brain.state.priority.isEmpty
+                  ? widget.data.nextDue.title
+                  : brain.state.priority,
             ),
             CoffeeSteamObject(
               journalFocused: _journalFocused,
@@ -225,6 +271,38 @@ class _HomePerchSceneState extends State<HomePerchScene> {
           ],
         );
       },
+    );
+  }
+}
+
+class _AmbientWeatherOverlay extends StatelessWidget {
+  const _AmbientWeatherOverlay({required this.worldState});
+
+  final PerchWorldState worldState;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!worldState.hasWeatherMotion) return const SizedBox.shrink();
+
+    final color = switch (worldState.weather) {
+      PerchWeather.rain => const Color(0x332A4058),
+      PerchWeather.fog => const Color(0x44D7D7D0),
+      PerchWeather.snow => const Color(0x33E8F1F5),
+      PerchWeather.wind => const Color(0x221C2630),
+      PerchWeather.clear => Colors.transparent,
+    };
+
+    return IgnorePointer(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 800),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color, Colors.transparent, color.withOpacity(.4)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+        ),
+      ),
     );
   }
 }
