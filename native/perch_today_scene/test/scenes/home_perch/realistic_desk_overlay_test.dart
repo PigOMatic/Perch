@@ -6,6 +6,7 @@ void main() {
   Widget buildOverlay({
     required bool steamOn,
     required bool lanternOn,
+    int plantStage = 1,
   }) {
     return MaterialApp(
       home: Scaffold(
@@ -16,6 +17,7 @@ void main() {
             journalFocused: false,
             lanternOn: lanternOn,
             steamOn: steamOn,
+            plantStage: plantStage,
             priority: 'Protect focused work',
           ),
         ),
@@ -38,6 +40,30 @@ void main() {
     expect(activePainters(tester), hasLength(1));
   });
 
+  testWidgets('plant visual follows the shared growth stage', (tester) async {
+    await tester.pumpWidget(
+      buildOverlay(steamOn: false, lanternOn: false, plantStage: 0),
+    );
+    expect(find.byKey(const ValueKey('plant-stage-0')), findsOneWidget);
+    expect(find.bySemanticsLabel('Plant growth stage 0'), findsOneWidget);
+
+    await tester.pumpWidget(
+      buildOverlay(steamOn: false, lanternOn: false, plantStage: 3),
+    );
+    await tester.pump(const Duration(milliseconds: 420));
+    expect(find.byKey(const ValueKey('plant-stage-3')), findsOneWidget);
+    expect(find.bySemanticsLabel('Plant growth stage 3'), findsOneWidget);
+    expect(find.byIcon(Icons.local_florist), findsOneWidget);
+  });
+
+  testWidgets('plant stage is defensively clamped', (tester) async {
+    await tester.pumpWidget(
+      buildOverlay(steamOn: false, lanternOn: false, plantStage: 99),
+    );
+    expect(find.byKey(const ValueKey('plant-stage-3')), findsOneWidget);
+    expect(find.bySemanticsLabel('Plant growth stage 3'), findsOneWidget);
+  });
+
   testWidgets('journal focus hides the realistic desk layer', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
@@ -46,6 +72,7 @@ void main() {
             journalFocused: true,
             lanternOn: true,
             steamOn: true,
+            plantStage: 2,
             priority: 'Protect focused work',
           ),
         ),
