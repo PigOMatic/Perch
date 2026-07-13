@@ -45,12 +45,16 @@ class _AmbientQuietViewState extends State<AmbientQuietView>
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      _registerActivity();
-    } else if (state == AppLifecycleState.inactive ||
-        state == AppLifecycleState.paused ||
-        state == AppLifecycleState.detached) {
-      _settleTimer?.cancel();
+    switch (state) {
+      case AppLifecycleState.resumed:
+        _registerActivity();
+        break;
+      case AppLifecycleState.inactive:
+      case AppLifecycleState.hidden:
+      case AppLifecycleState.paused:
+      case AppLifecycleState.detached:
+        _settleTimer?.cancel();
+        break;
     }
   }
 
