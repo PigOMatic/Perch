@@ -25,8 +25,11 @@ class AmbientQuietView extends StatefulWidget {
 
 class _AmbientQuietViewState extends State<AmbientQuietView>
     with WidgetsBindingObserver {
+  static const _passiveActivityInterval = Duration(milliseconds: 250);
+
   Timer? _settleTimer;
   bool _quiet = false;
+  DateTime? _lastPassiveActivity;
 
   @override
   void initState() {
@@ -71,10 +74,30 @@ class _AmbientQuietViewState extends State<AmbientQuietView>
 
   void _registerActivity() {
     if (!mounted) return;
+    _lastPassiveActivity = DateTime.now();
     _armQuietTimer();
     if (!_quiet) return;
     setState(() => _quiet = false);
     widget.onQuietChanged?.call(false);
+  }
+
+  void _registerPassiveActivity() {
+    if (!mounted) return;
+
+    // Pointer hover and movement can arrive at display refresh rate. Coalescing
+    // those events avoids continuously allocating and cancelling timers while
+    // preserving immediate wake-up from Quiet View.
+    if (_quiet) {
+      _registerActivity();
+      return;
+    }
+
+    final now = DateTime.now();
+    final last = _lastPassiveActivity;
+    if (last != null && now.difference(last) < _passiveActivityInterval) return;
+
+    _lastPassiveActivity = now;
+    _armQuietTimer();
   }
 
   @override
@@ -87,12 +110,12 @@ class _AmbientQuietViewState extends State<AmbientQuietView>
   @override
   Widget build(BuildContext context) {
     return MouseRegion(
-      onEnter: (_) => _registerActivity(),
-      onHover: (_) => _registerActivity(),
+      onEnter: (_) => _registerPassiveActivity(),
+      onHover: (_) => _registerPassiveActivity(),
       child: Listener(
         behavior: HitTestBehavior.translucent,
         onPointerDown: (_) => _registerActivity(),
-        onPointerMove: (_) => _registerActivity(),
+        onPointerMove: (_) => _registerPassiveActivity(),
         onPointerSignal: (_) => _registerActivity(),
         child: Focus(
           onFocusChange: (focused) {
