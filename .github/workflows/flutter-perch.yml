@@ -1,6 +1,7 @@
 name: Perch Flutter CI
 
 on:
+  workflow_dispatch:
   pull_request:
     paths:
       - 'native/perch_today_scene/**'
@@ -78,6 +79,13 @@ jobs:
 
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
+
+      - name: Bootstrap Windows runner when absent
+        shell: pwsh
+        run: |
+          if (-not (Test-Path windows/CMakeLists.txt)) {
+            flutter create --platforms=windows --project-name perch_today_scene .
+          }
 
       - name: Install dependencies
         run: flutter pub get
