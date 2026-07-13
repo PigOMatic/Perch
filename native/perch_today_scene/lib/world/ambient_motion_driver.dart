@@ -64,8 +64,17 @@ class _AmbientMotionDriverState extends State<AmbientMotionDriver>
   @override
   void didUpdateWidget(covariant AmbientMotionDriver oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_sameControllerPlan(oldWidget.profile, widget.profile)) {
-      _applyProfile(widget.profile);
+    final previous = oldWidget.profile;
+    final next = widget.profile;
+
+    if (_plantPlanChanged(previous, next)) {
+      _configurePlant(next);
+    }
+    if (_steamPlanChanged(previous, next)) {
+      _configureSteam(next);
+    }
+    if (_lanternPlanChanged(previous, next)) {
+      _configureLantern(next);
     }
   }
 
@@ -82,32 +91,59 @@ class _AmbientMotionDriverState extends State<AmbientMotionDriver>
     }
   }
 
-  bool _sameControllerPlan(
+  bool _plantPlanChanged(
     AmbientMotionProfile previous,
     AmbientMotionProfile next,
   ) {
-    return previous.continuousMotionEnabled == next.continuousMotionEnabled &&
-        previous.plantPeriod == next.plantPeriod &&
-        previous.steamPeriod == next.steamPeriod &&
-        previous.lanternPeriod == next.lanternPeriod &&
-        (previous.steamDrift > 0) == (next.steamDrift > 0) &&
-        (previous.lanternPulse > 0) == (next.lanternPulse > 0);
+    return previous.continuousMotionEnabled != next.continuousMotionEnabled ||
+        previous.plantPeriod != next.plantPeriod ||
+        (previous.plantSway > 0) != (next.plantSway > 0);
+  }
+
+  bool _steamPlanChanged(
+    AmbientMotionProfile previous,
+    AmbientMotionProfile next,
+  ) {
+    return previous.continuousMotionEnabled != next.continuousMotionEnabled ||
+        previous.steamPeriod != next.steamPeriod ||
+        (previous.steamDrift > 0) != (next.steamDrift > 0);
+  }
+
+  bool _lanternPlanChanged(
+    AmbientMotionProfile previous,
+    AmbientMotionProfile next,
+  ) {
+    return previous.continuousMotionEnabled != next.continuousMotionEnabled ||
+        previous.lanternPeriod != next.lanternPeriod ||
+        (previous.lanternPulse > 0) != (next.lanternPulse > 0);
   }
 
   void _applyProfile(AmbientMotionProfile profile) {
+    _configurePlant(profile);
+    _configureSteam(profile);
+    _configureLantern(profile);
+  }
+
+  void _configurePlant(AmbientMotionProfile profile) {
     _configure(
       _plantController,
       period: profile.plantPeriod,
-      enabled: profile.continuousMotionEnabled,
+      enabled: profile.continuousMotionEnabled && profile.plantSway > 0,
       reverse: true,
       restingValue: .5,
     );
+  }
+
+  void _configureSteam(AmbientMotionProfile profile) {
     _configure(
       _steamController,
       period: profile.steamPeriod,
       enabled: profile.continuousMotionEnabled && profile.steamDrift > 0,
       restingValue: 0,
     );
+  }
+
+  void _configureLantern(AmbientMotionProfile profile) {
     _configure(
       _lanternController,
       period: profile.lanternPeriod,
