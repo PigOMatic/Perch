@@ -25,6 +25,7 @@ jobs:
   analyze-and-test:
     name: Analyze and test
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     defaults:
       run:
         working-directory: native/perch_today_scene
@@ -58,7 +59,11 @@ jobs:
         run: flutter analyze --fatal-infos
 
       - name: Run tests with coverage
-        run: flutter test --coverage --reporter=expanded
+        run: >-
+          flutter test
+          --coverage
+          --reporter=expanded
+          --test-randomize-ordering-seed=20260713
 
       - name: Upload test coverage
         if: always()
@@ -72,6 +77,7 @@ jobs:
   windows-build:
     name: Build Windows desktop
     runs-on: windows-latest
+    timeout-minutes: 35
     defaults:
       run:
         working-directory: native/perch_today_scene
