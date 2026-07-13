@@ -24,41 +24,28 @@ class RealisticDeskOverlay extends StatelessWidget {
   final String priority;
   final AmbientMotionProfile? motionProfile;
 
-  AmbientMotionProfile _resolvedProfile(BuildContext context) {
-    final reduceMotion = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
-    final supplied = motionProfile;
-
-    if (supplied != null && !reduceMotion) return supplied;
-
-    if (reduceMotion) {
-      return AmbientMotionProfile(
-        weather: 0,
-        plantSway: 0,
-        steamDrift: steamOn ? .12 : 0,
-        lanternPulse: lanternOn ? .08 : 0,
-        plantPeriod: Duration.zero,
-        steamPeriod: Duration.zero,
-        lanternPeriod: Duration.zero,
-        continuousMotionEnabled: false,
-      );
-    }
+  AmbientMotionProfile _profileFor(BuildContext context) {
+    final reduced = MediaQuery.maybeOf(context)?.disableAnimations ?? false;
+    if (!reduced && motionProfile != null) return motionProfile!;
 
     return AmbientMotionProfile(
       weather: 0,
-      plantSway: .08,
-      steamDrift: steamOn ? .20 : 0,
-      lanternPulse: lanternOn ? .18 : 0,
-      plantPeriod: const Duration(milliseconds: 7600),
-      steamPeriod: const Duration(milliseconds: 3600),
-      lanternPeriod: const Duration(milliseconds: 6200),
-      continuousMotionEnabled: true,
+      plantSway: reduced ? 0 : .08,
+      steamDrift: steamOn ? (reduced ? .12 : .20) : 0,
+      lanternPulse: lanternOn ? (reduced ? .08 : .18) : 0,
+      plantPeriod:
+          reduced ? Duration.zero : const Duration(milliseconds: 7600),
+      steamPeriod:
+          reduced ? Duration.zero : const Duration(milliseconds: 3600),
+      lanternPeriod:
+          reduced ? Duration.zero : const Duration(milliseconds: 6200),
+      continuousMotionEnabled: !reduced,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    final profile = _resolvedProfile(context);
-
+    final profile = _profileFor(context);
     return AmbientMotionDriver(
       profile: profile,
       builder: (context, frame) => IgnorePointer(
@@ -76,10 +63,10 @@ class RealisticDeskOverlay extends StatelessWidget {
                     portrait ? .035 : .03,
                     portrait ? .62 : .58,
                     portrait ? .23 : .145,
-                    _CoffeeObject(
+                    _Coffee(
                       steamOn: steamOn,
                       animation: frame.steam,
-                      driftStrength: profile.steamDrift,
+                      drift: profile.steamDrift,
                     ),
                   ),
                   _place(
@@ -87,7 +74,7 @@ class RealisticDeskOverlay extends StatelessWidget {
                     portrait ? .76 : .83,
                     portrait ? .67 : .63,
                     portrait ? .18 : .105,
-                    const _AssetObject(
+                    const _Asset(
                       asset: HomePerchAssets.pen,
                       rotation: -.22,
                       shadowOffset: Offset(6, 12),
@@ -98,7 +85,7 @@ class RealisticDeskOverlay extends StatelessWidget {
                     portrait ? .69 : .755,
                     portrait ? .46 : .42,
                     portrait ? .27 : .17,
-                    const _AssetObject(
+                    const _Asset(
                       asset: HomePerchAssets.envelope,
                       rotation: .025,
                       shadowOffset: Offset(4, 12),
@@ -109,17 +96,17 @@ class RealisticDeskOverlay extends StatelessWidget {
                     portrait ? .035 : .045,
                     portrait ? .44 : .405,
                     portrait ? .31 : .20,
-                    _StickyObject(text: priority),
+                    _Sticky(text: priority),
                   ),
                   _place(
                     box,
                     portrait ? .075 : .085,
                     portrait ? .19 : .125,
                     portrait ? .21 : .13,
-                    _PlantObject(
+                    _Plant(
                       stage: plantStage,
                       animation: frame.plant,
-                      swayStrength: profile.plantSway,
+                      sway: profile.plantSway,
                     ),
                   ),
                   _place(
@@ -127,10 +114,10 @@ class RealisticDeskOverlay extends StatelessWidget {
                     portrait ? .765 : .82,
                     portrait ? .17 : .115,
                     portrait ? .20 : .125,
-                    _LanternObject(
+                    _Lantern(
                       on: lanternOn,
                       animation: frame.lantern,
-                      pulseStrength: profile.lanternPulse,
+                      pulse: profile.lanternPulse,
                     ),
                   ),
                 ],
@@ -158,8 +145,8 @@ class RealisticDeskOverlay extends StatelessWidget {
   }
 }
 
-class _AssetObject extends StatelessWidget {
-  const _AssetObject({
+class _Asset extends StatelessWidget {
+  const _Asset({
     required this.asset,
     this.rotation = 0,
     this.shadowOffset = const Offset(0, 10),
@@ -194,16 +181,16 @@ class _AssetObject extends StatelessWidget {
   }
 }
 
-class _CoffeeObject extends StatelessWidget {
-  const _CoffeeObject({
+class _Coffee extends StatelessWidget {
+  const _Coffee({
     required this.steamOn,
     required this.animation,
-    required this.driftStrength,
+    required this.drift,
   });
 
   final bool steamOn;
   final Animation<double> animation;
-  final double driftStrength;
+  final double drift;
 
   @override
   Widget build(BuildContext context) {
@@ -213,10 +200,7 @@ class _CoffeeObject extends StatelessWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.bottomCenter,
         children: [
-          const _AssetObject(
-            asset: HomePerchAssets.coffeeMug,
-            rotation: -.025,
-          ),
+          const _Asset(asset: HomePerchAssets.coffeeMug, rotation: -.025),
           if (steamOn)
             Positioned.fill(
               top: -38,
@@ -226,10 +210,7 @@ class _CoffeeObject extends StatelessWidget {
               child: AnimatedBuilder(
                 animation: animation,
                 builder: (context, child) => CustomPaint(
-                  painter: _SteamPainter(
-                    animation.value,
-                    driftStrength: driftStrength,
-                  ),
+                  painter: _SteamPainter(animation.value, drift: drift),
                 ),
               ),
             ),
@@ -240,10 +221,10 @@ class _CoffeeObject extends StatelessWidget {
 }
 
 class _SteamPainter extends CustomPainter {
-  const _SteamPainter(this.progress, {required this.driftStrength});
+  const _SteamPainter(this.progress, {required this.drift});
 
   final double progress;
-  final double driftStrength;
+  final double drift;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -254,19 +235,19 @@ class _SteamPainter extends CustomPainter {
 
     for (var i = 0; i < 3; i++) {
       final phase = (progress + i * .29) % 1;
-      final path = Path();
       final x = size.width * (.28 + i * .22);
       final y = size.height * (1 - phase * .86);
-      final drift = size.width * (.04 + driftStrength * .18);
-      path.moveTo(x, y);
-      path.cubicTo(
-        x - drift,
-        y - size.height * .16,
-        x + drift * 1.2,
-        y - size.height * .30,
-        x + math.sin(phase * math.pi * 2) * drift,
-        y - size.height * .47,
-      );
+      final horizontalDrift = size.width * (.04 + drift * .18);
+      final path = Path()
+        ..moveTo(x, y)
+        ..cubicTo(
+          x - horizontalDrift,
+          y - size.height * .16,
+          x + horizontalDrift * 1.2,
+          y - size.height * .30,
+          x + math.sin(phase * math.pi * 2) * horizontalDrift,
+          y - size.height * .47,
+        );
       paint.color = Colors.white.withValues(alpha: (1 - phase) * .32);
       canvas.drawPath(path, paint);
     }
@@ -274,12 +255,11 @@ class _SteamPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _SteamPainter oldDelegate) =>
-      oldDelegate.progress != progress ||
-      oldDelegate.driftStrength != driftStrength;
+      oldDelegate.progress != progress || oldDelegate.drift != drift;
 }
 
-class _StickyObject extends StatelessWidget {
-  const _StickyObject({required this.text});
+class _Sticky extends StatelessWidget {
+  const _Sticky({required this.text});
 
   final String text;
 
@@ -327,16 +307,16 @@ class _StickyObject extends StatelessWidget {
   }
 }
 
-class _PlantObject extends StatelessWidget {
-  const _PlantObject({
+class _Plant extends StatelessWidget {
+  const _Plant({
     required this.stage,
     required this.animation,
-    required this.swayStrength,
+    required this.sway,
   });
 
   final int stage;
   final Animation<double> animation;
-  final double swayStrength;
+  final double sway;
 
   @override
   Widget build(BuildContext context) {
@@ -353,7 +333,7 @@ class _PlantObject extends StatelessWidget {
       child: AnimatedBuilder(
         animation: animation,
         builder: (context, child) => Transform.rotate(
-          angle: (animation.value - .5) * (.012 + swayStrength * .08),
+          angle: (animation.value - .5) * (.012 + sway * .08),
           alignment: Alignment.bottomCenter,
           child: child,
         ),
@@ -446,25 +426,27 @@ class _PlantObject extends StatelessWidget {
   }
 }
 
-class _LanternObject extends StatelessWidget {
-  const _LanternObject({
+class _Lantern extends StatelessWidget {
+  const _Lantern({
     required this.on,
     required this.animation,
-    required this.pulseStrength,
+    required this.pulse,
   });
 
   final bool on;
   final Animation<double> animation;
-  final double pulseStrength;
+  final double pulse;
 
   @override
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
-        final pulse = on
-            ? .82 + (animation.value - .5) * pulseStrength.clamp(0, 1)
+        final normalizedPulse = math.max(0.0, math.min(1.0, pulse));
+        final glow = on
+            ? .82 + (animation.value - .5) * normalizedPulse
             : 0.0;
+        final glowAlpha = math.max(0.0, math.min(1.0, .42 * glow));
         return AspectRatio(
           aspectRatio: .78,
           child: Stack(
@@ -479,7 +461,7 @@ class _LanternObject extends StatelessWidget {
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFFFFB64A).withValues(
-                          alpha: (.42 * pulse).clamp(0, 1),
+                          alpha: glowAlpha,
                         ),
                         blurRadius: 48,
                         spreadRadius: 20,
