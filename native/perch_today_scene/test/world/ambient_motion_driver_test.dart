@@ -86,6 +86,42 @@ void main() {
     expect(frame!.lantern.value, .5);
   });
 
+  testWidgets('backgrounding pauses motion and resuming restarts it', (
+    tester,
+  ) async {
+    AmbientMotionFrame? frame;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AmbientMotionDriver(
+          profile: AmbientMotionProfile.fromWorldState(clearMorning),
+          builder: (context, value) {
+            frame = value;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+    await tester.pump(const Duration(milliseconds: 500));
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.paused);
+    await tester.pump();
+    final pausedPlant = frame!.plant.value;
+    final pausedSteam = frame!.steam.value;
+
+    await tester.pump(const Duration(milliseconds: 700));
+
+    expect(frame!.plant.value, pausedPlant);
+    expect(frame!.steam.value, pausedSteam);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 700));
+
+    expect(frame!.plant.value, isNot(pausedPlant));
+    expect(frame!.steam.value, isNot(pausedSteam));
+  });
+
   testWidgets('same-weather context changes start and stop steam', (
     tester,
   ) async {
