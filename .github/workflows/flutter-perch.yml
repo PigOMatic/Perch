@@ -1,0 +1,67 @@
+name: Perch Flutter CI
+
+on:
+  pull_request:
+    paths:
+      - 'native/perch_today_scene/**'
+      - '.github/workflows/flutter-perch.yml'
+  push:
+    branches:
+      - main
+      - feat/perch-core-foundation
+    paths:
+      - 'native/perch_today_scene/**'
+      - '.github/workflows/flutter-perch.yml'
+
+concurrency:
+  group: perch-flutter-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: native/perch_today_scene
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Report tool versions
+        run: |
+          flutter --version
+          dart --version
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Normalize formatting for verification
+        run: dart format lib test
+
+      - name: Analyze for errors and warnings
+        run: flutter analyze --no-fatal-infos
+
+      - name: Report strict lint debt
+        continue-on-error: true
+        run: flutter analyze --fatal-infos
+
+      - name: Run tests
+        run: flutter test --reporter=expanded
+
+      - name: Report formatting drift
+        if: always()
+        run: |
+          if ! git diff --quiet -- lib test; then
+            echo '::warning::Dart formatting drift exists in lib/ or test/. The code was normalized in CI so analysis and tests could still run.'
+            git diff --stat -- lib test
+          fi

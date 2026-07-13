@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../data/perch_today_models.dart';
+import 'journal_workspace_sheet.dart';
 import 'live_journal_content.dart';
 
 class JournalEngine extends StatefulWidget {
@@ -41,7 +42,16 @@ class _JournalEngineState extends State<JournalEngine> {
   @override
   Widget build(BuildContext context) {
     if (!widget.focused) {
-      return LiveJournalContent(data: widget.data, focused: false);
+      return Semantics(
+        button: true,
+        label: 'Open journal',
+        child: GestureDetector(
+          key: const ValueKey('open-journal-workspace'),
+          behavior: HitTestBehavior.opaque,
+          onTap: () => showJournalWorkspace(context, data: widget.data),
+          child: LiveJournalContent(data: widget.data, focused: false),
+        ),
+      );
     }
 
     return Stack(
@@ -72,10 +82,10 @@ class _JournalEngineState extends State<JournalEngine> {
                   widget.data.nextDue.title,
                 ],
               ),
-              _JournalModulePage(
+              const _JournalModulePage(
                 title: 'Notes',
                 subtitle: 'A quiet place to think',
-                lines: const [
+                lines: [
                   'One thing at a time.',
                   'Write what matters next.',
                   'The rest can wait.',
@@ -134,13 +144,13 @@ class _JournalTabs extends StatelessWidget {
               decoration: BoxDecoration(
                 color: selected
                     ? const Color(0xFF8B5E3C)
-                    : const Color(0xFFD8BE91).withOpacity(0.88),
+                    : const Color(0xFFD8BE91).withValues(alpha: 0.88),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(9),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.18),
+                    color: Colors.black.withValues(alpha: 0.18),
                     blurRadius: 5,
                     offset: const Offset(0, 2),
                   ),
@@ -184,12 +194,12 @@ class _PaperclipControl extends StatelessWidget {
           width: 34,
           height: 66,
           decoration: BoxDecoration(
-            color: const Color(0xFFD6C7A7).withOpacity(0.92),
+            color: const Color(0xFFD6C7A7).withValues(alpha: 0.92),
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: const Color(0xFF88765E), width: 1.2),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.22),
+                color: Colors.black.withValues(alpha: 0.22),
                 blurRadius: 7,
                 offset: const Offset(0, 3),
               ),

@@ -11,10 +11,14 @@ dependencies:
     sdk: flutter
   shared_preferences: ^2.3.3
 
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
 flutter:
   uses-material-design: true
   assets:
-    - assets/scenes/home_perch/desk_reference_background.png
-    - assets/scenes/home_perch/journal_open_today.png
+    - assets/scenes/home_perch/
     - assets/scenes/home_perch/backgrounds/
     - assets/objects/

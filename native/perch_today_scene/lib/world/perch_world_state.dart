@@ -53,6 +53,17 @@ class PerchWorldState {
   bool get isWorkContext => lifeContext == PerchLifeContext.work;
   bool get hasWeatherMotion => weather != PerchWeather.clear;
 
+  /// The lantern is part of the room rather than a dashboard control.
+  /// It should quietly come alive when the room would naturally need warmth.
+  bool get shouldAutoIlluminateLantern {
+    if (timeOfDay == PerchTimeOfDay.night) return true;
+    if (timeOfDay != PerchTimeOfDay.evening) return false;
+    return weather == PerchWeather.rain ||
+        weather == PerchWeather.fog ||
+        weather == PerchWeather.snow ||
+        weather == PerchWeather.wind;
+  }
+
   String get welcomeLine {
     if (welcomeBackMode) return "Welcome back. Let's get your footing again.";
     return 'Your place is ready.';

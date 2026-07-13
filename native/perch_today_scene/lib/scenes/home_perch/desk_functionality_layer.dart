@@ -1,8 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../core/brain/perch_brain_scope.dart';
+import '../../core/brief/daily_brief_engine.dart';
+import '../../core/context/perch_context_snapshot.dart';
+import '../../core/email/email_intelligence.dart';
+import '../../core/events/perch_event.dart';
+import '../../core/recommendations/perch_recommendation.dart';
 import '../../data/perch_today_models.dart';
+import 'desk_object_sheet.dart';
+import 'email_workspace_panel.dart';
 
+/// Invisible, phone-first interaction map laid over the living desk.
+///
+/// Only tools that reveal or capture useful information are interactive here.
+/// Coffee, plant, lantern, and weather remain ambient parts of the room.
 class DeskFunctionalityLayer extends StatefulWidget {
   const DeskFunctionalityLayer({
     super.key,
@@ -14,225 +26,432 @@ class DeskFunctionalityLayer extends StatefulWidget {
   final bool journalFocused;
 
   @override
-  State<DeskFunctionalityLayer> createState() => _DeskFunctionalityLayerState();
+  State<DeskFunctionalityLayer> createState() =>
+      _DeskFunctionalityLayerState();
 }
 
-class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
-    with SingleTickerProviderStateMixin {
+class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer> {
   bool _loaded = false;
   bool _taskDone = false;
-  bool _lanternOn = false;
-  bool _steamOn = true;
-  int _plantStage = 1;
   String _priority = '';
   List<String> _captures = const [];
-  late final AnimationController _steam;
 
   @override
   void initState() {
     super.initState();
-    _steam = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 2300),
-    )..repeat();
     _load();
   }
 
-  @override
-  void dispose() {
-    _steam.dispose();
-    super.dispose();
+  void _publish(
+    String type,
+    String source, [
+    Map<String, Object?> payload = const {},
+  ]) {
+    PerchBrainScope.read(context).publish(
+      PerchEvent(type: type, source: source, payload: payload),
+    );
   }
 
   Future<void> _load() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
+
+    final priority =
+        prefs.getString('perch.sticky.priority') ?? widget.data.nextDue.title;
+    final captures =
+        prefs.getStringList('perch.brain.captures') ?? <String>[];
+    final lanternOn = prefs.getBool('perch.lantern.on') ?? false;
+    final steamOn = prefs.getBool('perch.coffee.steam') ?? true;
+    final plantStage =
+        (prefs.getInt('perch.plant.stage') ?? 1).clamp(0, 3).toInt();
+
     setState(() {
       _taskDone = prefs.getBool('perch.task.done') ?? false;
-      _lanternOn = prefs.getBool('perch.lantern.on') ?? false;
-      _steamOn = prefs.getBool('perch.coffee.steam') ?? true;
-      _plantStage = (prefs.getInt('perch.plant.stage') ?? 1).clamp(0, 3).toInt();
-      _priority = prefs.getString('perch.sticky.priority') ?? widget.data.nextDue.title;
-      _captures = prefs.getStringList('perch.brain.captures') ?? <String>[];
+      _priority = priority;
+      _captures = captures;
       _loaded = true;
     });
-  }
 
-  Future<void> _setBool(String key, bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(key, value);
-  }
-
-  Future<void> _capture() async {
-    final value = await _textDialog(
-      title: 'Quick Capture',
-      initial: '',
-      hint: 'What do you need to remember?',
+    _publish(
+      PerchEventTypes.priorityChanged,
+      'desk.persistence',
+      {'text': priority},
     );
-    if (value == null || value.isEmpty) return;
-    final updated = <String>[value, ..._captures];
+    _publish(
+      PerchEventTypes.deskAmbienceChanged,
+      'desk.persistence',
+      {'lanternOn': lanternOn, 'steamOn': steamOn},
+    );
+    _publish(
+      PerchEventTypes.plantStageChanged,
+      'desk.persistence',
+      {'stage': plantStage},
+    );
+    for (final capture in captures.reversed) {
+      _publish(
+        PerchEventTypes.quickCaptureAdded,
+        'desk.persistence',
+        {'text': capture},
+      );
+    }
+  }
+
+  void _activate(String id) {
+    _publish(
+      PerchEventTypes.deskObjectActivated,
+      'desk.$id',
+      {'id': id},
+    );
+  }
+
+  Future<void> _openCapture() async {
+    _activate('pen');
+    final controller = TextEditingController();
+    final value = await showDeskObjectSheet<String>(
+      context: context,
+      semanticsLabel: 'Quick Capture',
+      initialChildSize: .52,
+      minChildSize: .34,
+      maxChildSize: .82,
+      builder: (sheetContext) => DeskObjectSheetBody(
+        eyebrow: 'Pen',
+        title: 'Quick Capture',
+        trailing: IconButton(
+          tooltip: 'Return to desk',
+          onPressed: () => Navigator.pop(sheetContext),
+          icon: const Icon(Icons.keyboard_arrow_down),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              'Put the thought down now. Perch can organize it later.',
+              style: TextStyle(color: Color(0xFF6F5A46), height: 1.35),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              autofocus: true,
+              minLines: 4,
+              maxLines: 8,
+              textInputAction: TextInputAction.newline,
+              decoration: const InputDecoration(
+                hintText: 'What do you need to remember?',
+                filled: true,
+                fillColor: Color(0xCCFFFFFF),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 14),
+            FilledButton.icon(
+              onPressed: () {
+                final text = controller.text.trim();
+                if (text.isNotEmpty) Navigator.pop(sheetContext, text);
+              },
+              icon: const Icon(Icons.save_outlined),
+              label: const Text('Save capture'),
+            ),
+            if (_captures.isNotEmpty) ...[
+              const SizedBox(height: 22),
+              const Text(
+                'Recent captures',
+                style: TextStyle(fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 8),
+              ..._captures.take(3).map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 7),
+                      child: Text('• $item'),
+                    ),
+                  ),
+            ],
+          ],
+        ),
+      ),
+    );
+    controller.dispose();
+
+    if (value == null || value.isEmpty || !mounted) return;
+    final updated = <String>[value, ..._captures.where((item) => item != value)];
     setState(() => _captures = updated);
+    _publish(
+      PerchEventTypes.quickCaptureAdded,
+      'desk.pen',
+      {'text': value},
+    );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList('perch.brain.captures', updated);
   }
 
-  Future<void> _editPriority() async {
-    final value = await _textDialog(
-      title: 'Desk Priority',
-      initial: _priority,
-      hint: 'One thing that matters most',
+  Future<void> _openPriority() async {
+    _activate('sticky_note');
+    final controller = TextEditingController(text: _priority);
+    final value = await showDeskObjectSheet<String>(
+      context: context,
+      semanticsLabel: 'Desk Priority',
+      style: DeskObjectSheetStyle.stickyNote,
+      initialChildSize: .48,
+      minChildSize: .30,
+      maxChildSize: .76,
+      builder: (sheetContext) => DeskObjectSheetBody(
+        eyebrow: 'Sticky note',
+        title: 'The one thing that matters most',
+        trailing: IconButton(
+          tooltip: 'Return to desk',
+          onPressed: () => Navigator.pop(sheetContext),
+          icon: const Icon(Icons.keyboard_arrow_down),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TextField(
+              controller: controller,
+              autofocus: true,
+              minLines: 3,
+              maxLines: 5,
+              style: const TextStyle(
+                color: Color(0xFF463719),
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
+                fontStyle: FontStyle.italic,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'One clear priority',
+                filled: true,
+                fillColor: Color(0x44FFFFFF),
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 14),
+            FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF755A20),
+                foregroundColor: const Color(0xFFFFF1B8),
+              ),
+              onPressed: () {
+                final text = controller.text.trim();
+                if (text.isNotEmpty) Navigator.pop(sheetContext, text);
+              },
+              icon: const Icon(Icons.push_pin_outlined),
+              label: const Text('Place on desk'),
+            ),
+          ],
+        ),
+      ),
     );
-    if (value == null || value.isEmpty) return;
+    controller.dispose();
+
+    if (value == null || value.isEmpty || !mounted) return;
     setState(() => _priority = value);
+    _publish(
+      PerchEventTypes.priorityChanged,
+      'desk.sticky_note',
+      {'text': value},
+    );
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('perch.sticky.priority', value);
   }
 
-  Future<String?> _textDialog({
-    required String title,
-    required String initial,
-    required String hint,
-  }) async {
-    final controller = TextEditingController(text: initial);
-    final result = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: TextField(
-          controller: controller,
-          autofocus: true,
-          minLines: 2,
-          maxLines: 5,
-          decoration: InputDecoration(hintText: hint, border: const OutlineInputBorder()),
+  Future<void> _openEmail() async {
+    _activate('envelope');
+    final now = DateTime.now();
+    final ranked = const EmailIntelligence().rank(
+      [
+        EmailSignal(
+          id: 'shift',
+          sender: 'Work',
+          subject: 'Response needed before your next shift',
+          preview: 'Please confirm the updated assignment.',
+          receivedAt: now.subtract(const Duration(hours: 2)),
+          senderImportance: .95,
+          hasDeadlineLanguage: true,
+          hasQuestion: true,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Save'),
-          ),
-        ],
-      ),
+        EmailSignal(
+          id: 'perch',
+          sender: 'Perch Project',
+          subject: 'Development notes ready to review',
+          preview: 'The next Perch changes are ready.',
+          receivedAt: now.subtract(const Duration(hours: 8)),
+          senderImportance: .7,
+          hasAttachment: true,
+        ),
+      ],
+      now: now,
     );
-    controller.dispose();
-    return result;
+    if (!mounted) return;
+    await showEmailWorkspace(context, assessments: ranked);
   }
 
-  Future<void> _money() async {
-    await showDialog<void>(
+  Future<void> _openToday() async {
+    _activate('today');
+    final contextSnapshot = PerchContextSnapshot(
+      capturedAt: DateTime.now(),
+      lifeMode: 'home',
+      energy: .65,
+      availableMinutes: 45,
+      unreadImportantEmailCount: 1,
+      activeProjectIds: const ['perch'],
+      calendarPressure: .35,
+      financialPressure: .45,
+    );
+    final recommendations = <PerchRecommendation>[
+      PerchRecommendation(
+        id: 'priority',
+        title: _priority,
+        reason: 'This is the priority currently placed on your desk.',
+        actionLabel: _taskDone ? 'Choose the next priority' : 'Start here',
+        priority: _taskDone ? .35 : .9,
+        source: 'sticky_note',
+      ),
+      if (_captures.isNotEmpty)
+        PerchRecommendation(
+          id: 'capture',
+          title: _captures.first,
+          reason: 'This was your most recent quick capture.',
+          actionLabel: 'Review capture',
+          priority: .6,
+          source: 'memory',
+        ),
+    ];
+    final brief = const DailyBriefEngine().build(
+      context: contextSnapshot,
+      facts: [
+        widget.data.dayStatus,
+        '${_captures.length} recent capture${_captures.length == 1 ? '' : 's'}',
+        _taskDone ? 'Primary task completed' : 'Primary task still open',
+      ],
+      recommendations: recommendations,
+    );
+
+    await showDeskObjectSheet<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Money'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+      semanticsLabel: 'Today brief',
+      initialChildSize: .68,
+      minChildSize: .34,
+      maxChildSize: .94,
+      builder: (sheetContext) => DeskObjectSheetBody(
+        eyebrow: 'Journal',
+        title: 'Today',
+        trailing: IconButton(
+          tooltip: 'Return to desk',
+          onPressed: () => Navigator.pop(sheetContext),
+          icon: const Icon(Icons.keyboard_arrow_down),
+        ),
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.data.money.availableText,
-                style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text(widget.data.money.safeThroughText),
-            const Divider(height: 28),
-            Text('Next due', style: Theme.of(context).textTheme.labelLarge),
-            Text(widget.data.nextDue.title),
-            Text(widget.data.nextDue.actionLabel),
-          ],
-        ),
-        actions: [
-          FilledButton(onPressed: () => Navigator.pop(context), child: const Text('Done')),
-        ],
-      ),
-    );
-  }
-
-  void _today() {
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Today', style: Theme.of(context).textTheme.headlineSmall),
-              Text(widget.data.dayStatus),
-              const SizedBox(height: 10),
-              CheckboxListTile(
+            Text(brief.opening, style: const TextStyle(fontSize: 16, height: 1.4)),
+            const SizedBox(height: 16),
+            ...brief.facts.map(
+              (fact) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('•  '),
+                    Expanded(child: Text(fact)),
+                  ],
+                ),
+              ),
+            ),
+            if (brief.recommendation != null) ...[
+              const Divider(height: 28),
+              Text(
+                brief.recommendation!.title,
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 5),
+              Text(brief.recommendation!.reason),
+              const SizedBox(height: 8),
+              Text(
+                brief.recommendation!.actionLabel,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ],
+            const Divider(height: 30),
+            StatefulBuilder(
+              builder: (context, setSheetState) => CheckboxListTile(
                 contentPadding: EdgeInsets.zero,
                 value: _taskDone,
                 title: Text(widget.data.nextDue.title),
                 subtitle: Text(widget.data.nextDue.actionLabel),
-                onChanged: (_) async {
-                  Navigator.pop(context);
-                  setState(() => _taskDone = !_taskDone);
-                  await _setBool('perch.task.done', _taskDone);
+                onChanged: (value) async {
+                  final next = value ?? false;
+                  setSheetState(() {});
+                  if (mounted) setState(() => _taskDone = next);
+                  _publish(
+                    PerchEventTypes.taskCompletionChanged,
+                    'desk.today',
+                    {'completed': next, 'taskId': 'next_due'},
+                  );
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.setBool('perch.task.done', next);
                 },
               ),
-              if (_captures.isNotEmpty) ...[
-                const Divider(),
-                Text('Recent captures', style: Theme.of(context).textTheme.titleSmall),
-                ..._captures.take(4).map((item) => Text('• $item')),
-              ],
+            ),
+            if (_captures.isNotEmpty) ...[
+              const Divider(height: 26),
+              const Text('Recent captures', style: TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              ..._captures.take(4).map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Text('• $item'),
+                    ),
+                  ),
             ],
-          ),
+          ],
         ),
       ),
     );
-  }
-
-  Future<void> _advancePlant() async {
-    final next = (_plantStage + 1) % 4;
-    setState(() => _plantStage = next);
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('perch.plant.stage', next);
   }
 
   @override
   Widget build(BuildContext context) {
     if (!_loaded) return const SizedBox.shrink();
-    return LayoutBuilder(
-      builder: (context, box) {
-        final portrait = box.maxHeight >= box.maxWidth;
-        return IgnorePointer(
-          ignoring: widget.journalFocused,
-          child: AnimatedOpacity(
-            duration: const Duration(milliseconds: 220),
-            opacity: widget.journalFocused ? 0 : 1,
-            child: Stack(
+
+    return IgnorePointer(
+      ignoring: widget.journalFocused,
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 220),
+        opacity: widget.journalFocused ? 0 : 1,
+        child: LayoutBuilder(
+          builder: (context, box) {
+            final portrait = box.maxHeight >= box.maxWidth;
+            return Stack(
               fit: StackFit.expand,
               children: [
-                _place(box, portrait ? .06 : .05, portrait ? .66 : .63,
-                    portrait ? .19 : .11,
-                    _TapObject(label: 'Coffee', onTap: () async {
-                      setState(() => _steamOn = !_steamOn);
-                      await _setBool('perch.coffee.steam', _steamOn);
-                    }, child: _Coffee(steam: _steamOn, animation: _steam))),
-                _place(box, portrait ? .77 : .84, portrait ? .70 : .67,
-                    portrait ? .15 : .09,
-                    _TapObject(label: 'Quick Capture', onTap: _capture,
-                        child: const _IconObject(icon: Icons.edit, label: 'Pen'))),
-                _place(box, portrait ? .72 : .78, portrait ? .50 : .47,
-                    portrait ? .22 : .13,
-                    _TapObject(label: 'Money', onTap: _money,
-                        child: const _IconObject(icon: Icons.mail_outline, label: 'Envelope'))),
-                _place(box, portrait ? .05 : .06, portrait ? .49 : .45,
-                    portrait ? .27 : .16,
-                    _TapObject(label: 'Priority', onTap: _editPriority,
-                        child: _Sticky(text: _priority))),
-                _place(box, portrait ? .08 : .10, portrait ? .24 : .17,
-                    portrait ? .18 : .10,
-                    _TapObject(label: 'Plant', onTap: _advancePlant,
-                        child: _Plant(stage: _plantStage))),
-                _place(box, portrait ? .79 : .85, portrait ? .23 : .17,
-                    portrait ? .15 : .09,
-                    _TapObject(label: 'Lantern', onTap: () async {
-                      setState(() => _lanternOn = !_lanternOn);
-                      await _setBool('perch.lantern.on', _lanternOn);
-                    }, child: _Lantern(on: _lanternOn))),
+                _hitTarget(
+                  box,
+                  id: 'pen',
+                  label: 'Open quick capture',
+                  x: portrait ? .70 : .79,
+                  y: portrait ? .61 : .59,
+                  width: portrait ? .28 : .18,
+                  height: portrait ? .21 : .27,
+                  onTap: _openCapture,
+                ),
+                _hitTarget(
+                  box,
+                  id: 'envelope',
+                  label: 'Open Email Intelligence',
+                  x: portrait ? .64 : .71,
+                  y: portrait ? .40 : .39,
+                  width: portrait ? .35 : .25,
+                  height: portrait ? .24 : .25,
+                  onTap: _openEmail,
+                ),
+                _hitTarget(
+                  box,
+                  id: 'sticky_note',
+                  label: 'Open desk priority',
+                  x: portrait ? .01 : .025,
+                  y: portrait ? .39 : .37,
+                  width: portrait ? .38 : .25,
+                  height: portrait ? .28 : .30,
+                  onTap: _openPriority,
+                ),
                 Positioned(
                   top: 14,
                   right: 14,
@@ -240,36 +459,34 @@ class _DeskFunctionalityLayerState extends State<DeskFunctionalityLayer>
                     child: _TodayButton(
                       done: _taskDone,
                       captures: _captures.length,
-                      onTap: _today,
+                      onTap: _openToday,
                     ),
                   ),
                 ),
               ],
-            ),
-          ),
-        );
-      },
+            );
+          },
+        ),
+      ),
     );
   }
 
-  Widget _place(BoxConstraints box, double x, double y, double w, Widget child) {
+  Widget _hitTarget(
+    BoxConstraints box, {
+    required String id,
+    required String label,
+    required double x,
+    required double y,
+    required double width,
+    required double height,
+    required VoidCallback onTap,
+  }) {
     return Positioned(
       left: box.maxWidth * x,
       top: box.maxHeight * y,
-      width: box.maxWidth * w,
-      child: child,
-    );
-  }
-}
-
-class _TapObject extends StatelessWidget {
-  const _TapObject({required this.label, required this.onTap, required this.child});
-  final String label;
-  final VoidCallback onTap;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
+      width: box.maxWidth * width,
+      height: box.maxHeight * height,
+      child: Semantics(
         button: true,
         label: label,
         child: Tooltip(
@@ -277,161 +494,75 @@ class _TapObject extends StatelessWidget {
           child: MouseRegion(
             cursor: SystemMouseCursors.click,
             child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+              key: ValueKey('desk-hit-$id'),
+              behavior: HitTestBehavior.translucent,
               onTap: onTap,
-              child: child,
+              child: const SizedBox.expand(),
             ),
           ),
         ),
-      );
-}
-
-class _IconObject extends StatelessWidget {
-  const _IconObject({required this.icon, required this.label});
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => AspectRatio(
-        aspectRatio: 1.3,
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF6C4B35).withOpacity(.92),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.white24),
-            boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 10, offset: Offset(0, 6))],
-          ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Icon(icon, color: const Color(0xFFF5E5C7), size: 28),
-              Text(label, style: const TextStyle(color: Color(0xFFF5E5C7))),
-            ]),
-          ),
-        ),
-      );
-}
-
-class _Coffee extends StatelessWidget {
-  const _Coffee({required this.steam, required this.animation});
-  final bool steam;
-  final AnimationController animation;
-
-  @override
-  Widget build(BuildContext context) => AspectRatio(
-        aspectRatio: .9,
-        child: Stack(alignment: Alignment.bottomCenter, children: [
-          const Icon(Icons.coffee, size: 52, color: Color(0xFFF3E7D0)),
-          if (steam)
-            Positioned(
-              top: 0,
-              child: AnimatedBuilder(
-                animation: animation,
-                builder: (_, __) => Opacity(
-                  opacity: (1 - animation.value).clamp(0.0, 1.0),
-                  child: Transform.translate(
-                    offset: Offset(5 * (animation.value - .5), -20 * animation.value),
-                    child: const Icon(Icons.air, color: Colors.white70, size: 29),
-                  ),
-                ),
-              ),
-            ),
-        ]),
-      );
-}
-
-class _Sticky extends StatelessWidget {
-  const _Sticky({required this.text});
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Transform.rotate(
-        angle: -.035,
-        child: AspectRatio(
-          aspectRatio: 1.15,
-          child: Container(
-            padding: const EdgeInsets.all(9),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF2D77D),
-              borderRadius: BorderRadius.circular(3),
-              boxShadow: const [BoxShadow(color: Colors.black38, blurRadius: 9, offset: Offset(2, 6))],
-            ),
-            child: Center(
-              child: Text(text, maxLines: 4, overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(color: Color(0xFF4A3A23), fontWeight: FontWeight.w700, fontSize: 12)),
-            ),
-          ),
-        ),
-      );
-}
-
-class _Plant extends StatelessWidget {
-  const _Plant({required this.stage});
-  final int stage;
-
-  @override
-  Widget build(BuildContext context) {
-    const icons = [Icons.grass, Icons.eco, Icons.local_florist, Icons.park];
-    const labels = ['Seed', 'Sprout', 'Small', 'Mature'];
-    return Container(
-      padding: const EdgeInsets.all(7),
-      decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(14)),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Icon(icons[stage], color: const Color(0xFFB8D48B), size: 42),
-        Text(labels[stage], style: const TextStyle(color: Colors.white, fontSize: 10)),
-      ]),
+      ),
     );
   }
 }
 
-class _Lantern extends StatelessWidget {
-  const _Lantern({required this.on});
-  final bool on;
-
-  @override
-  Widget build(BuildContext context) => AnimatedContainer(
-        duration: const Duration(milliseconds: 260),
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: on ? const Color(0xFFFFC85B).withOpacity(.35) : Colors.black26,
-          boxShadow: on
-              ? const [BoxShadow(color: Color(0xAAFFB44A), blurRadius: 26, spreadRadius: 7)]
-              : null,
-        ),
-        child: Icon(on ? Icons.lightbulb : Icons.lightbulb_outline,
-            color: on ? const Color(0xFFFFE29A) : const Color(0xFFBBAE99), size: 38),
-      );
-}
-
 class _TodayButton extends StatelessWidget {
-  const _TodayButton({required this.done, required this.captures, required this.onTap});
+  const _TodayButton({
+    required this.done,
+    required this.captures,
+    required this.onTap,
+  });
+
   final bool done;
   final int captures;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => MouseRegion(
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: 'Open Today brief',
+      child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
           onTap: onTap,
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 9),
             decoration: BoxDecoration(
-              color: const Color(0xFF17110D).withOpacity(.82),
+              color: const Color(0xFF17110D).withValues(alpha: .82),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Colors.white24),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x44000000),
+                  blurRadius: 12,
+                  offset: Offset(0, 5),
+                ),
+              ],
             ),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Icon(done ? Icons.check_circle : Icons.radio_button_unchecked,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  done ? Icons.check_circle : Icons.radio_button_unchecked,
                   size: 17,
-                  color: done ? Colors.lightGreenAccent : const Color(0xFFF5E5C7)),
-              const SizedBox(width: 6),
-              Text(captures == 0 ? 'Today' : 'Today · $captures',
-                  style: const TextStyle(color: Color(0xFFF5E5C7), fontWeight: FontWeight.w700)),
-            ]),
+                  color: done
+                      ? Colors.lightGreenAccent
+                      : const Color(0xFFF5E5C7),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  captures == 0 ? 'Today' : 'Today · $captures',
+                  style: const TextStyle(
+                    color: Color(0xFFF5E5C7),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      );
+      ),
+    );
+  }
 }
