@@ -88,4 +88,32 @@ void main() {
     await tester.pump(const Duration(milliseconds: 20));
     expect(find.text('quiet'), findsOneWidget);
   });
+
+  testWidgets('does not enter quiet mode while the app is hidden', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AmbientQuietView(
+          settleDelay: const Duration(milliseconds: 100),
+          builder: (context, quiet) => Center(
+            child: Text(quiet ? 'quiet' : 'working'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump(const Duration(milliseconds: 60));
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.hidden);
+    await tester.pump(const Duration(milliseconds: 100));
+
+    expect(find.text('working'), findsOneWidget);
+
+    tester.binding.handleAppLifecycleStateChanged(AppLifecycleState.resumed);
+    await tester.pump(const Duration(milliseconds: 99));
+    expect(find.text('working'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 1));
+    expect(find.text('quiet'), findsOneWidget);
+  });
 }
