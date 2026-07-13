@@ -86,6 +86,40 @@ void main() {
     expect(frame!.lantern.value, .5);
   });
 
+  testWidgets('zero-strength channels stay parked without hidden ticking', (
+    tester,
+  ) async {
+    AmbientMotionFrame? frame;
+    const profile = AmbientMotionProfile(
+      weather: 0,
+      plantSway: 0,
+      steamDrift: 0,
+      lanternPulse: 0,
+      plantPeriod: Duration(milliseconds: 1200),
+      steamPeriod: Duration(milliseconds: 1200),
+      lanternPeriod: Duration(milliseconds: 1200),
+      continuousMotionEnabled: true,
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AmbientMotionDriver(
+          profile: profile,
+          builder: (context, value) {
+            frame = value;
+            return const SizedBox();
+          },
+        ),
+      ),
+    );
+
+    await tester.pump(const Duration(milliseconds: 800));
+
+    expect(frame!.plant.value, .5);
+    expect(frame!.steam.value, 0);
+    expect(frame!.lantern.value, .5);
+  });
+
   testWidgets('backgrounding pauses motion and resuming restarts it', (
     tester,
   ) async {
