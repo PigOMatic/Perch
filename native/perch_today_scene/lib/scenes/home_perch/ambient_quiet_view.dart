@@ -23,13 +23,15 @@ class AmbientQuietView extends StatefulWidget {
   State<AmbientQuietView> createState() => _AmbientQuietViewState();
 }
 
-class _AmbientQuietViewState extends State<AmbientQuietView> {
+class _AmbientQuietViewState extends State<AmbientQuietView>
+    with WidgetsBindingObserver {
   Timer? _settleTimer;
   bool _quiet = false;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _armQuietTimer();
   }
 
@@ -38,6 +40,17 @@ class _AmbientQuietViewState extends State<AmbientQuietView> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.settleDelay != widget.settleDelay) {
       _registerActivity();
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _registerActivity();
+    } else if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      _settleTimer?.cancel();
     }
   }
 
@@ -53,6 +66,7 @@ class _AmbientQuietViewState extends State<AmbientQuietView> {
   }
 
   void _registerActivity() {
+    if (!mounted) return;
     _armQuietTimer();
     if (!_quiet) return;
     setState(() => _quiet = false);
@@ -61,6 +75,7 @@ class _AmbientQuietViewState extends State<AmbientQuietView> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _settleTimer?.cancel();
     super.dispose();
   }
@@ -73,10 +88,15 @@ class _AmbientQuietViewState extends State<AmbientQuietView> {
       child: Listener(
         behavior: HitTestBehavior.translucent,
         onPointerDown: (_) => _registerActivity(),
+        onPointerMove: (_) => _registerActivity(),
         onPointerSignal: (_) => _registerActivity(),
         child: Focus(
           onFocusChange: (focused) {
             if (focused) _registerActivity();
+          },
+          onKeyEvent: (_, __) {
+            _registerActivity();
+            return KeyEventResult.ignored;
           },
           child: widget.builder(context, _quiet),
         ),
