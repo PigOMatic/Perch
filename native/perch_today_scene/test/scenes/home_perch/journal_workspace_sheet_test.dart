@@ -30,11 +30,27 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('open-journal-workspace')));
     await tester.pumpAndSettle();
 
+    final journalPage = find.byKey(const ValueKey('ruled-journal-page'));
     expect(find.byKey(const ValueKey('desk-object-sheet')), findsOneWidget);
-    expect(find.byKey(const ValueKey('ruled-journal-page')), findsOneWidget);
-    expect(find.text('Today'), findsOneWidget);
-    expect(find.text('WHAT MATTERS NEXT'), findsOneWidget);
-    expect(find.text(demoTodayData.nextDue.title), findsOneWidget);
+    expect(journalPage, findsOneWidget);
+    expect(
+      find.descendant(of: journalPage, matching: find.text('Today')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: journalPage,
+        matching: find.text('WHAT MATTERS NEXT'),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: journalPage,
+        matching: find.text(demoTodayData.nextDue.title),
+      ),
+      findsOneWidget,
+    );
 
     final sheetSize = tester.getSize(
       find.byKey(const ValueKey('desk-object-sheet')),
