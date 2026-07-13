@@ -62,6 +62,35 @@ void main() {
     expect(find.text('quiet'), findsOneWidget);
   });
 
+  testWidgets('passive pointer movement keeps the scene awake', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AmbientQuietView(
+          settleDelay: const Duration(milliseconds: 100),
+          builder: (context, quiet) => SizedBox.expand(
+            child: Center(child: Text(quiet ? 'quiet' : 'working')),
+          ),
+        ),
+      ),
+    );
+
+    final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await gesture.addPointer(location: const Offset(20, 20));
+    await tester.pump();
+
+    await tester.pump(const Duration(milliseconds: 80));
+    await gesture.moveTo(const Offset(40, 40));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+
+    expect(find.text('working'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 20));
+    expect(find.text('quiet'), findsOneWidget);
+
+    await gesture.removePointer();
+  });
+
   testWidgets('keyboard input keeps an active workspace awake', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
