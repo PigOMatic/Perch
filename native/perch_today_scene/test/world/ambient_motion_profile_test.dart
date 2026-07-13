@@ -35,6 +35,8 @@ void main() {
     expect(wind.weather, greaterThan(rain.weather));
     expect(wind.plantSway, greaterThan(rain.plantSway));
     expect(wind.steamDrift, greaterThan(rain.steamDrift));
+    expect(wind.plantPeriod, lessThan(rain.plantPeriod));
+    expect(wind.steamPeriod, lessThan(rain.steamPeriod));
   });
 
   test('clear summer midday keeps coffee still and plant nearly still', () {
@@ -45,6 +47,7 @@ void main() {
     expect(profile.plantSway, lessThan(0.1));
     expect(profile.lanternPulse, 0);
     expect(profile.continuousMotionEnabled, isTrue);
+    expect(profile.plantPeriod, greaterThan(const Duration(seconds: 7)));
   });
 
   test('dark weather evening gives the lantern a restrained pulse', () {
@@ -57,6 +60,7 @@ void main() {
 
     expect(profile.lanternPulse, greaterThan(0));
     expect(profile.lanternPulse, lessThan(0.25));
+    expect(profile.lanternPeriod, greaterThan(const Duration(seconds: 5)));
   });
 
   test('reduced motion disables continuous decorative movement', () {
@@ -73,5 +77,8 @@ void main() {
     expect(profile.weather, lessThanOrEqualTo(0.08));
     expect(profile.steamDrift, lessThanOrEqualTo(0.12));
     expect(profile.lanternPulse, lessThanOrEqualTo(0.08));
+    expect(profile.plantPeriod, Duration.zero);
+    expect(profile.steamPeriod, Duration.zero);
+    expect(profile.lanternPeriod, Duration.zero);
   });
 }
