@@ -42,14 +42,18 @@ class AmbientMotionDriver extends StatefulWidget {
 }
 
 class _AmbientMotionDriverState extends State<AmbientMotionDriver>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, WidgetsBindingObserver {
   late final AnimationController _plantController;
   late final AnimationController _steamController;
   late final AnimationController _lanternController;
+  bool _appIsActive = true;
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    final lifecycleState = WidgetsBinding.instance.lifecycleState;
+    _appIsActive = lifecycleState == null || lifecycleState == AppLifecycleState.resumed;
     _plantController = AnimationController(vsync: this);
     _steamController = AnimationController(vsync: this);
     _lanternController = AnimationController(vsync: this);
@@ -61,6 +65,19 @@ class _AmbientMotionDriverState extends State<AmbientMotionDriver>
     super.didUpdateWidget(oldWidget);
     if (!_sameControllerPlan(oldWidget.profile, widget.profile)) {
       _applyProfile(widget.profile);
+    }
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    final appIsActive = state == AppLifecycleState.resumed;
+    if (_appIsActive == appIsActive) return;
+    _appIsActive = appIsActive;
+
+    if (_appIsActive) {
+      _applyProfile(widget.profile);
+    } else {
+      _stopControllers();
     }
   }
 
@@ -109,12 +126,23 @@ class _AmbientMotionDriverState extends State<AmbientMotionDriver>
     controller.stop();
     controller.duration = period == Duration.zero ? null : period;
 
-    if (!enabled || period == Duration.zero) {
-      controller.value = restingValue;
+    if (!_appIsActive || !enabled || period == Duration.zero) {
+      if (profileRequiresRestingFrame(widget.profile)) {
+        controller.value = restingValue;
+      }
       return;
     }
 
     controller.repeat(reverse: reverse);
+  }
+
+  bool profileRequiresRestingFrame(AmbientMotionProfile profile) =>
+      !profile.continuousMotionEnabled;
+
+  void _stopControllers() {
+    _plantController.stop();
+    _steamController.stop();
+    _lanternController.stop();
   }
 
   @override
@@ -131,6 +159,7 @@ class _AmbientMotionDriverState extends State<AmbientMotionDriver>
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _plantController.dispose();
     _steamController.dispose();
     _lanternController.dispose();
