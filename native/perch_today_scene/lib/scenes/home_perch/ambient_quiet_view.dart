@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
 /// Detects inactivity around the Perch scene and exposes a calm presentation
@@ -29,7 +30,7 @@ class _AmbientQuietViewState extends State<AmbientQuietView>
 
   Timer? _settleTimer;
   bool _quiet = false;
-  DateTime? _lastPassiveActivity;
+  Duration? _lastPassiveActivity;
 
   Duration get _passiveActivityInterval {
     final quarterDelay = Duration(
@@ -39,6 +40,8 @@ class _AmbientQuietViewState extends State<AmbientQuietView>
         ? quarterDelay
         : _maxPassiveActivityInterval;
   }
+
+  Duration get _frameTime => SchedulerBinding.instance.currentSystemFrameTimeStamp;
 
   @override
   void initState() {
@@ -83,7 +86,7 @@ class _AmbientQuietViewState extends State<AmbientQuietView>
 
   void _registerActivity() {
     if (!mounted) return;
-    _lastPassiveActivity = DateTime.now();
+    _lastPassiveActivity = _frameTime;
     _armQuietTimer();
     if (!_quiet) return;
     setState(() => _quiet = false);
@@ -103,9 +106,9 @@ class _AmbientQuietViewState extends State<AmbientQuietView>
       return;
     }
 
-    final now = DateTime.now();
+    final now = _frameTime;
     final last = _lastPassiveActivity;
-    if (last != null && now.difference(last) < _passiveActivityInterval) return;
+    if (last != null && now - last < _passiveActivityInterval) return;
 
     _lastPassiveActivity = now;
     _armQuietTimer();
