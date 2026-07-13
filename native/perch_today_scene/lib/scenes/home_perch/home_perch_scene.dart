@@ -88,6 +88,8 @@ class _HomePerchSceneState extends State<HomePerchScene> {
     final backgroundAsset = _backgroundForWorldState();
     final lanternOn =
         brain.state.lanternOn || widget.worldState.shouldAutoIlluminateLantern;
+    final steamOn =
+        brain.state.steamOn && widget.worldState.shouldSteamCoffee;
 
     return AmbientQuietView(
       builder: (context, quietRequested) {
@@ -181,7 +183,7 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                 RealisticDeskOverlay(
                   journalFocused: journalFocused,
                   lanternOn: lanternOn,
-                  steamOn: brain.state.steamOn,
+                  steamOn: steamOn,
                   plantStage: brain.state.plantStage,
                   priority: brain.state.priority.isEmpty
                       ? widget.data.nextDue.title
@@ -408,17 +410,23 @@ class _AmbientWeatherOverlay extends StatelessWidget {
     };
 
     return IgnorePointer(
-      child: AnimatedContainer(
+      child: AnimatedOpacity(
+        key: const ValueKey('weather-motion-overlay'),
         duration: const Duration(milliseconds: 800),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              color,
-              Colors.transparent,
-              color.withValues(alpha: 0.4),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+        curve: Curves.easeInOutCubic,
+        opacity: worldState.weatherMotionIntensity,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 800),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                color,
+                Colors.transparent,
+                color.withValues(alpha: 0.4),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
           ),
         ),
       ),
