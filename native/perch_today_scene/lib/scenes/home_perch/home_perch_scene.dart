@@ -12,6 +12,7 @@ import '../../world/perch_world_state.dart';
 import 'ambient_quiet_view.dart';
 import 'desk_functionality_layer.dart';
 import 'journal_engine.dart';
+import 'journal_workspace_panel.dart';
 import 'realistic_desk_overlay.dart';
 
 class HomePerchScene extends StatefulWidget {
@@ -42,6 +43,18 @@ class _HomePerchSceneState extends State<HomePerchScene> {
         source: 'home_perch.journal',
       ),
     );
+  }
+
+  Future<void> _openJournalWorkspace() async {
+    final brain = PerchBrainScope.read(context);
+    brain.publish(
+      const PerchEvent(
+        type: PerchEventTypes.deskObjectActivated,
+        source: 'home_perch.journal',
+        payload: {'id': 'journal'},
+      ),
+    );
+    await showJournalWorkspace(context, data: widget.data);
   }
 
   String _backgroundForWorldState() {
@@ -87,16 +100,18 @@ class _HomePerchSceneState extends State<HomePerchScene> {
             final availableWidth = math.max(0.0, size.width - 24);
 
             final desiredCompactWidth = math.max(
-              280.0,
-              size.width * (portrait ? 0.90 : 0.78),
+              300.0,
+              size.width * (portrait ? 0.94 : 0.66),
             );
             final compactWidth = math.min(
               availableWidth,
-              math.min(720.0, desiredCompactWidth),
+              math.min(980.0, desiredCompactWidth),
             );
             final compactHeight = compactWidth / _journalAspectRatio;
-
-            final compactBottom = math.max(18.0, size.height * 0.055);
+            final compactBottom = math.max(
+              portrait ? 26.0 : 18.0,
+              size.height * (portrait ? 0.065 : 0.045),
+            );
             final compactTop = math.max(
               12.0,
               size.height - compactHeight - compactBottom,
@@ -144,6 +159,7 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                     ),
                   ),
                 ),
+                const _DeskForegroundShade(),
                 _AmbientWeatherOverlay(worldState: widget.worldState),
                 _LanternRoomGlow(
                   illuminated: lanternOn,
@@ -198,58 +214,63 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                   top: journalFocused ? focusedTop : compactTop,
                   width: journalFocused ? focusedWidth : compactWidth,
                   height: journalFocused ? focusedHeight : compactHeight,
-                  child: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: journalFocused
-                        ? null
-                        : () => _setJournalFocused(true),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 560),
-                      curve: Curves.easeInOutCubicEmphasized,
-                      transform: journalFocused
-                          ? Matrix4.identity()
-                          : (Matrix4.identity()..rotateZ(-0.008)),
-                      transformAlignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(
-                          journalFocused ? 18 : 12,
+                  child: Semantics(
+                    button: !journalFocused,
+                    label: journalFocused
+                        ? 'Open journal'
+                        : 'Open journal workspace',
+                    child: GestureDetector(
+                      key: const ValueKey('desk-journal'),
+                      behavior: HitTestBehavior.opaque,
+                      onTap: journalFocused ? null : _openJournalWorkspace,
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 560),
+                        curve: Curves.easeInOutCubicEmphasized,
+                        transform: journalFocused
+                            ? Matrix4.identity()
+                            : (Matrix4.identity()..rotateZ(-0.004)),
+                        transformAlignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(
+                            journalFocused ? 18 : 12,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(
+                                alpha: journalFocused ? 0.55 : 0.52,
+                              ),
+                              blurRadius: journalFocused ? 46 : 30,
+                              spreadRadius: journalFocused ? 6 : 2,
+                              offset: Offset(0, journalFocused ? 22 : 18),
+                            ),
+                          ],
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(
-                              alpha: journalFocused ? 0.55 : 0.42,
-                            ),
-                            blurRadius: journalFocused ? 46 : 24,
-                            spreadRadius: journalFocused ? 6 : 1,
-                            offset: Offset(0, journalFocused ? 22 : 12),
-                          ),
-                        ],
-                      ),
-                      child: Stack(
-                        fit: StackFit.expand,
-                        children: [
-                          PerchAssetLayer(
-                            assetPath: HomePerchAssets.journalOpenToday,
-                            fit: BoxFit.contain,
-                            alignment: Alignment.center,
-                            fallback: const _BackgroundMissingFallback(
+                        child: Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            PerchAssetLayer(
                               assetPath: HomePerchAssets.journalOpenToday,
-                            ),
-                          ),
-                          IgnorePointer(
-                            ignoring: quiet,
-                            child: AnimatedOpacity(
-                              key: const ValueKey('journal-live-content'),
-                              duration: const Duration(milliseconds: 850),
-                              curve: Curves.easeOutCubic,
-                              opacity: quiet ? 0 : 1,
-                              child: JournalEngine(
-                                data: widget.data,
-                                focused: journalFocused,
+                              fit: BoxFit.contain,
+                              alignment: Alignment.center,
+                              fallback: const _BackgroundMissingFallback(
+                                assetPath: HomePerchAssets.journalOpenToday,
                               ),
                             ),
-                          ),
-                        ],
+                            IgnorePointer(
+                              ignoring: quiet || !journalFocused,
+                              child: AnimatedOpacity(
+                                key: const ValueKey('journal-live-content'),
+                                duration: const Duration(milliseconds: 420),
+                                curve: Curves.easeOutCubic,
+                                opacity: journalFocused && !quiet ? 1 : 0,
+                                child: JournalEngine(
+                                  data: widget.data,
+                                  focused: journalFocused,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -302,6 +323,30 @@ class _HomePerchSceneState extends State<HomePerchScene> {
           },
         );
       },
+    );
+  }
+}
+
+class _DeskForegroundShade extends StatelessWidget {
+  const _DeskForegroundShade();
+
+  @override
+  Widget build(BuildContext context) {
+    return const IgnorePointer(
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Color(0x08000000),
+              Color(0x24000000),
+            ],
+            stops: [0.48, 0.72, 1],
+          ),
+        ),
+      ),
     );
   }
 }
