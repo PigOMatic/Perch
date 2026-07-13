@@ -15,7 +15,15 @@ void main() {
     SharedPreferences.setMockInitialValues({});
   });
 
-  Future<PerchBrain> pumpScene(WidgetTester tester) async {
+  Future<PerchBrain> pumpScene(
+    WidgetTester tester, {
+    Size size = const Size(1200, 800),
+  }) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     final brain = PerchBrain();
     addTearDown(brain.dispose);
 
@@ -23,13 +31,9 @@ void main() {
       PerchBrainScope(
         brain: brain,
         child: const MaterialApp(
-          home: SizedBox(
-            width: 1200,
-            height: 800,
-            child: HomePerchScene(
-              data: demoTodayData,
-              worldState: demoWorldState,
-            ),
+          home: HomePerchScene(
+            data: demoTodayData,
+            worldState: demoWorldState,
           ),
         ),
       ),
@@ -38,7 +42,24 @@ void main() {
     return brain;
   }
 
-  testWidgets('journal focus follows shared brain state', (tester) async {
+  testWidgets('journal opens a large ruled workspace on phones', (tester) async {
+    await pumpScene(tester, size: const Size(390, 844));
+
+    final journal = find.byKey(const ValueKey('desk-journal'));
+    expect(journal, findsOneWidget);
+
+    final journalSize = tester.getSize(journal);
+    expect(journalSize.width, greaterThan(350));
+
+    await tester.tap(journal);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('ruled-journal-page')), findsOneWidget);
+    expect(find.text('What matters next'), findsOneWidget);
+    expect(find.byKey(const ValueKey('desk-object-sheet')), findsOneWidget);
+  });
+
+  testWidgets('journal focus still follows shared brain state', (tester) async {
     final brain = await pumpScene(tester);
 
     expect(find.text('Back to desk'), findsNothing);
@@ -66,8 +87,7 @@ void main() {
     expect(find.text('Back to desk'), findsNothing);
   });
 
-  testWidgets('quiet view fades software while physical scene remains',
-      (tester) async {
+  testWidgets('quiet view hides software but keeps physical desk', (tester) async {
     await pumpScene(tester);
 
     AnimatedOpacity softwareOpacity() => tester.widget<AnimatedOpacity>(
@@ -78,14 +98,13 @@ void main() {
         );
 
     expect(softwareOpacity().opacity, 1);
-    expect(journalOpacity().opacity, 1);
+    expect(journalOpacity().opacity, 0);
 
     await tester.pump(const Duration(seconds: 20));
     await tester.pump();
 
     expect(softwareOpacity().opacity, 0);
     expect(journalOpacity().opacity, 0);
-
     expect(find.byKey(const ValueKey('plant-pot')), findsOneWidget);
     expect(find.byType(Image), findsWidgets);
 
@@ -96,7 +115,7 @@ void main() {
     await tester.pump();
 
     expect(softwareOpacity().opacity, 1);
-    expect(journalOpacity().opacity, 1);
+    expect(journalOpacity().opacity, 0);
   });
 
   testWidgets('focused journal prevents quiet presentation', (tester) async {
