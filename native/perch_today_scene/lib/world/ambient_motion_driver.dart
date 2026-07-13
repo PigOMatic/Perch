@@ -59,19 +59,21 @@ class _AmbientMotionDriverState extends State<AmbientMotionDriver>
   @override
   void didUpdateWidget(covariant AmbientMotionDriver oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_sameTiming(oldWidget.profile, widget.profile)) {
+    if (!_sameControllerPlan(oldWidget.profile, widget.profile)) {
       _applyProfile(widget.profile);
     }
   }
 
-  bool _sameTiming(
+  bool _sameControllerPlan(
     AmbientMotionProfile previous,
     AmbientMotionProfile next,
   ) {
     return previous.continuousMotionEnabled == next.continuousMotionEnabled &&
         previous.plantPeriod == next.plantPeriod &&
         previous.steamPeriod == next.steamPeriod &&
-        previous.lanternPeriod == next.lanternPeriod;
+        previous.lanternPeriod == next.lanternPeriod &&
+        (previous.steamDrift > 0) == (next.steamDrift > 0) &&
+        (previous.lanternPulse > 0) == (next.lanternPulse > 0);
   }
 
   void _applyProfile(AmbientMotionProfile profile) {
