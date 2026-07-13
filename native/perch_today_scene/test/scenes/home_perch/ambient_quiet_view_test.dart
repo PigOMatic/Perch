@@ -60,4 +60,31 @@ void main() {
     await tester.pump(const Duration(milliseconds: 20));
     expect(find.text('quiet'), findsOneWidget);
   });
+
+  testWidgets('keyboard input keeps an active workspace awake', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AmbientQuietView(
+          settleDelay: const Duration(milliseconds: 100),
+          builder: (context, quiet) => Column(
+            children: [
+              Text(quiet ? 'quiet' : 'working'),
+              const TextField(autofocus: true),
+            ],
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.pump(const Duration(milliseconds: 80));
+    await tester.sendKeyEvent(LogicalKeyboardKey.keyA);
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 80));
+
+    expect(find.text('working'), findsOneWidget);
+
+    await tester.pump(const Duration(milliseconds: 20));
+    expect(find.text('quiet'), findsOneWidget);
+  });
 }
