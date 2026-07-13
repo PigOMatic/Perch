@@ -53,7 +53,8 @@ class _AmbientMotionDriverState extends State<AmbientMotionDriver>
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     final lifecycleState = WidgetsBinding.instance.lifecycleState;
-    _appIsActive = lifecycleState == null || lifecycleState == AppLifecycleState.resumed;
+    _appIsActive =
+        lifecycleState == null || lifecycleState == AppLifecycleState.resumed;
     _plantController = AnimationController(vsync: this);
     _steamController = AnimationController(vsync: this);
     _lanternController = AnimationController(vsync: this);
@@ -126,18 +127,15 @@ class _AmbientMotionDriverState extends State<AmbientMotionDriver>
     controller.stop();
     controller.duration = period == Duration.zero ? null : period;
 
-    if (!_appIsActive || !enabled || period == Duration.zero) {
-      if (profileRequiresRestingFrame(widget.profile)) {
-        controller.value = restingValue;
-      }
+    if (!enabled || period == Duration.zero) {
+      controller.value = restingValue;
       return;
     }
 
+    if (!_appIsActive) return;
+
     controller.repeat(reverse: reverse);
   }
-
-  bool profileRequiresRestingFrame(AmbientMotionProfile profile) =>
-      !profile.continuousMotionEnabled;
 
   void _stopControllers() {
     _plantController.stop();
