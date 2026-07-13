@@ -25,11 +25,20 @@ class AmbientQuietView extends StatefulWidget {
 
 class _AmbientQuietViewState extends State<AmbientQuietView>
     with WidgetsBindingObserver {
-  static const _passiveActivityInterval = Duration(milliseconds: 250);
+  static const _maxPassiveActivityInterval = Duration(milliseconds: 250);
 
   Timer? _settleTimer;
   bool _quiet = false;
   DateTime? _lastPassiveActivity;
+
+  Duration get _passiveActivityInterval {
+    final quarterDelay = Duration(
+      microseconds: widget.settleDelay.inMicroseconds ~/ 4,
+    );
+    return quarterDelay < _maxPassiveActivityInterval
+        ? quarterDelay
+        : _maxPassiveActivityInterval;
+  }
 
   @override
   void initState() {
@@ -86,7 +95,9 @@ class _AmbientQuietViewState extends State<AmbientQuietView>
 
     // Pointer hover and movement can arrive at display refresh rate. Coalescing
     // those events avoids continuously allocating and cancelling timers while
-    // preserving immediate wake-up from Quiet View.
+    // preserving immediate wake-up from Quiet View. The interval scales down
+    // with short settle delays so tests and custom configurations cannot enter
+    // Quiet View while meaningful pointer movement is still occurring.
     if (_quiet) {
       _registerActivity();
       return;
