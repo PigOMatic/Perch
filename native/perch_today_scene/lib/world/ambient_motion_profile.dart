@@ -15,6 +15,9 @@ class AmbientMotionProfile {
     required this.plantSway,
     required this.steamDrift,
     required this.lanternPulse,
+    required this.plantPeriod,
+    required this.steamPeriod,
+    required this.lanternPeriod,
     required this.continuousMotionEnabled,
   });
 
@@ -28,6 +31,9 @@ class AmbientMotionProfile {
         plantSway: 0,
         steamDrift: worldState.shouldSteamCoffee ? 0.12 : 0,
         lanternPulse: worldState.shouldAutoIlluminateLantern ? 0.08 : 0,
+        plantPeriod: Duration.zero,
+        steamPeriod: Duration.zero,
+        lanternPeriod: Duration.zero,
         continuousMotionEnabled: false,
       );
     }
@@ -53,11 +59,30 @@ class AmbientMotionProfile {
 
     final lanternPulse = worldState.shouldAutoIlluminateLantern ? 0.18 : 0.0;
 
+    final plantPeriod = switch (worldState.weather) {
+      PerchWeather.wind => const Duration(milliseconds: 2600),
+      PerchWeather.rain => const Duration(milliseconds: 4200),
+      PerchWeather.snow => const Duration(milliseconds: 5600),
+      PerchWeather.fog => const Duration(milliseconds: 6800),
+      PerchWeather.clear => const Duration(milliseconds: 7600),
+    };
+
+    final steamPeriod = switch (worldState.weather) {
+      PerchWeather.wind => const Duration(milliseconds: 2200),
+      PerchWeather.rain => const Duration(milliseconds: 2900),
+      PerchWeather.snow => const Duration(milliseconds: 3800),
+      PerchWeather.fog => const Duration(milliseconds: 4300),
+      PerchWeather.clear => const Duration(milliseconds: 3600),
+    };
+
     return AmbientMotionProfile(
       weather: weather,
       plantSway: plantSway,
       steamDrift: steamDrift,
       lanternPulse: lanternPulse,
+      plantPeriod: plantPeriod,
+      steamPeriod: steamPeriod,
+      lanternPeriod: const Duration(milliseconds: 6200),
       continuousMotionEnabled: true,
     );
   }
@@ -74,6 +99,15 @@ class AmbientMotionProfile {
 
   /// Subtle breathing of lantern light. This should never read as flashing.
   final double lanternPulse;
+
+  /// Full plant sway cycle. Stronger weather moves the plant more quickly.
+  final Duration plantPeriod;
+
+  /// Full coffee-steam drift cycle.
+  final Duration steamPeriod;
+
+  /// Full lantern breathing cycle.
+  final Duration lanternPeriod;
 
   /// False when the platform requests reduced motion.
   final bool continuousMotionEnabled;
