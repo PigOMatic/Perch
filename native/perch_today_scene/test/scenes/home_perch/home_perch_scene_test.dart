@@ -6,6 +6,7 @@ import 'package:perch_today_scene/core/brain/perch_brain_scope.dart';
 import 'package:perch_today_scene/core/events/perch_event.dart';
 import 'package:perch_today_scene/data/demo_today_data.dart';
 import 'package:perch_today_scene/scenes/home_perch/home_perch_scene.dart';
+import 'package:perch_today_scene/scenes/home_perch/realistic_desk_overlay.dart';
 import 'package:perch_today_scene/world/perch_world_state.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -17,6 +18,7 @@ void main() {
   Future<PerchBrain> pumpScene(
     WidgetTester tester, {
     Size size = const Size(1200, 800),
+    PerchWorldState worldState = demoWorldState,
   }) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
@@ -29,10 +31,10 @@ void main() {
     await tester.pumpWidget(
       PerchBrainScope(
         brain: brain,
-        child: const MaterialApp(
+        child: MaterialApp(
           home: HomePerchScene(
             data: demoTodayData,
-            worldState: demoWorldState,
+            worldState: worldState,
           ),
         ),
       ),
@@ -137,5 +139,50 @@ void main() {
     expect(brain.state.journalFocused, isTrue);
     expect(journalOpacity.opacity, 1);
     expect(find.text('Back to desk'), findsOneWidget);
+  });
+
+  testWidgets('live scene applies weather strength and coffee policy',
+      (tester) async {
+    const summerMiddayRain = PerchWorldState(
+      season: PerchSeason.summer,
+      weather: PerchWeather.rain,
+      timeOfDay: PerchTimeOfDay.midday,
+      lifeContext: PerchLifeContext.home,
+      currentLocationId: 'home_perch',
+      unlockedLocationIds: ['home_perch'],
+      ambientSoundEnabled: false,
+      welcomeBackMode: false,
+    );
+
+    await pumpScene(tester, worldState: summerMiddayRain);
+
+    final weatherOverlay = tester.widget<AnimatedOpacity>(
+      find.byKey(const ValueKey('weather-motion-overlay')),
+    );
+    final deskOverlay = tester.widget<RealisticDeskOverlay>(
+      find.byType(RealisticDeskOverlay),
+    );
+
+    expect(weatherOverlay.opacity, summerMiddayRain.weatherMotionIntensity);
+    expect(deskOverlay.steamOn, isTrue);
+
+    const clearSummerMidday = PerchWorldState(
+      season: PerchSeason.summer,
+      weather: PerchWeather.clear,
+      timeOfDay: PerchTimeOfDay.midday,
+      lifeContext: PerchLifeContext.home,
+      currentLocationId: 'home_perch',
+      unlockedLocationIds: ['home_perch'],
+      ambientSoundEnabled: false,
+      welcomeBackMode: false,
+    );
+
+    await pumpScene(tester, worldState: clearSummerMidday);
+
+    final clearDeskOverlay = tester.widget<RealisticDeskOverlay>(
+      find.byType(RealisticDeskOverlay),
+    );
+    expect(find.byKey(const ValueKey('weather-motion-overlay')), findsNothing);
+    expect(clearDeskOverlay.steamOn, isFalse);
   });
 }
