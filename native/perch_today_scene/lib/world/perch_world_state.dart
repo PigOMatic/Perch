@@ -53,6 +53,42 @@ class PerchWorldState {
   bool get isWorkContext => lifeContext == PerchLifeContext.work;
   bool get hasWeatherMotion => weather != PerchWeather.clear;
 
+  /// Normalized strength for visual weather motion.
+  ///
+  /// Fog and snow should remain restful, rain can be more present, and wind is
+  /// the strongest condition. Clear weather intentionally produces no motion.
+  double get weatherMotionIntensity {
+    switch (weather) {
+      case PerchWeather.clear:
+        return 0;
+      case PerchWeather.fog:
+        return 0.22;
+      case PerchWeather.snow:
+        return 0.34;
+      case PerchWeather.rain:
+        return 0.62;
+      case PerchWeather.wind:
+        return 0.82;
+    }
+  }
+
+  /// Coffee steam is environmental, not a permanent looping decoration.
+  ///
+  /// It is most believable during cooler or restorative moments and should
+  /// settle during hot, active midday scenes. A manual brain-state switch can
+  /// still disable steam entirely before this policy is applied by the scene.
+  bool get shouldSteamCoffee {
+    if (weather == PerchWeather.snow ||
+        weather == PerchWeather.rain ||
+        weather == PerchWeather.fog) {
+      return true;
+    }
+    if (season == PerchSeason.winter || season == PerchSeason.fall) return true;
+    if (lifeContext == PerchLifeContext.recovery) return true;
+    return timeOfDay == PerchTimeOfDay.morning ||
+        timeOfDay == PerchTimeOfDay.evening;
+  }
+
   /// The lantern is part of the room rather than a dashboard control.
   /// It should quietly come alive when the room would naturally need warmth.
   bool get shouldAutoIlluminateLantern {
