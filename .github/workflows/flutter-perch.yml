@@ -57,8 +57,17 @@ jobs:
         continue-on-error: true
         run: flutter analyze --fatal-infos
 
-      - name: Run tests
-        run: flutter test --reporter=expanded
+      - name: Run tests with coverage
+        run: flutter test --coverage --reporter=expanded
+
+      - name: Upload test coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perch-flutter-coverage
+          path: native/perch_today_scene/coverage/lcov.info
+          if-no-files-found: warn
+          retention-days: 14
 
   windows-build:
     name: Build Windows desktop
@@ -92,3 +101,12 @@ jobs:
 
       - name: Build Windows release
         run: flutter build windows --release
+
+      - name: Upload Windows release build
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: perch-windows-release
+          path: native/perch_today_scene/build/windows/x64/runner/Release/**
+          if-no-files-found: error
+          retention-days: 7
