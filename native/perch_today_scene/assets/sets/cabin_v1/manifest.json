@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "id": "cabin_v1",
+  "name": "Home Perch Cabin",
+  "description": "The initial phone-first living cabin set for Perch.",
+  "designSize": {"width": 1290, "height": 2796},
+  "baseScene": "assets/scenes/home_perch/desk_reference_background.png",
+  "preview": "assets/scenes/home_perch/backgrounds/background_morning.png",
+  "capabilities": [
+    "timeOfDay",
+    "weather",
+    "identityObjects",
+    "stateObjects",
+    "memories",
+    "collectibles",
+    "worldTransition"
+  ],
+  "layers": [
+    {"id": "base", "group": "roomShell", "z": 0, "required": true},
+    {"id": "weatherBehindGlass", "group": "weather", "z": 10},
+    {"id": "windowGlass", "group": "window", "z": 20},
+    {"id": "identityProps", "group": "identity", "z": 40},
+    {"id": "stateProps", "group": "state", "z": 50},
+    {"id": "memories", "group": "memory", "z": 60},
+    {"id": "collectibles", "group": "collectible", "z": 70},
+    {"id": "ambientForeground", "group": "ambience", "z": 80},
+    {"id": "interactionFeedback", "group": "interaction", "z": 100}
+  ],
+  "cameras": [
+    {"id": "home", "frame": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0}, "durationMs": 550},
+    {"id": "journal", "frame": {"x": 0.08, "y": 0.42, "width": 0.84, "height": 0.40}, "durationMs": 650},
+    {"id": "correspondence", "frame": {"x": 0.58, "y": 0.42, "width": 0.37, "height": 0.30}, "durationMs": 550},
+    {"id": "sticky_note", "frame": {"x": 0.02, "y": 0.40, "width": 0.38, "height": 0.32}, "durationMs": 500},
+    {"id": "drink", "frame": {"x": 0.0, "y": 0.56, "width": 0.35, "height": 0.31}, "durationMs": 500},
+    {"id": "plant", "frame": {"x": 0.0, "y": 0.13, "width": 0.34, "height": 0.33}, "durationMs": 500},
+    {"id": "photo", "frame": {"x": 0.64, "y": 0.16, "width": 0.31, "height": 0.29}, "durationMs": 500},
+    {"id": "window", "frame": {"x": 0.08, "y": 0.0, "width": 0.84, "height": 0.45}, "durationMs": 700},
+    {"id": "world_transition", "frame": {"x": 0.20, "y": 0.0, "width": 0.60, "height": 0.38}, "durationMs": 900}
+  ],
+  "hitboxes": [
+    {"id": "journal", "label": "Open journal", "rect": {"x": 0.15, "y": 0.55, "width": 0.69, "height": 0.28}, "minTouch": 56, "camera": "journal", "action": "openJournal"},
+    {"id": "drink", "label": "Open drink options", "rect": {"x": 0.01, "y": 0.60, "width": 0.25, "height": 0.26}, "minTouch": 56, "camera": "drink", "action": "customizeDrink"},
+    {"id": "capture", "label": "Quick capture", "rect": {"x": 0.72, "y": 0.66, "width": 0.25, "height": 0.18}, "minTouch": 56, "action": "openQuickCapture"},
+    {"id": "correspondence", "label": "Open correspondence", "rect": {"x": 0.62, "y": 0.47, "width": 0.33, "height": 0.20}, "minTouch": 56, "camera": "correspondence", "action": "openEmailIntelligence"},
+    {"id": "sticky_note", "label": "Open priority note", "rect": {"x": 0.02, "y": 0.45, "width": 0.31, "height": 0.22}, "minTouch": 56, "camera": "sticky_note", "action": "editPriority"},
+    {"id": "plant", "label": "View plant", "rect": {"x": 0.02, "y": 0.18, "width": 0.27, "height": 0.26}, "minTouch": 56, "camera": "plant", "action": "inspectGrowth"},
+    {"id": "lamp", "label": "Toggle lamp", "rect": {"x": 0.74, "y": 0.17, "width": 0.23, "height": 0.27}, "minTouch": 56, "action": "toggleLamp"},
+    {"id": "photo", "label": "Open memories", "rect": {"x": 0.65, "y": 0.25, "width": 0.23, "height": 0.20}, "minTouch": 56, "camera": "photo", "action": "openMemories"},
+    {"id": "window", "label": "Enter world view", "rect": {"x": 0.11, "y": 0.02, "width": 0.70, "height": 0.37}, "minTouch": 64, "camera": "world_transition", "action": "enterWorld"}
+  ],
+  "objects": [
+    {
+      "id": "drink",
+      "category": "identity",
+      "slot": "desk.left.front",
+      "choices": ["coffee_mug", "tea_cup", "water_bottle", "tumbler", "protein_shaker", "energy_drink", "none"],
+      "states": ["full", "half", "empty", "hot", "cold"]
+    },
+    {
+      "id": "journal",
+      "category": "core",
+      "slot": "desk.center",
+      "choices": ["leather", "moleskine", "legal_pad", "spiral", "digital_notebook"],
+      "states": ["closed", "open_today", "open_week", "open_projects", "open_brain"]
+    },
+    {
+      "id": "writing_tool",
+      "category": "identity",
+      "slot": "desk.right.front",
+      "choices": ["fountain_pen", "gel_pen", "pencil", "mechanical_pencil", "marker"]
+    },
+    {
+      "id": "plant",
+      "category": "identity",
+      "slot": "desk.left.back",
+      "choices": ["succulent", "bonsai", "snake_plant", "pothos", "fern", "orchid", "cactus"],
+      "states": ["seed", "sprout", "small", "healthy", "mature", "flowering"]
+    },
+    {
+      "id": "lamp",
+      "category": "identity",
+      "slot": "desk.right.back",
+      "choices": ["oil_lantern", "edison_lamp", "desk_lamp", "candle", "salt_lamp", "camp_lantern"],
+      "states": ["off", "dim", "warm", "storm"]
+    },
+    {
+      "id": "sticky_note",
+      "category": "state",
+      "slot": "desk.left.middle",
+      "states": ["blank", "active", "completed", "replaced"]
+    },
+    {
+      "id": "photo",
+      "category": "state",
+      "slot": "desk.right.back",
+      "states": ["family", "trip", "seasonal", "memory"]
+    }
+  ],
+  "slots": {
+    "memory": [
+      {"id": "memory.desk.left", "rect": {"x": 0.02, "y": 0.70, "width": 0.18, "height": 0.12}},
+      {"id": "memory.desk.right", "rect": {"x": 0.80, "y": 0.63, "width": 0.17, "height": 0.15}},
+      {"id": "memory.shelf.one", "rect": {"x": 0.05, "y": 0.06, "width": 0.18, "height": 0.12}}
+    ],
+    "collectible": [
+      {"id": "collectible.journal.cover", "rect": {"x": 0.35, "y": 0.57, "width": 0.22, "height": 0.15}},
+      {"id": "collectible.desk.center", "rect": {"x": 0.46, "y": 0.75, "width": 0.14, "height": 0.10}},
+      {"id": "collectible.shelf.two", "rect": {"x": 0.77, "y": 0.07, "width": 0.16, "height": 0.12}}
+    ]
+  },
+  "ambientChannels": [
+    {"id": "steam", "source": "drink", "enabledWhen": "drink.hot", "motion": "slowRise"},
+    {"id": "lampGlow", "source": "lamp", "enabledWhen": "lamp.on", "motion": "softPulse"},
+    {"id": "rainGlass", "source": "window", "enabledWhen": "weather.rain", "motion": "downwardDrift"},
+    {"id": "snowOutside", "source": "window", "enabledWhen": "weather.snow", "motion": "slowFall"},
+    {"id": "plantSway", "source": "plant", "enabledWhen": "ambience.wind", "motion": "microSway"},
+    {"id": "lightShift", "source": "scene", "enabledWhen": "always", "motion": "timeOfDay"}
+  ],
+  "lighting": {
+    "dawn": {"background": "assets/scenes/home_perch/backgrounds/background_dawn.png", "lampPolicy": "optional"},
+    "morning": {"background": "assets/scenes/home_perch/backgrounds/background_morning.png", "lampPolicy": "off"},
+    "afternoon": {"background": "assets/scenes/home_perch/backgrounds/background_afternoon.png", "lampPolicy": "off"},
+    "goldenHour": {"background": "assets/scenes/home_perch/backgrounds/background_golden_hour.png", "lampPolicy": "optional"},
+    "night": {"background": "assets/scenes/home_perch/backgrounds/background_night.png", "lampPolicy": "on"},
+    "rain": {"background": "assets/scenes/home_perch/backgrounds/background_rain.png", "lampPolicy": "optional"},
+    "snow": {"background": "assets/scenes/home_perch/backgrounds/background_snow.png", "lampPolicy": "optional"},
+    "storm": {"background": "assets/scenes/home_perch/backgrounds/background_storm.png", "lampPolicy": "storm"}
+  },
+  "evolutionRules": [
+    {"id": "plant_growth", "event": "growth.progressed", "target": "plant.stage", "effect": "advanceNonPunitive"},
+    {"id": "trip_memory", "event": "trip.completed", "target": "memory.slot", "effect": "placeRegionalMemory"},
+    {"id": "collectible_earned", "event": "collectible.earned", "target": "collectible.slot", "effect": "placeIfAvailable"},
+    {"id": "project_landmark", "event": "project.milestone.completed", "target": "world.landmark", "effect": "advance"},
+    {"id": "seasonal_decor", "event": "season.changed", "target": "scene.seasonal", "effect": "replaceTemporary"},
+    {"id": "photo_rotation", "event": "memory.featured", "target": "photo.current", "effect": "replace"}
+  ]
+}
