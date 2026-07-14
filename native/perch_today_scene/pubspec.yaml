@@ -18,3 +18,5 @@ flutter:
     - assets/scenes/home_perch/journal_open_today.png
     - assets/scenes/home_perch/backgrounds/
     - assets/objects/
+dev_dependencies:
+  flutter_lints: ^6.0.0
