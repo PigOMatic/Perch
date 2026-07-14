@@ -2,6 +2,22 @@ class HomePerchAssets {
   const HomePerchAssets._();
 
   static const sceneRoot = 'assets/scenes/home_perch';
+  static const backgroundRoot = '$sceneRoot/backgrounds';
+
+  static const backgrounds = <HomePerchBackgroundOption>[
+    HomePerchBackgroundOption('Dawn', '$backgroundRoot/background_dawn.png'),
+    HomePerchBackgroundOption('Morning', '$backgroundRoot/background_morning.png'),
+    HomePerchBackgroundOption('Afternoon', '$backgroundRoot/background_afternoon.png'),
+    HomePerchBackgroundOption('Golden', '$backgroundRoot/background_golden_hour.png'),
+    HomePerchBackgroundOption('Night', '$backgroundRoot/background_night.png'),
+    HomePerchBackgroundOption('Rain', '$backgroundRoot/background_rain.png'),
+    HomePerchBackgroundOption('Snow', '$backgroundRoot/background_snow.png'),
+    HomePerchBackgroundOption('Storm', '$backgroundRoot/background_storm.png'),
+  ];
+
+  static const deskInteractionBackground =
+      '$sceneRoot/desk_reference_background.png';
+  static const journalOpenToday = '$sceneRoot/journal_open_today.png';
 
   static const background = '$sceneRoot/background_cabin_desk.png';
   static const deskSurface = '$sceneRoot/desk_surface.webp';
@@ -13,4 +29,11 @@ class HomePerchAssets {
   static const coffeeMug = '$sceneRoot/coffee_mug.webp';
   static const pen = '$sceneRoot/pen.webp';
   static const badge = '$sceneRoot/icu_badge.webp';
+}
+
+class HomePerchBackgroundOption {
+  const HomePerchBackgroundOption(this.label, this.assetPath);
+
+  final String label;
+  final String assetPath;
 }
