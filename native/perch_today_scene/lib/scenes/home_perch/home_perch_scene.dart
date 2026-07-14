@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 
 import '../../assets/home_perch_assets.dart';
 import '../../data/perch_today_models.dart';
+import '../../scene_kit/perch_scene_hit_map.dart';
+import '../../scene_kit/perch_scene_set.dart';
 import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
-import 'coffee_steam_object.dart';
-import 'desk_functionality_layer.dart';
 import 'journal_engine.dart';
 
 class HomePerchScene extends StatefulWidget {
@@ -28,11 +28,32 @@ class HomePerchScene extends StatefulWidget {
 class _HomePerchSceneState extends State<HomePerchScene> {
   static const double _journalAspectRatio = 1.55;
 
+  late final Future<PerchSceneSet> _sceneFuture;
   bool _journalFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _sceneFuture = const PerchSceneSetLoader().loadCabin();
+  }
 
   void _setJournalFocused(bool value) {
     if (_journalFocused == value) return;
     setState(() => _journalFocused = value);
+  }
+
+  void _handleSceneAction(PerchSceneHitbox hitbox) {
+    switch (hitbox.action) {
+      case 'openJournal':
+        _setJournalFocused(true);
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            duration: const Duration(milliseconds: 900),
+            content: Text('${hitbox.label} is connected to the Scene Kit.'),
+          ),
+        );
+    }
   }
 
   @override
@@ -92,12 +113,17 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                 ),
               ),
             ),
-            DeskFunctionalityLayer(
-              data: widget.data,
-              journalFocused: _journalFocused,
-            ),
-            CoffeeSteamObject(
-              journalFocused: _journalFocused,
+            FutureBuilder<PerchSceneSet>(
+              future: _sceneFuture,
+              builder: (context, snapshot) {
+                final scene = snapshot.data;
+                if (scene == null) return const SizedBox.shrink();
+                return PerchSceneHitMap(
+                  scene: scene,
+                  enabled: !_journalFocused,
+                  onAction: _handleSceneAction,
+                );
+              },
             ),
             IgnorePointer(
               ignoring: !_journalFocused,
@@ -112,7 +138,9 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                       sigmaX: _journalFocused ? 5 : 0,
                       sigmaY: _journalFocused ? 5 : 0,
                     ),
-                    child: Container(color: Colors.black.withOpacity(0.36)),
+                    child: Container(
+                      color: Colors.black.withValues(alpha: 0.36),
+                    ),
                   ),
                 ),
               ),
@@ -124,49 +152,42 @@ class _HomePerchSceneState extends State<HomePerchScene> {
               top: _journalFocused ? focusedTop : compactTop,
               width: _journalFocused ? focusedWidth : compactWidth,
               height: _journalFocused ? focusedHeight : compactHeight,
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: _journalFocused
-                    ? null
-                    : () => _setJournalFocused(true),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 560),
-                  curve: Curves.easeInOutCubicEmphasized,
-                  transform: _journalFocused
-                      ? Matrix4.identity()
-                      : (Matrix4.identity()..rotateZ(-0.008)),
-                  transformAlignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(
-                      _journalFocused ? 18 : 12,
+              child: IgnorePointer(
+                ignoring: !_journalFocused,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 320),
+                  opacity: _journalFocused ? 1 : 0,
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 560),
+                    curve: Curves.easeInOutCubicEmphasized,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.55),
+                          blurRadius: 46,
+                          spreadRadius: 6,
+                          offset: const Offset(0, 22),
+                        ),
+                      ],
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(
-                          _journalFocused ? 0.55 : 0.42,
-                        ),
-                        blurRadius: _journalFocused ? 46 : 24,
-                        spreadRadius: _journalFocused ? 6 : 1,
-                        offset: Offset(0, _journalFocused ? 22 : 12),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      PerchAssetLayer(
-                        assetPath: HomePerchAssets.journalOpenToday,
-                        fit: BoxFit.contain,
-                        alignment: Alignment.center,
-                        fallback: const _BackgroundMissingFallback(
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        PerchAssetLayer(
                           assetPath: HomePerchAssets.journalOpenToday,
+                          fit: BoxFit.contain,
+                          alignment: Alignment.center,
+                          fallback: const _BackgroundMissingFallback(
+                            assetPath: HomePerchAssets.journalOpenToday,
+                          ),
                         ),
-                      ),
-                      JournalEngine(
-                        data: widget.data,
-                        focused: _journalFocused,
-                      ),
-                    ],
+                        JournalEngine(
+                          data: widget.data,
+                          focused: _journalFocused,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -184,10 +205,10 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                         vertical: 9,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF17110D).withOpacity(0.86),
+                        color: const Color(0xFF17110D).withValues(alpha: 0.86),
                         borderRadius: BorderRadius.circular(18),
                         border: Border.all(
-                          color: Colors.white.withOpacity(0.16),
+                          color: Colors.white.withValues(alpha: 0.16),
                         ),
                       ),
                       child: const Row(
