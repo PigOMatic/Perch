@@ -1,15 +1,12 @@
-import 'dart:math' as math;
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
 import '../../assets/home_perch_assets.dart';
 import '../../data/perch_today_models.dart';
-import '../../scene_kit/perch_scene_hit_map.dart';
-import '../../scene_kit/perch_scene_set.dart';
 import '../../widgets/perch_asset_layer.dart';
 import '../../world/perch_world_state.dart';
-import 'journal_engine.dart';
+import 'desk_rollup_panel.dart';
 
 class HomePerchScene extends StatefulWidget {
   const HomePerchScene({
@@ -26,84 +23,106 @@ class HomePerchScene extends StatefulWidget {
 }
 
 class _HomePerchSceneState extends State<HomePerchScene> {
-  static const double _journalAspectRatio = 1.55;
+  DeskRollupSpec? _activePanel;
 
-  late final Future<PerchSceneSet> _sceneFuture;
-  bool _journalFocused = false;
+  static const _journal = DeskRollupSpec(
+    id: 'journal',
+    title: 'Journal',
+    subtitle: 'Your day, plans, and thoughts.',
+    icon: Icons.menu_book_rounded,
+    accent: Color(0xFF7B4D2B),
+    entries: ['Today', 'This Week', 'Projects', 'Brain Inbox', 'Recent Notes'],
+  );
 
-  @override
-  void initState() {
-    super.initState();
-    _sceneFuture = const PerchSceneSetLoader().loadCabin();
-  }
+  static const _drink = DeskRollupSpec(
+    id: 'drink',
+    title: 'Daily Energy',
+    subtitle: 'A quiet check-in with what is fueling you.',
+    icon: Icons.local_cafe_rounded,
+    accent: Color(0xFF8A542F),
+    entries: ['Water today', 'Coffee & caffeine', 'Tea', 'Energy check', 'Choose desk drink'],
+  );
 
-  void _setJournalFocused(bool value) {
-    if (_journalFocused == value) return;
-    setState(() => _journalFocused = value);
-  }
+  static const _note = DeskRollupSpec(
+    id: 'note',
+    title: 'Quick Capture',
+    subtitle: 'Get it out of your head before it disappears.',
+    icon: Icons.sticky_note_2_rounded,
+    accent: Color(0xFFB18324),
+    entries: ['New thought', 'New task', 'Remember later', 'Ask Perch', 'Recent captures'],
+  );
 
-  void _handleSceneAction(PerchSceneHitbox hitbox) {
-    switch (hitbox.action) {
-      case 'openJournal':
-        _setJournalFocused(true);
-      default:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            duration: const Duration(milliseconds: 900),
-            content: Text('${hitbox.label} is connected to the Scene Kit.'),
-          ),
-        );
-    }
-  }
+  static const _mail = DeskRollupSpec(
+    id: 'mail',
+    title: 'Correspondence',
+    subtitle: 'Only the messages that may matter to your life.',
+    icon: Icons.mark_email_unread_rounded,
+    accent: Color(0xFF7B3F35),
+    entries: ['Needs your attention', 'Bills & renewals', 'Travel', 'Project updates', 'Review email signals'],
+  );
+
+  static const _plant = DeskRollupSpec(
+    id: 'plant',
+    title: 'Growth',
+    subtitle: 'A reflection of steady progress, never punishment.',
+    icon: Icons.spa_rounded,
+    accent: Color(0xFF477346),
+    entries: ['Current growth', 'Habits', 'Health', 'Sleep & recovery', 'Plant story'],
+  );
+
+  static const _lantern = DeskRollupSpec(
+    id: 'lantern',
+    title: 'Ambience',
+    subtitle: 'Shape the feeling of your Perch.',
+    icon: Icons.light_mode_rounded,
+    accent: Color(0xFFC2762A),
+    entries: ['Lantern glow', 'Time of day', 'Weather ambience', 'Quiet mode', 'Soundscape'],
+  );
+
+  static const _photo = DeskRollupSpec(
+    id: 'photo',
+    title: 'Memories',
+    subtitle: 'Small pieces of life that quietly stay with you.',
+    icon: Icons.photo_library_rounded,
+    accent: Color(0xFF6D587D),
+    entries: ['Featured memory', 'Family', 'Trips', 'Recent moments', 'Desk photo rotation'],
+  );
+
+  static const _shelf = DeskRollupSpec(
+    id: 'shelf',
+    title: 'Collection',
+    subtitle: 'Stickers, charms, souvenirs, and things you have earned.',
+    icon: Icons.auto_awesome_rounded,
+    accent: Color(0xFF4B6E79),
+    entries: ['Desk collectibles', 'Journal stickers', 'Travel souvenirs', 'Memory objects', 'Arrange later'],
+  );
+
+  static const _world = DeskRollupSpec(
+    id: 'world',
+    title: 'Your World',
+    subtitle: 'The landscape beyond your desk will grow with your life.',
+    icon: Icons.landscape_rounded,
+    accent: Color(0xFF3F6770),
+    entries: ['World view placeholder', 'Home', 'Trails', 'Places & travel', 'World evolution'],
+  );
+
+  void _open(DeskRollupSpec spec) => setState(() => _activePanel = spec);
+
+  void _close() => setState(() => _activePanel = null);
 
   @override
   Widget build(BuildContext context) {
+    final panelOpen = _activePanel != null;
+
     return LayoutBuilder(
       builder: (context, constraints) {
-        final size = constraints.biggest;
-        final portrait = size.height >= size.width;
-        final availableWidth = math.max(0.0, size.width - 24);
-
-        final desiredCompactWidth = math.max(
-          280.0,
-          size.width * (portrait ? 0.90 : 0.78),
-        );
-        final compactWidth = math.min(
-          availableWidth,
-          math.min(720.0, desiredCompactWidth),
-        );
-        final compactHeight = compactWidth / _journalAspectRatio;
-
-        final compactBottom = math.max(18.0, size.height * 0.055);
-        final compactTop = math.max(
-          12.0,
-          size.height - compactHeight - compactBottom,
-        );
-
-        var focusedWidth = math.min(
-          size.width * (portrait ? 0.98 : 0.94),
-          1100.0,
-        );
-        var focusedHeight = focusedWidth / _journalAspectRatio;
-        final maxFocusedHeight = size.height * (portrait ? 0.64 : 0.82);
-        if (focusedHeight > maxFocusedHeight) {
-          focusedHeight = maxFocusedHeight;
-          focusedWidth = focusedHeight * _journalAspectRatio;
-        }
-
-        final focusedLeft = (size.width - focusedWidth) / 2;
-        final focusedTop = portrait
-            ? math.max(74.0, (size.height - focusedHeight) / 2)
-            : (size.height - focusedHeight) / 2;
-        final compactLeft = (size.width - compactWidth) / 2;
-
         return Stack(
           fit: StackFit.expand,
           children: [
             AnimatedScale(
-              duration: const Duration(milliseconds: 520),
-              curve: Curves.easeInOutCubic,
-              scale: _journalFocused ? 1.035 : 1,
+              duration: const Duration(milliseconds: 460),
+              curve: Curves.easeOutCubic,
+              scale: panelOpen ? 1.025 : 1,
               child: PerchAssetLayer(
                 assetPath: HomePerchAssets.deskInteractionBackground,
                 fit: BoxFit.cover,
@@ -113,129 +132,139 @@ class _HomePerchSceneState extends State<HomePerchScene> {
                 ),
               ),
             ),
-            FutureBuilder<PerchSceneSet>(
-              future: _sceneFuture,
-              builder: (context, snapshot) {
-                final scene = snapshot.data;
-                if (scene == null) return const SizedBox.shrink();
-                return PerchSceneHitMap(
-                  scene: scene,
-                  enabled: !_journalFocused,
-                  onAction: _handleSceneAction,
-                );
-              },
+            _DeskHitRegions(
+              enabled: !panelOpen,
+              onJournal: () => _open(_journal),
+              onDrink: () => _open(_drink),
+              onNote: () => _open(_note),
+              onMail: () => _open(_mail),
+              onPlant: () => _open(_plant),
+              onLantern: () => _open(_lantern),
+              onPhoto: () => _open(_photo),
+              onShelf: () => _open(_shelf),
+              onWorld: () => _open(_world),
             ),
             IgnorePointer(
-              ignoring: !_journalFocused,
+              ignoring: !panelOpen,
               child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 420),
-                opacity: _journalFocused ? 1 : 0,
+                duration: const Duration(milliseconds: 300),
+                opacity: panelOpen ? 1 : 0,
                 child: GestureDetector(
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => _setJournalFocused(false),
+                  onTap: _close,
                   child: BackdropFilter(
                     filter: ImageFilter.blur(
-                      sigmaX: _journalFocused ? 5 : 0,
-                      sigmaY: _journalFocused ? 5 : 0,
+                      sigmaX: panelOpen ? 4 : 0,
+                      sigmaY: panelOpen ? 4 : 0,
                     ),
-                    child: Container(
-                      color: Colors.black.withValues(alpha: 0.36),
+                    child: ColoredBox(
+                      color: Colors.black.withValues(alpha: 0.30),
                     ),
                   ),
                 ),
               ),
             ),
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 560),
-              curve: Curves.easeInOutCubicEmphasized,
-              left: _journalFocused ? focusedLeft : compactLeft,
-              top: _journalFocused ? focusedTop : compactTop,
-              width: _journalFocused ? focusedWidth : compactWidth,
-              height: _journalFocused ? focusedHeight : compactHeight,
+            AnimatedAlign(
+              duration: const Duration(milliseconds: 520),
+              curve: Curves.easeOutCubic,
+              alignment: panelOpen ? Alignment.bottomCenter : const Alignment(0, 1.9),
               child: IgnorePointer(
-                ignoring: !_journalFocused,
-                child: AnimatedOpacity(
-                  duration: const Duration(milliseconds: 320),
-                  opacity: _journalFocused ? 1 : 0,
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 560),
-                    curve: Curves.easeInOutCubicEmphasized,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.55),
-                          blurRadius: 46,
-                          spreadRadius: 6,
-                          offset: const Offset(0, 22),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        PerchAssetLayer(
-                          assetPath: HomePerchAssets.journalOpenToday,
-                          fit: BoxFit.contain,
-                          alignment: Alignment.center,
-                          fallback: const _BackgroundMissingFallback(
-                            assetPath: HomePerchAssets.journalOpenToday,
-                          ),
-                        ),
-                        JournalEngine(
-                          data: widget.data,
-                          focused: _journalFocused,
-                        ),
-                      ],
-                    ),
-                  ),
+                ignoring: !panelOpen,
+                child: SizedBox(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight * 0.68,
+                  child: _activePanel == null
+                      ? const SizedBox.shrink()
+                      : DeskRollupPanel(spec: _activePanel!, onClose: _close),
                 ),
               ),
             ),
-            if (_journalFocused)
-              Positioned(
-                left: 14,
-                top: 14,
-                child: SafeArea(
-                  child: GestureDetector(
-                    onTap: () => _setJournalFocused(false),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 13,
-                        vertical: 9,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF17110D).withValues(alpha: 0.86),
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.16),
-                        ),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.arrow_back,
-                            color: Color(0xFFF6E8C8),
-                            size: 18,
-                          ),
-                          SizedBox(width: 7),
-                          Text(
-                            'Back to desk',
-                            style: TextStyle(
-                              color: Color(0xFFF6E8C8),
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
           ],
         );
       },
+    );
+  }
+}
+
+class _DeskHitRegions extends StatelessWidget {
+  const _DeskHitRegions({
+    required this.enabled,
+    required this.onJournal,
+    required this.onDrink,
+    required this.onNote,
+    required this.onMail,
+    required this.onPlant,
+    required this.onLantern,
+    required this.onPhoto,
+    required this.onShelf,
+    required this.onWorld,
+  });
+
+  final bool enabled;
+  final VoidCallback onJournal;
+  final VoidCallback onDrink;
+  final VoidCallback onNote;
+  final VoidCallback onMail;
+  final VoidCallback onPlant;
+  final VoidCallback onLantern;
+  final VoidCallback onPhoto;
+  final VoidCallback onShelf;
+  final VoidCallback onWorld;
+
+  @override
+  Widget build(BuildContext context) {
+    return IgnorePointer(
+      ignoring: !enabled,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final size = constraints.biggest;
+
+          Widget region(
+            String label,
+            double left,
+            double top,
+            double width,
+            double height,
+            VoidCallback onTap,
+          ) {
+            return Positioned(
+              left: size.width * left,
+              top: size.height * top,
+              width: size.width * width,
+              height: size.height * height,
+              child: Semantics(
+                button: true,
+                label: label,
+                child: Tooltip(
+                  message: label,
+                  child: MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onTap: onTap,
+                      child: const SizedBox.expand(),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return Stack(
+            children: [
+              region('Open journal', 0.25, 0.51, 0.50, 0.30, onJournal),
+              region('Daily energy', 0.00, 0.56, 0.27, 0.27, onDrink),
+              region('Quick capture', 0.69, 0.65, 0.28, 0.22, onNote),
+              region('Correspondence', 0.70, 0.47, 0.28, 0.18, onMail),
+              region('Growth', 0.00, 0.10, 0.28, 0.34, onPlant),
+              region('Ambience', 0.70, 0.14, 0.28, 0.32, onLantern),
+              region('Memories', 0.68, 0.30, 0.22, 0.17, onPhoto),
+              region('Collection', 0.00, 0.00, 0.28, 0.16, onShelf),
+              region('Enter world view', 0.22, 0.00, 0.56, 0.40, onWorld),
+            ],
+          );
+        },
+      ),
     );
   }
 }
