@@ -3,6 +3,8 @@ class HomePerchAssets {
 
   static const sceneRoot = 'assets/scenes/home_perch';
   static const backgroundRoot = '$sceneRoot/backgrounds';
+  static const cabinMasterV1 =
+      'assets/sets/cabin_v1/base/cabin_master_v1.png';
 
   static const backgrounds = <HomePerchBackgroundOption>[
     HomePerchBackgroundOption('Dawn', '$backgroundRoot/background_dawn.png'),
